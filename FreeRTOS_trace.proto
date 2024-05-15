@@ -1,0 +1,110 @@
+syntax = "proto2";
+
+message TraceEvent {
+  required uint64 ts_ns = 1;
+  optional uint32 dropped_evts_cnt = 2;
+
+  oneof event {
+    // #### Tasks Scheduling ####
+
+    // A task has been allowed to run. Value is task id.
+    uint32 task_switched_in = 3;
+    // A task has been put into the ready state. Value is task id.
+    uint32 task_to_ready_state = 4;
+    // A task has been resumed, putting it into the ready state. Value is task
+    // id.
+    uint32 task_resumed = 5;
+    // A task has been suspended, putting it into the suspended state. Value is
+    // task id.
+    uint32 task_suspended = 6;
+
+    // #### Tasks Blocking ####
+    // Trace events indicating that the current task has been blocked, and it
+    // will now be switched out. After being switched out, it will be in the
+    // `blocked` state.
+
+    // Current task about to block on delay. Value is do-not-care.
+    bool task_delay = 7;
+    // Current task about to block on queue peek. Value is queue id.
+    uint32 task_blocking_on_queue_peek = 8;
+    // uint32_t block on queue send. Value is queue id.
+    uint32 task_blocking_on_queue_send = 9;
+    // uint32_t block on queue receive. Value is queue id.
+    uint32 task_blocking_on_queue_receive = 10;
+    // Current task about to block on stream buffer send. Value is sb id.
+    uint32 task_blocking_on_sb_send = 11;
+    // Current task about to block on stream buffer receive. Value is sb id.
+    uint32 task_blocking_on_sb_receive = 12;
+
+    // #### Task Priority Change ####
+
+    // Task priority has been manually updated.
+    TaskPriorityEvent task_priority_set = 13;
+    // Task priority temporarily increased because it is holding a mutex.
+    TaskPriorityEvent task_priority_inherit = 14;
+    // Task priority decreased to original value because it relased mutex.
+    TaskPriorityEvent task_priority_disinherit = 15;
+
+    // #### Task Creation/Destruction ####
+
+    // A new task has been created.
+    TaskCreatedEvent task_created = 16;
+    // A task has been deleted. Value is task id.
+    uint32 task_deleted = 17;
+
+    // #### Interrupts ####
+
+    // ISR metadata/info received.
+    ISRInfoEvent isr_info = 18;
+    // ISR entered ISR. Value is ISR id.
+    uint32 isr_enter = 19;
+    // Exited ISR. Value is ISR id.
+    uint32 isr_exit = 20;
+
+    // #### RTOS Queues ####
+
+    // Queue (which could bequeue, mutex, semaphore) created.
+    QueueCreatedEvent queue_create = 21;
+    // Queue named.
+    QueueInfoEvent queue_info = 22;.
+    // Sent to queue. Value is queue id.
+    uint32 queue_send = 23;
+    // Receive from queue. Value is queue id.
+    uint32 queue_receive = 24;
+  }
+}
+
+message TaskPriorityEvent {
+  required uint32 task_id = 1;.
+  required uint32 new_priority = 2;
+}.
+
+message TaskCreatedEvent {
+  required uint32 task_id = 1;
+  required uint32 priority = 2;
+  required string name = 3;
+}
+
+message ISRInfoEvent {
+  required uint32 isr_id = 1;..
+  required string name = 2;
+}
+
+enum QueueKind {
+  QK_QUEUE = 1;
+  QK_COUNTING_SEMAPHORE = 2;
+  QK_BINARY_SEMAPHORE = 3;
+  QK_MUTEX = 4;
+  QK_RECURSIVE_MUTEX = 5;
+}
+
+message QueueCreatedEvent {
+  required uint32 id = 1;
+  required QueueKind kind = 2;
+  required uint32 size = 3;
+}
+
+message QueueInfoEvent {
+  required uint32 id = 1;
+  required string name = 2;
+}..
