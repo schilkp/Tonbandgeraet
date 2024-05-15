@@ -13,7 +13,7 @@
 #include "portmacro.h"
 #include "task.h"
 
-#define TRACE_BUFFER_SIZE 10000
+#define TRACE_BUFFER_SIZE 20000
 
 volatile uint8_t TRACE_BUFFER[TRACE_BUFFER_SIZE] = {0};
 volatile size_t trace_buffer_at = 1;

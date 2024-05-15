@@ -30,10 +30,10 @@ typedef struct _TaskCreatedEvent {
     char name[10];
 } TaskCreatedEvent;
 
-typedef struct _ISRInfoEvent {
-    uint32_t isr_id;
+typedef struct _NameEvent {
+    uint32_t id;
     char name[10];
-} ISRInfoEvent;
+} NameEvent;
 
 typedef struct _QueueCreatedEvent {
     uint32_t id;
@@ -41,10 +41,16 @@ typedef struct _QueueCreatedEvent {
     uint32_t size;
 } QueueCreatedEvent;
 
-typedef struct _QueueInfoEvent {
+typedef struct _StreamBufferCreatedEvent {
     uint32_t id;
-    char name[10];
-} QueueInfoEvent;
+    uint32_t size;
+    bool is_message_buffer;
+} StreamBufferCreatedEvent;
+
+typedef struct _StreamBufferTransferEvent {
+    uint32_t id;
+    uint32_t amnt;
+} StreamBufferTransferEvent;
 
 typedef struct _TraceEvent {
     uint64_t ts_ns;
@@ -84,8 +90,8 @@ typedef struct _TraceEvent {
         TaskCreatedEvent task_created;
         /* A task has been deleted. Value is task id. */
         uint32_t task_deleted;
-        /* ISR metadata/info received. */
-        ISRInfoEvent isr_info;
+        /* ISR name received. */
+        NameEvent isr_name;
         /* ISR entered ISR. Value is ISR id. */
         uint32_t isr_enter;
         /* Exited ISR. Value is ISR id. */
@@ -93,11 +99,21 @@ typedef struct _TraceEvent {
         /* Queue (which could bequeue, mutex, semaphore) created. */
         QueueCreatedEvent queue_create;
         /* Queue named. */
-        QueueInfoEvent queue_info;
+        NameEvent queue_name;
         /* Sent to queue. Value is queue id. */
         uint32_t queue_send;
         /* Receive from queue. Value is queue id. */
         uint32_t queue_receive;
+        /* Stream buffer created. */
+        StreamBufferCreatedEvent stream_buffer_create;
+        /* Stream buffer named. */
+        NameEvent stream_buffer_name;
+        /* Receive from stream buffer. */
+        StreamBufferTransferEvent stream_buffer_receive;
+        /* Send to stream buffer. */
+        StreamBufferTransferEvent stream_buffer_send;
+        /* Stream buffer reset. value is stream buffer id. */
+        uint32_t stream_buffer_reset;
     } event;
 } TraceEvent;
 
@@ -119,19 +135,22 @@ extern "C" {
 
 
 
+
 /* Initializer values for message structs */
 #define TraceEvent_init_default                  {0, false, 0, 0, {0}}
 #define TaskPriorityEvent_init_default           {0, 0}
 #define TaskCreatedEvent_init_default            {0, 0, ""}
-#define ISRInfoEvent_init_default                {0, ""}
+#define NameEvent_init_default                   {0, ""}
 #define QueueCreatedEvent_init_default           {0, _QueueKind_MIN, 0}
-#define QueueInfoEvent_init_default              {0, ""}
+#define StreamBufferCreatedEvent_init_default    {0, 0, 0}
+#define StreamBufferTransferEvent_init_default   {0, 0}
 #define TraceEvent_init_zero                     {0, false, 0, 0, {0}}
 #define TaskPriorityEvent_init_zero              {0, 0}
 #define TaskCreatedEvent_init_zero               {0, 0, ""}
-#define ISRInfoEvent_init_zero                   {0, ""}
+#define NameEvent_init_zero                      {0, ""}
 #define QueueCreatedEvent_init_zero              {0, _QueueKind_MIN, 0}
-#define QueueInfoEvent_init_zero                 {0, ""}
+#define StreamBufferCreatedEvent_init_zero       {0, 0, 0}
+#define StreamBufferTransferEvent_init_zero      {0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define TaskPriorityEvent_task_id_tag            1
@@ -139,13 +158,16 @@ extern "C" {
 #define TaskCreatedEvent_task_id_tag             1
 #define TaskCreatedEvent_priority_tag            2
 #define TaskCreatedEvent_name_tag                3
-#define ISRInfoEvent_isr_id_tag                  1
-#define ISRInfoEvent_name_tag                    2
+#define NameEvent_id_tag                         1
+#define NameEvent_name_tag                       2
 #define QueueCreatedEvent_id_tag                 1
 #define QueueCreatedEvent_kind_tag               2
 #define QueueCreatedEvent_size_tag               3
-#define QueueInfoEvent_id_tag                    1
-#define QueueInfoEvent_name_tag                  2
+#define StreamBufferCreatedEvent_id_tag          1
+#define StreamBufferCreatedEvent_size_tag        2
+#define StreamBufferCreatedEvent_is_message_buffer_tag 3
+#define StreamBufferTransferEvent_id_tag         1
+#define StreamBufferTransferEvent_amnt_tag       2
 #define TraceEvent_ts_ns_tag                     1
 #define TraceEvent_dropped_evts_cnt_tag          2
 #define TraceEvent_task_switched_in_tag          3
@@ -163,13 +185,18 @@ extern "C" {
 #define TraceEvent_task_priority_disinherit_tag  15
 #define TraceEvent_task_created_tag              16
 #define TraceEvent_task_deleted_tag              17
-#define TraceEvent_isr_info_tag                  18
+#define TraceEvent_isr_name_tag                  18
 #define TraceEvent_isr_enter_tag                 19
 #define TraceEvent_isr_exit_tag                  20
 #define TraceEvent_queue_create_tag              21
-#define TraceEvent_queue_info_tag                22
+#define TraceEvent_queue_name_tag                22
 #define TraceEvent_queue_send_tag                23
 #define TraceEvent_queue_receive_tag             24
+#define TraceEvent_stream_buffer_create_tag      25
+#define TraceEvent_stream_buffer_name_tag        26
+#define TraceEvent_stream_buffer_receive_tag     27
+#define TraceEvent_stream_buffer_send_tag        28
+#define TraceEvent_stream_buffer_reset_tag       29
 
 /* Struct field encoding specification for nanopb */
 #define TraceEvent_FIELDLIST(X, a) \
@@ -190,22 +217,31 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (event,task_priority_inherit,event.task_prior
 X(a, STATIC,   ONEOF,    MESSAGE,  (event,task_priority_disinherit,event.task_priority_disinherit),  15) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (event,task_created,event.task_created),  16) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,task_deleted,event.task_deleted),  17) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,isr_info,event.isr_info),  18) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,isr_name,event.isr_name),  18) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,isr_enter,event.isr_enter),  19) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,isr_exit,event.isr_exit),  20) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_create,event.queue_create),  21) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_info,event.queue_info),  22) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_name,event.queue_name),  22) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,queue_send,event.queue_send),  23) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,queue_receive,event.queue_receive),  24)
+X(a, STATIC,   ONEOF,    UINT32,   (event,queue_receive,event.queue_receive),  24) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_create,event.stream_buffer_create),  25) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_name,event.stream_buffer_name),  26) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_receive,event.stream_buffer_receive),  27) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_send,event.stream_buffer_send),  28) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,stream_buffer_reset,event.stream_buffer_reset),  29)
 #define TraceEvent_CALLBACK NULL
 #define TraceEvent_DEFAULT NULL
 #define TraceEvent_event_task_priority_set_MSGTYPE TaskPriorityEvent
 #define TraceEvent_event_task_priority_inherit_MSGTYPE TaskPriorityEvent
 #define TraceEvent_event_task_priority_disinherit_MSGTYPE TaskPriorityEvent
 #define TraceEvent_event_task_created_MSGTYPE TaskCreatedEvent
-#define TraceEvent_event_isr_info_MSGTYPE ISRInfoEvent
+#define TraceEvent_event_isr_name_MSGTYPE NameEvent
 #define TraceEvent_event_queue_create_MSGTYPE QueueCreatedEvent
-#define TraceEvent_event_queue_info_MSGTYPE QueueInfoEvent
+#define TraceEvent_event_queue_name_MSGTYPE NameEvent
+#define TraceEvent_event_stream_buffer_create_MSGTYPE StreamBufferCreatedEvent
+#define TraceEvent_event_stream_buffer_name_MSGTYPE NameEvent
+#define TraceEvent_event_stream_buffer_receive_MSGTYPE StreamBufferTransferEvent
+#define TraceEvent_event_stream_buffer_send_MSGTYPE StreamBufferTransferEvent
 
 #define TaskPriorityEvent_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   task_id,           1) \
@@ -220,11 +256,11 @@ X(a, STATIC,   REQUIRED, STRING,   name,              3)
 #define TaskCreatedEvent_CALLBACK NULL
 #define TaskCreatedEvent_DEFAULT NULL
 
-#define ISRInfoEvent_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, UINT32,   isr_id,            1) \
+#define NameEvent_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UINT32,   id,                1) \
 X(a, STATIC,   REQUIRED, STRING,   name,              2)
-#define ISRInfoEvent_CALLBACK NULL
-#define ISRInfoEvent_DEFAULT NULL
+#define NameEvent_CALLBACK NULL
+#define NameEvent_DEFAULT NULL
 
 #define QueueCreatedEvent_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   id,                1) \
@@ -233,32 +269,42 @@ X(a, STATIC,   REQUIRED, UINT32,   size,              3)
 #define QueueCreatedEvent_CALLBACK NULL
 #define QueueCreatedEvent_DEFAULT (const pb_byte_t*)"\x10\x01\x00"
 
-#define QueueInfoEvent_FIELDLIST(X, a) \
+#define StreamBufferCreatedEvent_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   id,                1) \
-X(a, STATIC,   REQUIRED, STRING,   name,              2)
-#define QueueInfoEvent_CALLBACK NULL
-#define QueueInfoEvent_DEFAULT NULL
+X(a, STATIC,   REQUIRED, UINT32,   size,              2) \
+X(a, STATIC,   REQUIRED, BOOL,     is_message_buffer,   3)
+#define StreamBufferCreatedEvent_CALLBACK NULL
+#define StreamBufferCreatedEvent_DEFAULT NULL
+
+#define StreamBufferTransferEvent_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UINT32,   id,                1) \
+X(a, STATIC,   REQUIRED, UINT32,   amnt,              2)
+#define StreamBufferTransferEvent_CALLBACK NULL
+#define StreamBufferTransferEvent_DEFAULT NULL
 
 extern const pb_msgdesc_t TraceEvent_msg;
 extern const pb_msgdesc_t TaskPriorityEvent_msg;
 extern const pb_msgdesc_t TaskCreatedEvent_msg;
-extern const pb_msgdesc_t ISRInfoEvent_msg;
+extern const pb_msgdesc_t NameEvent_msg;
 extern const pb_msgdesc_t QueueCreatedEvent_msg;
-extern const pb_msgdesc_t QueueInfoEvent_msg;
+extern const pb_msgdesc_t StreamBufferCreatedEvent_msg;
+extern const pb_msgdesc_t StreamBufferTransferEvent_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define TraceEvent_fields &TraceEvent_msg
 #define TaskPriorityEvent_fields &TaskPriorityEvent_msg
 #define TaskCreatedEvent_fields &TaskCreatedEvent_msg
-#define ISRInfoEvent_fields &ISRInfoEvent_msg
+#define NameEvent_fields &NameEvent_msg
 #define QueueCreatedEvent_fields &QueueCreatedEvent_msg
-#define QueueInfoEvent_fields &QueueInfoEvent_msg
+#define StreamBufferCreatedEvent_fields &StreamBufferCreatedEvent_msg
+#define StreamBufferTransferEvent_fields &StreamBufferTransferEvent_msg
 
 /* Maximum encoded size of messages (where known) */
 #define FREERTOS_TRACE_PB_H_MAX_SIZE             TraceEvent_size
-#define ISRInfoEvent_size                        17
+#define NameEvent_size                           17
 #define QueueCreatedEvent_size                   14
-#define QueueInfoEvent_size                      17
+#define StreamBufferCreatedEvent_size            14
+#define StreamBufferTransferEvent_size           12
 #define TaskCreatedEvent_size                    23
 #define TaskPriorityEvent_size                   12
 #define TraceEvent_size                          43

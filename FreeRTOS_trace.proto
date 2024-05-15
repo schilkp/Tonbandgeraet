@@ -54,8 +54,8 @@ message TraceEvent {
 
     // #### Interrupts ####
 
-    // ISR metadata/info received.
-    ISRInfoEvent isr_info = 18;
+    // ISR name received.
+    NameEvent isr_name = 18;
     // ISR entered ISR. Value is ISR id.
     uint32 isr_enter = 19;
     // Exited ISR. Value is ISR id.
@@ -66,18 +66,31 @@ message TraceEvent {
     // Queue (which could bequeue, mutex, semaphore) created.
     QueueCreatedEvent queue_create = 21;
     // Queue named.
-    QueueInfoEvent queue_info = 22;.
+    NameEvent queue_name = 22;
     // Sent to queue. Value is queue id.
     uint32 queue_send = 23;
     // Receive from queue. Value is queue id.
     uint32 queue_receive = 24;
+
+    // #### Stream Buffers ####
+
+    // Stream buffer created.
+    StreamBufferCreatedEvent stream_buffer_create = 25;
+    // Stream buffer named.
+    NameEvent stream_buffer_name = 26;
+    // Receive from stream buffer.
+    StreamBufferTransferEvent stream_buffer_receive = 27;
+    // Send to stream buffer.
+    StreamBufferTransferEvent stream_buffer_send = 28;
+    // Stream buffer reset. value is stream buffer id.
+    uint32 stream_buffer_reset = 29;
   }
 }
 
 message TaskPriorityEvent {
-  required uint32 task_id = 1;.
+  required uint32 task_id = 1;
   required uint32 new_priority = 2;
-}.
+}
 
 message TaskCreatedEvent {
   required uint32 task_id = 1;
@@ -85,15 +98,13 @@ message TaskCreatedEvent {
   required string name = 3;
 }
 
-message ISRInfoEvent {
-  required uint32 isr_id = 1;..
+message NameEvent {
+  required uint32 id = 1;
   required string name = 2;
 }
 
 enum QueueKind {
-  QK_QUEUE = 1;
-  QK_COUNTING_SEMAPHORE = 2;
-  QK_BINARY_SEMAPHORE = 3;
+  QK_QUEUE = 1; QK_COUNTING_SEMAPHORE = 2; QK_BINARY_SEMAPHORE = 3;
   QK_MUTEX = 4;
   QK_RECURSIVE_MUTEX = 5;
 }
@@ -104,7 +115,13 @@ message QueueCreatedEvent {
   required uint32 size = 3;
 }
 
-message QueueInfoEvent {
+message StreamBufferCreatedEvent {
   required uint32 id = 1;
-  required string name = 2;
-}..
+  required uint32 size = 2;
+  required bool is_message_buffer = 3;
+}
+
+message StreamBufferTransferEvent {
+  required uint32 id = 1;
+  required uint32 amnt = 2;
+}

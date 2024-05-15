@@ -162,14 +162,33 @@ void trace_queue_create(void *handle, uint8_t type_val, uint32_t len);
 #define trace_recursive_mutex_name(handle, name)    impl_trace_queue_name(handle, name)
 void impl_trace_queue_name(void *queue_handle, char *name);
 
-#define traceQUEUE_SEND(pxQueue) trace_queue_send((uint32_t)(pxQueue)->uxQueueNumber)
+#define traceQUEUE_SEND(pxQueue)          trace_queue_send((uint32_t)(pxQueue)->uxQueueNumber)
 #define traceQUEUE_SEND_FROM_ISR(pxQueue) trace_queue_send((uint32_t)(pxQueue)->uxQueueNumber)
 void trace_queue_send(uint32_t id);
 
-#define traceQUEUE_RECEIVE(pxQueue) trace_queue_receive((uint32_t)(pxQueue)->uxQueueNumber)
+#define traceQUEUE_RECEIVE(pxQueue)          trace_queue_receive((uint32_t)(pxQueue)->uxQueueNumber)
 #define traceQUEUE_RECEIVE_FROM_ISR(pxQueue) trace_queue_receive((uint32_t)(pxQueue)->uxQueueNumber)
 void trace_queue_receive(uint32_t id);
 
+// #### Stream Buffers ####
+
+#define traceSTREAM_BUFFER_CREATE(pxStreamBuffer, xIsMessageBuffer)                                                    \
+  trace_stream_buffer_create(pxStreamBuffer, /* handle */ (uint32_t)(pxStreamBuffer)->xLength,                         \
+                             /* length */ xIsMessageBuffer)
+void trace_stream_buffer_create(void *handle, uint32_t len, int is_message_buffer);
+
+#define trace_stream_buffer_name(handle, name) impl_trace_stream_buffer_name(handle, name)
+void impl_trace_stream_buffer_name(void *handle, char *name);
+
+#define traceSTREAM_BUFFER_SEND(xStreamBuffer, xBytesSent)                                                             \
+  trace_stream_buffer_send((xStreamBuffer)->uxStreamBufferNumber, (uint32_t)(xBytesSent))
+#define traceSTREAM_BUFFER_SEND_FROM_ISR(xStreamBuffer, xBytesSent)                                                    \
+  trace_stream_buffer_send((xStreamBuffer)->uxStreamBufferNumber, (uint32_t)(xBytesSent))
+void trace_stream_buffer_send(uint32_t id, uint32_t len);
+
+#define traceSTREAM_BUFFER_RECEIVE(xStreamBuffer, xReceivedLength)                                                     \
+  trace_stream_buffer_receive((xStreamBuffer)->uxStreamBufferNumber, (xReceivedLength))
+void trace_stream_buffer_receive(uint32_t id, uint32_t len);
 
 #endif /* traceconfigENABLE == 1*/
 
@@ -205,6 +224,10 @@ void trace_queue_receive(uint32_t id);
 #ifndef trace_recursive_mutex_name
 #define trace_recursive_mutex_name(handle, name)
 #endif /* trace_recursive_mutex_name */
+
+#ifndef trace_stream_buffer_name
+#define trace_stream_buffer_name(handle, name)
+#endif /* trace_stream_buffer_name */
 
 #if defined(__cplusplus)
 }

@@ -1,3 +1,2 @@
 TaskCreatedEvent.name max_size:10
-ISRInfoEvent.name max_size:10
-QueueInfoEvent.name max_size:10
+NameEvent.name max_size:10

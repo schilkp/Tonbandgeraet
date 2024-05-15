@@ -7,15 +7,15 @@
 #include "FreeRTOS.h"
 #if (traceconfigENABLE == 1)
 
-#include "queue.h"
-#include "task.h"
-
 // std:
 #include <assert.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 
 // FreeRTOS:
+#include "queue.h"
+#include "stream_buffer.h"
+#include "task.h"
 
 // nanopb:
 #include "FreeRTOS_trace.pb.h"
@@ -40,6 +40,25 @@ static inline uint32_t normalise_isr_id(int32_t isr_id) {
   }
 }
 
+static inline NameEvent name_event(uint32_t id, char *name) {
+
+  static const size_t trace_max_name_len = pb_arraysize(NameEvent, name);
+
+  NameEvent evt = {.id = id, .name = {0}};
+
+  for (size_t i = 0; i < trace_max_name_len; i++) {
+    evt.name[i] = name[i];
+    if (name[i] == 0) {
+      break;
+    }
+  }
+
+  // Ensure string is terminated no matter what:
+  evt.name[trace_max_name_len - 1] = 0;
+
+  return evt;
+}
+
 // ===== STATE =================================================================
 
 volatile atomic_uint dropped_evt_cnt = 0;
@@ -48,6 +67,7 @@ volatile atomic_uint dropped_evt_cnt_inclusion_cycle = 0;
 volatile atomic_bool dropped_evt_cnt_has_increased = false;
 
 volatile atomic_uint next_queue_id = 0;
+volatile atomic_uint next_stream_buffer_id = 0;
 
 static inline void include_dropped_evt_cnt(TraceEvent *evt) {
   evt->has_dropped_evts_cnt = false;
@@ -287,26 +307,11 @@ void impl_trace_isr_exit(int32_t isr_id) {
 }
 
 void impl_trace_isr_name(int32_t isr_id, char *name) {
-
-  static const size_t trace_max_name_len = pb_arraysize(ISRInfoEvent, name);
-
   TraceEvent evt = {
       .ts_ns = traceportTIMESTAMP_NS(),
-      .which_event = TraceEvent_isr_info_tag,
-      .event.isr_info = {.isr_id = normalise_isr_id(isr_id), .name = {0}},
+      .which_event = TraceEvent_isr_name_tag,
+      .event.isr_name = name_event(normalise_isr_id(isr_id), name),
   };
-
-  for (size_t i = 0; i < trace_max_name_len; i++) {
-    evt.event.isr_info.name[i] = name[i];
-    if (name[i] == 0) {
-      break;
-    }
-  }
-
-  // Ensure string is terminated no matter what:
-  evt.event.isr_info.name[trace_max_name_len - 1] = 0;
-
-  // Submit:
   include_dropped_evt_cnt(&evt);
   handle_trace_evt(&evt);
 }
@@ -356,28 +361,12 @@ void trace_queue_create(void *handle, uint8_t type_val, uint32_t len) {
 
 void impl_trace_queue_name(void *queue_handle, char *name) {
   uint32_t id = (uint32_t)uxQueueGetQueueNumber((QueueHandle_t)queue_handle);
-
-  static const size_t trace_max_name_len = pb_arraysize(QueueInfoEvent, name);
-
   TraceEvent evt = {
       .ts_ns = traceportTIMESTAMP_NS(),
-      .which_event = TraceEvent_queue_info_tag,
-      .event.queue_info = {.id = id, .name = {0}
+      .which_event = TraceEvent_queue_name_tag,
+      .event.queue_name = name_event(id, name),
 
-      },
   };
-
-  for (size_t i = 0; i < trace_max_name_len; i++) {
-    evt.event.queue_info.name[i] = name[i];
-    if (name[i] == 0) {
-      break;
-    }
-  }
-
-  // Ensure string is terminated no matter what:
-  evt.event.queue_info.name[trace_max_name_len - 1] = 0;
-
-  // Submit:
   include_dropped_evt_cnt(&evt);
   handle_trace_evt(&evt);
 }
@@ -397,6 +386,61 @@ void trace_queue_receive(uint32_t id) {
       .ts_ns = traceportTIMESTAMP_NS(),
       .which_event = TraceEvent_queue_receive_tag,
       .event.queue_receive = id,
+  };
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt);
+}
+
+// #### Stream Buffers ####
+
+void trace_stream_buffer_create(void *handle, uint32_t len, int is_message_buffer) {
+
+  StreamBufferHandle_t sb = (StreamBufferHandle_t)handle;
+
+  uint32_t id = (uint32_t)atomic_fetch_add(&next_stream_buffer_id, 1);
+  vStreamBufferSetStreamBufferNumber(sb, (UBaseType_t)id);
+
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_stream_buffer_create_tag,
+      .event.stream_buffer_create =
+          {
+              .id = id,
+              .size = len,
+              .is_message_buffer = (bool) is_message_buffer,
+          },
+  };
+
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt);
+}
+
+void impl_trace_stream_buffer_name(void *handle, char *name) {
+  uint32_t id = (uint32_t)uxStreamBufferGetStreamBufferNumber((StreamBufferHandle_t)handle);
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_stream_buffer_name_tag,
+      .event.stream_buffer_name = name_event(id, name),
+  };
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt);
+}
+
+void trace_stream_buffer_send(uint32_t id, uint32_t len) {
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_stream_buffer_send_tag,
+      .event.stream_buffer_send = {.id = id, .amnt = len},
+  };
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt);
+}
+
+void trace_stream_buffer_receive(uint32_t id, uint32_t len) {
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_stream_buffer_receive_tag,
+      .event.stream_buffer_receive = {.id = id, .amnt = len},
   };
   include_dropped_evt_cnt(&evt);
   handle_trace_evt(&evt);
