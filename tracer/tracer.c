@@ -1,6 +1,6 @@
 /**
- * @file tracing_hooks.c
- * @brief FreeRTOS tracing hooks.
+ * @file tracer.c
+ * @brief FreeRTOS tracer
  * @author Philipp Schilk, 2024
  */
 
@@ -407,7 +407,7 @@ void trace_stream_buffer_create(void *handle, uint32_t len, int is_message_buffe
           {
               .id = id,
               .size = len,
-              .is_message_buffer = (bool) is_message_buffer,
+              .is_message_buffer = (bool)is_message_buffer,
           },
   };
 
@@ -448,7 +448,8 @@ void trace_stream_buffer_receive(uint32_t id, uint32_t len) {
 
 // ===== Trace Handling ========================================================
 
-static_assert(TraceEvent_size < 245, "Trace Event too large for fast simplistics COBS framing used.");
+static_assert(TraceEvent_size < 245,
+              "Trace Event too large for fast simplistics COBS framing used.");
 
 inline static void handle_trace_evt(TraceEvent *evt) {
 
