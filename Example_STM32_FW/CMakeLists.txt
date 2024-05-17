@@ -34,22 +34,22 @@ add_subdirectory(cmake/stm32cubemx)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined library search paths
 )
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # FreeRTOS Core:
-    Libs/FreeRTOS/Source/croutine.c
-    Libs/FreeRTOS/Source/event_groups.c
-    Libs/FreeRTOS/Source/list.c
-    Libs/FreeRTOS/Source/queue.c
-    Libs/FreeRTOS/Source/stream_buffer.c
-    Libs/FreeRTOS/Source/tasks.c
-    Libs/FreeRTOS/Source/timers.c
+    Libs/FreeRTOS/croutine.c
+    Libs/FreeRTOS/event_groups.c
+    Libs/FreeRTOS/list.c
+    Libs/FreeRTOS/queue.c
+    Libs/FreeRTOS/stream_buffer.c
+    Libs/FreeRTOS/tasks.c
+    Libs/FreeRTOS/timers.c
 
     # FreeRTOS port:
-    Libs/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
+    Libs/FreeRTOS/portable/GCC/ARM_CM4F/port.c
+    Core/Src/static_mem.c
 
     # Tracing:
     ../tracer/protos/pb_common.c
@@ -67,8 +67,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # FreeRTOS:
-    Libs/FreeRTOS/Source/include
-    Libs/FreeRTOS/Source/portable/GCC/ARM_CM4F
+    Libs/FreeRTOS/include
+    Libs/FreeRTOS/portable/GCC/ARM_CM4F
 
     # Tracing:
     ../tracer/
@@ -80,12 +80,9 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined symbols
 )
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-
-    # Add user defined libraries
 )
