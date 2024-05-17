@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass
 from typing import List, Literal, Optional, OrderedDict, Tuple
 
-from protos.FreeRTOS_trace_pb2 import QueueKind, TraceEvent
+from protos.FreeRTOS_trace_pb2 import QueueKind, StreamBufferKind, TraceEvent
 
 
 def eprint(*args, **kwargs):
@@ -142,7 +142,6 @@ class Queue:
     id: int
     name: Optional[str]
     kind: Optional[QueueKindName]
-    size: Optional[int]
     state_evts: List[Tuple[Timestamp, int]]
 
     def __init__(self, isr_id: int):
@@ -150,7 +149,6 @@ class Queue:
         self.name = None
         self.state_evts = []
         self.kind = None
-        self.size = None
 
     def set_kind(self, kind):
         if kind == QueueKind.QK_QUEUE:
@@ -176,23 +174,34 @@ class Queue:
         return f"{self.name or str(self.id)} ({self.kind or 'unknown'})"
 
 
+type StreamBufferKindName = Literal[
+    "stream buffer", "message buffer"
+]
+
+
 class StreamBuffer:
     id: int
     name: Optional[str]
-    size: Optional[int]
     state_evts: List[Tuple[Timestamp, int]]
+    kind: Optional[StreamBufferKindName]
 
     def __init__(self, id: int):
         self.id = id
         self.name = None
-        self.szie = None
         self.state_evts = []
+        self.kind = None
 
     def current_state(self) -> int:
         if len(self.state_evts) == 0:
             return 0
         else:
             return self.state_evts[-1][1]
+
+    def set_kind(self, kind):
+        if kind == StreamBufferKind.SB_NORMAL:
+            self.kind = "stream buffer"
+        else:
+            self.kind = "message buffer"
 
     def __str__(self) -> str:
         return f"{self.name or str(self.id)}"
@@ -411,13 +420,15 @@ class TraceState:
                 self.ensure_task_exists(task_id)
                 self.tasks[task_id].priority_evts.append((ts, p))
 
-            elif evt.HasField("task_created"):
-                task_id = evt.task_created.task_id
-                task_name = evt.task_created.name
-                task_priority = evt.task_created.priority
+            elif evt.HasField("task_create"):
+                task_id = evt.task_create
                 self.ensure_task_exists(task_id)
-                self.tasks[task_id].name = task_name
-                self.tasks[task_id].priority_evts.append((ts, task_priority))
+
+            elif evt.HasField("task_name"):
+                task_id = evt.task_name.id
+                name = evt.task_name.name
+                self.ensure_task_exists(task_id)
+                self.tasks[task_id].name = name
 
             elif evt.HasField("task_deleted"):
                 task_id = evt.task_deleted
@@ -455,14 +466,19 @@ class TraceState:
 
             elif evt.HasField("queue_create"):
                 queue_id = evt.queue_create
-                self.ensure_queue_exists(queue_id.id)
-                self.queues[queue_id.id].set_kind(queue_id.kind)
-                self.queues[queue_id.id].size = queue_id.size
+                self.ensure_queue_exists(queue_id)
 
             elif evt.HasField("queue_name"):
-                info = evt.queue_name
-                self.ensure_queue_exists(info.id)
-                self.queues[info.id].name = info.name
+                queue_id = evt.queue_name.id
+                name = evt.queue_name.name
+                self.ensure_queue_exists(queue_id)
+                self.queues[queue_id].name = name
+
+            elif evt.HasField("queue_kind"):
+                queue_id = evt.queue_kind.id
+                kind = evt.queue_kind.kind
+                self.ensure_queue_exists(queue_id)
+                self.queues[queue_id].set_kind(kind)
 
             elif evt.HasField("queue_send"):
                 queue_id = evt.queue_send
@@ -476,11 +492,20 @@ class TraceState:
                 new_state = self.queues[queue_id].current_state() - 1
                 self.queues[queue_id].state_evts.append((ts, new_state))
 
+            elif evt.HasField("queue_reset"):
+                queue_id = evt.queue_reset
+                self.ensure_queue_exists(queue_id)
+                self.queues[queue_id].state_evts.append((ts, 0))
+
             elif evt.HasField("stream_buffer_create"):
-                sb_id = evt.stream_buffer_create.id
-                size = evt.stream_buffer_create.size
+                sb_id = evt.stream_buffer_create
                 self.ensure_stream_buffer_exists(sb_id)
-                self.stream_buffers[sb_id].size = size
+
+            elif evt.HasField("stream_buffer_kind"):
+                sb_id = evt.stream_buffer_kind.id
+                sb_kind = evt.stream_buffer_kind.kind
+                self.ensure_stream_buffer_exists(sb_id)
+                self.stream_buffers[sb_id].set_kind(sb_kind)
 
             elif evt.HasField("stream_buffer_name"):
                 sb_id = evt.stream_buffer_name.id
@@ -508,7 +533,6 @@ class TraceState:
                 self.stream_buffers[sb_id].state_evts.append((ts, 0))
 
             else:
-                eprint(f"Warning: Event with unknown event type '{evt.WhichOneof('event')}':\n{str(evt)}")
                 self.error_evts.append((evt.ts_ns, "Invalid Event"))
 
         else:

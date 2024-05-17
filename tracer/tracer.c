@@ -29,7 +29,7 @@
 
 // ===== PRIVATE FUNCS =========================================================
 
-static inline void handle_trace_evt(TraceEvent *evt);
+static inline void handle_trace_evt(TraceEvent *evt, bool is_metadata);
 static inline void cobs_frame(uint8_t *buf, size_t msg_len);
 
 static inline uint32_t normalise_isr_id(int32_t isr_id) {
@@ -95,8 +95,6 @@ static inline void include_dropped_evt_cnt(TraceEvent *evt) {
 
 // ===== TRACE HOOKS ===========================================================
 
-// #### Tasks Scheduling ####
-
 void trace_task_switched_in(uint32_t task_id) {
   TraceEvent evt = {
       .ts_ns = traceportTIMESTAMP_NS(),
@@ -104,7 +102,7 @@ void trace_task_switched_in(uint32_t task_id) {
       .event.task_switched_in = task_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_moved_task_to_ready_state(uint32_t task_id) {
@@ -114,7 +112,7 @@ void trace_moved_task_to_ready_state(uint32_t task_id) {
       .event.task_to_ready_state = task_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_task_resume(uint32_t task_id) {
@@ -124,7 +122,7 @@ void trace_task_resume(uint32_t task_id) {
       .event.task_resumed = task_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_task_suspend(uint32_t task_id) {
@@ -134,12 +132,8 @@ void trace_task_suspend(uint32_t task_id) {
       .event.task_suspended = task_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
-
-// #### Tasks Blocking ####
-// Trace events indicating that the current task has been blocked, and it will now be
-// switched out. After being switched out, it will be in the `blocked` state.
 
 void trace_task_delay(void) {
   TraceEvent evt = {
@@ -148,7 +142,7 @@ void trace_task_delay(void) {
       .event.task_delay = true, // Value is dont-care
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_blocking_on_queue_peek(uint32_t queue_id) {
@@ -158,7 +152,7 @@ void trace_blocking_on_queue_peek(uint32_t queue_id) {
       .event.task_blocking_on_queue_peek = queue_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_blocking_on_queue_receive(uint32_t queue_id) {
@@ -169,7 +163,7 @@ void trace_blocking_on_queue_receive(uint32_t queue_id) {
       .event.task_blocking_on_queue_receive = queue_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_blocking_on_queue_send(uint32_t queue_id) {
@@ -180,7 +174,7 @@ void trace_blocking_on_queue_send(uint32_t queue_id) {
       .event.task_blocking_on_queue_send = queue_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_blocking_on_stream_buffer_receive(uint32_t sb_id) {
@@ -191,7 +185,7 @@ void trace_blocking_on_stream_buffer_receive(uint32_t sb_id) {
       .event.task_blocking_on_sb_receive = sb_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_blocking_on_stream_buffer_send(uint32_t sb_id) {
@@ -201,7 +195,7 @@ void trace_blocking_on_stream_buffer_send(uint32_t sb_id) {
       .event.task_blocking_on_sb_send = sb_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 // #### Tasks Priority Changes ####
@@ -213,7 +207,7 @@ void trace_task_priority_inherit(uint32_t task_id, uint32_t priority) {
       .event.task_priority_inherit = {.task_id = task_id, .new_priority = priority},
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_task_priority_disinherit(uint32_t task_id, uint32_t priority) {
@@ -223,7 +217,7 @@ void trace_task_priority_disinherit(uint32_t task_id, uint32_t priority) {
       .event.task_priority_disinherit = {.task_id = task_id, .new_priority = priority},
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_task_priority_set(uint32_t task_id, uint32_t priority) {
@@ -233,37 +227,39 @@ void trace_task_priority_set(uint32_t task_id, uint32_t priority) {
       .event.task_priority_set = {.task_id = task_id, .new_priority = priority},
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 // #### Tasks Creation / Destruction ####
 
 void trace_task_create(uint32_t task_id, uint32_t priority, char *name) {
 
-  static const size_t trace_max_name_len = pb_arraysize(TaskCreatedEvent, name);
-  static const size_t freeRTOS_max_name_len = configMAX_TASK_NAME_LEN;
-  static const size_t max_name_len =
-      trace_max_name_len > freeRTOS_max_name_len ? freeRTOS_max_name_len : trace_max_name_len;
-
-  TraceEvent evt = {
+  // Submit 'task created` event:
+  TraceEvent evt1 = {
       .ts_ns = traceportTIMESTAMP_NS(),
-      .which_event = TraceEvent_task_created_tag,
-      .event.task_created = {.task_id = task_id, .priority = priority, .name = {0}},
+      .which_event = TraceEvent_task_create_tag,
+      .event.task_create = task_id,
   };
+  include_dropped_evt_cnt(&evt1);
+  handle_trace_evt(&evt1, false);
 
-  for (size_t i = 0; i < max_name_len; i++) {
-    evt.event.task_created.name[i] = name[i];
-    if (name[i] == 0) {
-      break;
-    }
-  }
+  // Submit task metadata:
+  TraceEvent evt2 = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_task_name_tag,
+      .event.task_name = name_event(task_id, name),
+  };
+  include_dropped_evt_cnt(&evt2);
+  handle_trace_evt(&evt2, true);
 
-  // Ensure string is terminated no matter what:
-  evt.event.task_created.name[trace_max_name_len - 1] = 0;
-
-  // Submit:
-  include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  // Submit task priority:
+  TraceEvent evt3 = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_task_priority_set_tag,
+      .event.task_priority_set = {.task_id = task_id, .new_priority = priority},
+  };
+  include_dropped_evt_cnt(&evt3);
+  handle_trace_evt(&evt3, true);
 }
 
 void trace_task_delete(uint32_t task_id) {
@@ -273,7 +269,7 @@ void trace_task_delete(uint32_t task_id) {
       .event.task_deleted = task_id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 // #### ISRs ####
@@ -289,7 +285,7 @@ void impl_trace_isr_enter(int32_t isr_id) {
   // We don't include the dropped count to avoid slowing ISRs
   // unecessarily.
   evt.has_dropped_evts_cnt = false;
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void impl_trace_isr_exit(int32_t isr_id) {
@@ -303,7 +299,7 @@ void impl_trace_isr_exit(int32_t isr_id) {
   // We don't include the dropped count to avoid slowing ISRs
   // unecessarily.
   evt.has_dropped_evts_cnt = false;
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void impl_trace_isr_name(int32_t isr_id, char *name) {
@@ -313,12 +309,12 @@ void impl_trace_isr_name(int32_t isr_id, char *name) {
       .event.isr_name = name_event(normalise_isr_id(isr_id), name),
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, true);
 }
 
 // #### Queues (and other basic RTOS resources) ####
 
-void trace_queue_create(void *handle, uint8_t type_val, uint32_t len) {
+void trace_queue_create(void *handle, uint8_t type_val) {
 
   QueueKind kind;
 
@@ -348,15 +344,23 @@ void trace_queue_create(void *handle, uint8_t type_val, uint32_t len) {
   uint32_t id = (uint32_t)atomic_fetch_add(&next_queue_id, 1);
   vQueueSetQueueNumber(queue, (UBaseType_t)id);
 
-  TraceEvent evt = {
+  // Submit created event:
+  TraceEvent evt1 = {
       .ts_ns = traceportTIMESTAMP_NS(),
       .which_event = TraceEvent_queue_create_tag,
-      .event.queue_create = {.id = id, .size = len, .kind = kind},
+      .event.queue_create = id,
   };
+  include_dropped_evt_cnt(&evt1);
+  handle_trace_evt(&evt1, false);
 
-  // Submit:
-  include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  // Submit metadata:
+  TraceEvent evt2 = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_queue_kind_tag,
+      .event.queue_kind = {.id = id, .kind = kind},
+  };
+  include_dropped_evt_cnt(&evt2);
+  handle_trace_evt(&evt2, true);
 }
 
 void impl_trace_queue_name(void *queue_handle, char *name) {
@@ -368,7 +372,7 @@ void impl_trace_queue_name(void *queue_handle, char *name) {
 
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, true);
 }
 
 void trace_queue_send(uint32_t id) {
@@ -378,7 +382,7 @@ void trace_queue_send(uint32_t id) {
       .event.queue_send = id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_queue_receive(uint32_t id) {
@@ -388,31 +392,36 @@ void trace_queue_receive(uint32_t id) {
       .event.queue_receive = id,
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 // #### Stream Buffers ####
 
-void trace_stream_buffer_create(void *handle, uint32_t len, int is_message_buffer) {
+void trace_stream_buffer_create(void *handle, int is_message_buffer) {
 
   StreamBufferHandle_t sb = (StreamBufferHandle_t)handle;
 
   uint32_t id = (uint32_t)atomic_fetch_add(&next_stream_buffer_id, 1);
   vStreamBufferSetStreamBufferNumber(sb, (UBaseType_t)id);
 
-  TraceEvent evt = {
+  // Submit stream buffer created event:
+  TraceEvent evt1 = {
       .ts_ns = traceportTIMESTAMP_NS(),
       .which_event = TraceEvent_stream_buffer_create_tag,
-      .event.stream_buffer_create =
-          {
-              .id = id,
-              .size = len,
-              .is_message_buffer = (bool)is_message_buffer,
-          },
+      .event.stream_buffer_create = id,
   };
+  include_dropped_evt_cnt(&evt1);
+  handle_trace_evt(&evt1, false);
 
-  include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  StreamBufferKind kind =
+      is_message_buffer ? StreamBufferKind_SB_MESSAGE_BUFFER : StreamBufferKind_SB_NORMAL;
+
+  // Submit metadata:
+  TraceEvent evt2 = {.ts_ns = traceportTIMESTAMP_NS(),
+                     .which_event = TraceEvent_stream_buffer_kind_tag,
+                     .event.stream_buffer_kind = {.id = id, .kind = kind}};
+  include_dropped_evt_cnt(&evt2);
+  handle_trace_evt(&evt2, true);
 }
 
 void impl_trace_stream_buffer_name(void *handle, char *name) {
@@ -423,7 +432,7 @@ void impl_trace_stream_buffer_name(void *handle, char *name) {
       .event.stream_buffer_name = name_event(id, name),
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, true);
 }
 
 void trace_stream_buffer_send(uint32_t id, uint32_t len) {
@@ -433,7 +442,7 @@ void trace_stream_buffer_send(uint32_t id, uint32_t len) {
       .event.stream_buffer_send = {.id = id, .amnt = len},
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 void trace_stream_buffer_receive(uint32_t id, uint32_t len) {
@@ -443,7 +452,7 @@ void trace_stream_buffer_receive(uint32_t id, uint32_t len) {
       .event.stream_buffer_receive = {.id = id, .amnt = len},
   };
   include_dropped_evt_cnt(&evt);
-  handle_trace_evt(&evt);
+  handle_trace_evt(&evt, false);
 }
 
 // ===== Trace Handling ========================================================
@@ -451,7 +460,7 @@ void trace_stream_buffer_receive(uint32_t id, uint32_t len) {
 static_assert(TraceEvent_size < 245,
               "Trace Event too large for fast simplistics COBS framing used.");
 
-inline static void handle_trace_evt(TraceEvent *evt) {
+inline static void handle_trace_evt(TraceEvent *evt, bool is_metadata) {
 
   // Output buffer.
   // COBS framing will always require exactly two bytes of overhead since we
@@ -468,7 +477,7 @@ inline static void handle_trace_evt(TraceEvent *evt) {
   cobs_frame(evt_bytes, proto_len);
 
   // Submit to port:
-  bool did_drop_evt = traceportHANDLE_RAW_EVT(evt_bytes, proto_len + 2);
+  bool did_drop_evt = traceportHANDLE_RAW_EVT(evt_bytes, proto_len + 2, is_metadata);
 
   // Handle dropped evt:
   if (did_drop_evt) {

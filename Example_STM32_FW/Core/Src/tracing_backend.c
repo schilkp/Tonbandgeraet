@@ -20,7 +20,9 @@ volatile size_t trace_buffer_at = 1;
 
 char hex_lut[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-bool traceport_handle_raw_evt(uint8_t *buf, size_t len) {
+bool traceport_handle_raw_evt(uint8_t *buf, size_t len, bool is_metadata) {
+
+  UNUSED(is_metadata);
 
   bool did_drop = false;
 

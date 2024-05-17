@@ -1,89 +1,116 @@
 syntax = "proto2";
 
 message TraceEvent {
+  // Note: Use tags up to 15 for most common events, as they encode to 1 byte.
+
   required uint64 ts_ns = 1;
   optional uint32 dropped_evts_cnt = 2;
 
   oneof event {
-    // #### Tasks Scheduling ####
+
+    // ######## Scheduling/Execution Tracing ###################################
 
     // A task has been allowed to run. Value is task id.
     uint32 task_switched_in = 3;
+
     // A task has been put into the ready state. Value is task id.
     uint32 task_to_ready_state = 4;
+
     // A task has been resumed, putting it into the ready state. Value is task
     // id.
-    uint32 task_resumed = 5;
+    uint32 task_resumed = 16;
+
     // A task has been suspended, putting it into the suspended state. Value is
     // task id.
-    uint32 task_suspended = 6;
-
-    // #### Tasks Blocking ####
-    // Trace events indicating that the current task has been blocked, and it
-    // will now be switched out. After being switched out, it will be in the
-    // `blocked` state.
-
-    // Current task about to block on delay. Value is do-not-care.
-    bool task_delay = 7;
-    // Current task about to block on queue peek. Value is queue id.
-    uint32 task_blocking_on_queue_peek = 8;
-    // uint32_t block on queue send. Value is queue id.
-    uint32 task_blocking_on_queue_send = 9;
-    // uint32_t block on queue receive. Value is queue id.
-    uint32 task_blocking_on_queue_receive = 10;
-    // Current task about to block on stream buffer send. Value is sb id.
-    uint32 task_blocking_on_sb_send = 11;
-    // Current task about to block on stream buffer receive. Value is sb id.
-    uint32 task_blocking_on_sb_receive = 12;
-
-    // #### Task Priority Change ####
-
-    // Task priority has been manually updated.
-    TaskPriorityEvent task_priority_set = 13;
-    // Task priority temporarily increased because it is holding a mutex.
-    TaskPriorityEvent task_priority_inherit = 14;
-    // Task priority decreased to original value because it relased mutex.
-    TaskPriorityEvent task_priority_disinherit = 15;
-
-    // #### Task Creation/Destruction ####
-
-    // A new task has been created.
-    TaskCreatedEvent task_created = 16;
-    // A task has been deleted. Value is task id.
-    uint32 task_deleted = 17;
-
-    // #### Interrupts ####
+    uint32 task_suspended = 17;
 
     // ISR name received.
     NameEvent isr_name = 18;
+
     // ISR entered ISR. Value is ISR id.
-    uint32 isr_enter = 19;
+    uint32 isr_enter = 5;
+
     // Exited ISR. Value is ISR id.
-    uint32 isr_exit = 20;
+    uint32 isr_exit = 6;
 
-    // #### RTOS Queues ####
+    // Current task about to block on delay. Value is do-not-care.
+    bool task_delay = 19;
 
-    // Queue (which could bequeue, mutex, semaphore) created.
-    QueueCreatedEvent queue_create = 21;
+    // Task priority has been manually updated.
+    TaskPriorityEvent task_priority_set = 20;
+
+    // Task priority temporarily increased because it is holding a mutex.
+    TaskPriorityEvent task_priority_inherit = 21;
+
+    // Task priority decreased to original value because it relased mutex.
+    TaskPriorityEvent task_priority_disinherit = 22;
+
+    // A new task has been created. value is task id.
+    uint32 task_create = 23;
+
+    // Task name information.
+    NameEvent task_name = 24;
+
+    // A task has been deleted. Value is task id.
+    uint32 task_deleted = 25;
+
+    // ####### RTOS Queues #####################################################
+
+    // Queue (which could bequeue, mutex, semaphore) created. value is queue id.
+    uint32 queue_create = 26;
+
     // Queue named.
-    NameEvent queue_name = 22;
+    NameEvent queue_name = 27;
+    
+    // Queue kind specified.
+    QueueKindEvent queue_kind = 28;
+
     // Sent to queue. Value is queue id.
-    uint32 queue_send = 23;
+    uint32 queue_send = 29;
+
+    // Overwritten to queue. Value is queue id.
+    uint32 queue_overwrite = 30;
+
     // Receive from queue. Value is queue id.
-    uint32 queue_receive = 24;
+    uint32 queue_receive = 31;
 
-    // #### Stream Buffers ####
+    // Receive from queue. Value is queue id.
+    uint32 queue_reset = 32;
 
-    // Stream buffer created.
-    StreamBufferCreatedEvent stream_buffer_create = 25;
+    // Current task about to block on queue peek. Value is queue id.
+    uint32 task_blocking_on_queue_peek = 33;
+
+    // uint32_t block on queue send. Value is queue id.
+    uint32 task_blocking_on_queue_send = 34;
+
+    // uint32_t block on queue receive. Value is queue id.
+    uint32 task_blocking_on_queue_receive = 35;
+
+    // ######## Stream Buffers #################################################
+
+    // Stream buffer created. Value is stream buffer id.
+    uint32 stream_buffer_create = 36;
+    
     // Stream buffer named.
-    NameEvent stream_buffer_name = 26;
+    NameEvent stream_buffer_name = 37;
+    
+    // Stream buffer named.
+    StreamBufferKindEvent stream_buffer_kind = 38;
+
     // Receive from stream buffer.
-    StreamBufferTransferEvent stream_buffer_receive = 27;
+    StreamBufferTransferEvent stream_buffer_receive = 39;
+
     // Send to stream buffer.
-    StreamBufferTransferEvent stream_buffer_send = 28;
+    StreamBufferTransferEvent stream_buffer_send = 40;
+
     // Stream buffer reset. value is stream buffer id.
-    uint32 stream_buffer_reset = 29;
+    uint32 stream_buffer_reset = 41;
+
+    // Current task about to block on stream buffer send. Value is sb id.
+    uint32 task_blocking_on_sb_send = 42;
+
+    // Current task about to block on stream buffer receive. Value is sb id.
+    uint32 task_blocking_on_sb_receive = 43;
   }
 }
 
@@ -92,33 +119,32 @@ message TaskPriorityEvent {
   required uint32 new_priority = 2;
 }
 
-message TaskCreatedEvent {
-  required uint32 task_id = 1;
-  required uint32 priority = 2;
-  required string name = 3;
-}
-
 message NameEvent {
   required uint32 id = 1;
   required string name = 2;
 }
 
 enum QueueKind {
-  QK_QUEUE = 1; QK_COUNTING_SEMAPHORE = 2; QK_BINARY_SEMAPHORE = 3;
-  QK_MUTEX = 4;
-  QK_RECURSIVE_MUTEX = 5;
+  QK_QUEUE = 0;
+  QK_COUNTING_SEMAPHORE = 1;
+  QK_BINARY_SEMAPHORE = 2;
+  QK_MUTEX = 3;
+  QK_RECURSIVE_MUTEX = 4;
 }
 
-message QueueCreatedEvent {
+message QueueKindEvent {
   required uint32 id = 1;
   required QueueKind kind = 2;
-  required uint32 size = 3;
 }
 
-message StreamBufferCreatedEvent {
+enum StreamBufferKind {
+  SB_NORMAL = 0;
+  SB_MESSAGE_BUFFER = 1;
+}
+
+message StreamBufferKindEvent {
   required uint32 id = 1;
-  required uint32 size = 2;
-  required bool is_message_buffer = 3;
+  required StreamBufferKind kind = 2;
 }
 
 message StreamBufferTransferEvent {

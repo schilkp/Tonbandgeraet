@@ -164,12 +164,11 @@ extern "C" {
 
   #endif /* traceconfigISR_TRACE_ENABLE == 1 */
 
-  void trace_queue_create(void *handle, uint8_t type_val, uint32_t len);
+  void trace_queue_create(void *handle, uint8_t type_val);
 
   #define traceQUEUE_CREATE(pxNewQueue) trace_queue_create(                                                            \
       (void *)(pxNewQueue),               /* queue handle  */                                                          \
-      (uint8_t)(pxNewQueue)->ucQueueType, /* type */                                                                   \
-      (uint32_t)(pxNewQueue)->uxLength    /* length */                                                                 \
+      (uint8_t)(pxNewQueue)->ucQueueType  /* type */                                                                   \
     )
 
   void impl_trace_queue_name(void *queue_handle, char *name);
@@ -207,11 +206,10 @@ extern "C" {
       (uint32_t)(pxQueue)->uxQueueNumber /* queue id */                                                                \
     )
 
-  void trace_stream_buffer_create(void *handle, uint32_t len, int is_message_buffer);
+  void trace_stream_buffer_create(void *handle, int is_message_buffer);
 
   #define traceSTREAM_BUFFER_CREATE(pxStreamBuffer, xIsMessageBuffer) trace_stream_buffer_create(                      \
       (void *)(pxStreamBuffer) /* handle */,                                                                           \
-      (uint32_t)(pxStreamBuffer)->xLength /* length */,                                                                \
       (xIsMessageBuffer) /* is message buffer */                                                                       \
     )
 

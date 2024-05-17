@@ -148,8 +148,8 @@ standard names. */
 uint64_t traceport_timestamp_ns(void);
 #define traceportTIMESTAMP_NS() traceport_timestamp_ns()
 
-_Bool traceport_handle_raw_evt(uint8_t *buf, size_t len);
-#define traceportHANDLE_RAW_EVT(_buf_, _len_) traceport_handle_raw_evt((_buf_), (_len_))
+_Bool traceport_handle_raw_evt(uint8_t *buf, size_t len, _Bool is_medata);
+#define traceportHANDLE_RAW_EVT(_buf_, _len_, _is_metadata_) traceport_handle_raw_evt((_buf_), (_len_), (_is_metadata_))
 
 // Include tracing hooks:
 #include "tracing_hooks.h"

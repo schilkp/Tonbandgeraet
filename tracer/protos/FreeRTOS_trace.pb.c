@@ -12,19 +12,17 @@ PB_BIND(TraceEvent, TraceEvent, AUTO)
 PB_BIND(TaskPriorityEvent, TaskPriorityEvent, AUTO)
 
 
-PB_BIND(TaskCreatedEvent, TaskCreatedEvent, AUTO)
-
-
 PB_BIND(NameEvent, NameEvent, AUTO)
 
 
-PB_BIND(QueueCreatedEvent, QueueCreatedEvent, AUTO)
+PB_BIND(QueueKindEvent, QueueKindEvent, AUTO)
 
 
-PB_BIND(StreamBufferCreatedEvent, StreamBufferCreatedEvent, AUTO)
+PB_BIND(StreamBufferKindEvent, StreamBufferKindEvent, AUTO)
 
 
 PB_BIND(StreamBufferTransferEvent, StreamBufferTransferEvent, AUTO)
+
 
 
 
