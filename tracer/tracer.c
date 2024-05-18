@@ -16,6 +16,7 @@
 #include "queue.h"
 #include "stream_buffer.h"
 #include "task.h"
+#include "timers.h"
 
 // nanopb:
 #include "FreeRTOS_trace.pb.h"
@@ -262,6 +263,38 @@ void trace_task_create(uint32_t task_id, uint32_t priority, char *name) {
   handle_trace_evt(&evt3, true);
 }
 
+void impl_trace_task_is_idle_task(void *handle) {
+  // FIXME: Currently the only way to get the TCB number is to use get_task_info
+  //        which returns the tcb number in the user task field...
+  TaskStatus_t status = {0};
+  vTaskGetInfo((TaskHandle_t) handle, &status, pdFALSE, eReady);
+  uint32_t id = (uint32_t)status.xTaskNumber;
+
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_task_is_idle_task_tag,
+      .event.task_is_idle_task = id,
+  };
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt, true);
+}
+
+void impl_trace_task_is_timer_task(void *handle) {
+  // FIXME: Currently the only way to get the TCB number is to use get_task_info
+  //        which returns the tcb number in the user task field...
+  TaskStatus_t status = {0};
+  vTaskGetInfo((TaskHandle_t) handle, &status, pdFALSE, eReady);
+  uint32_t id = (uint32_t)status.xTaskNumber;
+
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_task_is_timer_task_tag,
+      .event.task_is_timer_task = id,
+  };
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt, true);
+}
+
 void trace_task_delete(uint32_t task_id) {
   TraceEvent evt = {
       .ts_ns = traceportTIMESTAMP_NS(),
@@ -382,11 +415,11 @@ void trace_queue_send(uint32_t id, uint32_t copy_position) {
   };
 
   if (copy_position == queueOVERWRITE) {
-      evt.which_event = TraceEvent_queue_overwrite_tag;
-      evt.event.queue_overwrite = id;
+    evt.which_event = TraceEvent_queue_overwrite_tag;
+    evt.event.queue_overwrite = id;
   } else {
-      evt.which_event = TraceEvent_queue_send_tag;
-      evt.event.queue_send = id;
+    evt.which_event = TraceEvent_queue_send_tag;
+    evt.event.queue_send = id;
   }
 
   include_dropped_evt_cnt(&evt);

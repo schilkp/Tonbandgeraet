@@ -35,6 +35,7 @@ extern "C" {
 #include "task.h"
 #include "semphr.h"
 #include "stream_buffer.h"
+#include "timers.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -43,6 +43,9 @@ StaticStreamBuffer_t sb1_buffer = {0};
 void task1_entry(void *args) {
   UNUSED(args);
 
+  trace_task_is_idle_task(xTaskGetIdleTaskHandle());
+  trace_task_is_timer_task(xTimerGetTimerDaemonTaskHandle());
+
   int cnt = 0;
   while (1) {
     vTaskDelay(10);

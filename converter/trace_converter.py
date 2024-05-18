@@ -222,6 +222,9 @@ class TraceState:
 
     error_evts: List[Tuple[Timestamp, str]]
 
+    idle_task_id: Optional[int]
+    timer_task_id: Optional[int]
+
     _current_task: Optional[int]
     _current_isr: Optional[int]
     _dropped_evts_cnt: int
@@ -232,6 +235,8 @@ class TraceState:
         self.queues = OrderedDict()
         self.stream_buffers = OrderedDict()
         self.error_evts = []
+        self.idle_task_id = None
+        self.timer_task_id = None
 
         self._current_task = None
         self._dropped_evts_cnt = 0
@@ -253,290 +258,312 @@ class TraceState:
         if id not in self.stream_buffers:
             self.stream_buffers[id] = StreamBuffer(id)
 
-    def handle_evt(self, evt: TraceEvent | InvalidEvent):
+    def convert_evts(self, evts: List[TraceEvent | InvalidEvent]):
+        for evt in evts:
+            if isinstance(evt, TraceEvent):
 
-        if isinstance(evt, TraceEvent):
+                ts = evt.ts_ns
 
-            ts = evt.ts_ns
+                # Dropped count:
+                if evt.HasField("dropped_evts_cnt") is not None:
+                    if self._dropped_evts_cnt != evt.dropped_evts_cnt:
+                        dropped_cnt = u32_subtraction(
+                            self._dropped_evts_cnt, evt.dropped_evts_cnt
+                        )
+                        self.error_evts.append(
+                            (evt.ts_ns, f"Dropped {dropped_cnt} events!")
+                        )
+                        self._dropped_evts_cnt = evt.dropped_evts_cnt
+                        eprint(f"Warning: Dropped {dropped_cnt} events!")
 
-            # Dropped count:
-            if evt.HasField("dropped_evts_cnt") is not None:
-                if self._dropped_evts_cnt != evt.dropped_evts_cnt:
-                    dropped_cnt = u32_subtraction(
-                        self._dropped_evts_cnt, evt.dropped_evts_cnt
+                # Event-specific:
+                if evt.HasField("task_switched_in"):
+                    task_id = evt.task_switched_in
+
+                    # Switch-out previous task (if any):
+                    if self._current_task is not None:
+                        prev_task = self.tasks[self._current_task]
+                        prev_task._state_when_switched_out.ts = ts
+                        prev_task.state_evts.append(prev_task._state_when_switched_out)
+
+                    # Swtich-in new task:
+                    self.ensure_task_exists(task_id)
+                    self.tasks[task_id].state_evts.append(
+                        TaskStateEvt(ts, "running", note=None)
                     )
-                    self.error_evts.append(
-                        (evt.ts_ns, f"Dropped {dropped_cnt} events!")
+                    self.tasks[task_id]._state_when_switched_out = TaskStateEvt(
+                        0, "ready", note=None
                     )
-                    self._dropped_evts_cnt = evt.dropped_evts_cnt
-                    eprint(f"Warning: Dropped {dropped_cnt} events!")
+                    self._current_task = task_id
 
-            # Event-specific:
-            if evt.HasField("task_switched_in"):
-                task_id = evt.task_switched_in
+                elif evt.HasField("task_to_ready_state"):
+                    task_id = evt.task_to_ready_state
+                    self.ensure_task_exists(task_id)
+                    if not self.tasks[task_id].is_running:
+                        self.tasks[task_id].state_evts.append(
+                            TaskStateEvt(ts, "ready", note=None)
+                        )
 
-                # Switch-out previous task (if any):
-                if self._current_task is not None:
-                    prev_task = self.tasks[self._current_task]
-                    prev_task._state_when_switched_out.ts = ts
-                    prev_task.state_evts.append(prev_task._state_when_switched_out)
-
-                # Swtich-in new task:
-                self.ensure_task_exists(task_id)
-                self.tasks[task_id].state_evts.append(
-                    TaskStateEvt(ts, "running", note=None)
-                )
-                self.tasks[task_id]._state_when_switched_out = TaskStateEvt(
-                    0, "ready", note=None
-                )
-                self._current_task = task_id
-
-            elif evt.HasField("task_to_ready_state"):
-                task_id = evt.task_to_ready_state
-                self.ensure_task_exists(task_id)
-                if not self.tasks[task_id].is_running:
+                elif evt.HasField("task_resumed"):
+                    task_id = evt.task_resumed
+                    self.ensure_task_exists(task_id)
                     self.tasks[task_id].state_evts.append(
                         TaskStateEvt(ts, "ready", note=None)
                     )
 
-            elif evt.HasField("task_resumed"):
-                task_id = evt.task_resumed
-                self.ensure_task_exists(task_id)
-                self.tasks[task_id].state_evts.append(
-                    TaskStateEvt(ts, "ready", note=None)
-                )
+                elif evt.HasField("task_suspended"):
+                    task_id = evt.task_suspended
+                    self.ensure_task_exists(task_id)
 
-            elif evt.HasField("task_suspended"):
-                task_id = evt.task_suspended
-                self.ensure_task_exists(task_id)
+                    if self._current_task:
+                        note = f"by task #t{self._current_task}"
+                    else:
+                        note = None
 
-                if self._current_task:
-                    note = f"by task #t{self._current_task}"
-                else:
-                    note = None
-
-                if self.tasks[task_id].is_running():
-                    self.tasks[task_id]._state_when_switched_out = TaskStateEvt(
-                        0, "suspended", note
-                    )
-                else:
-                    self.tasks[task_id].state_evts.append(
-                        TaskStateEvt(ts, "suspended", note)
-                    )
-
-            elif evt.HasField("task_delay"):
-                if self._current_task is not None:
-                    self.tasks[self._current_task]._state_when_switched_out = (
-                        TaskStateEvt(0, "blocked", "delay")
-                    )
-                else:
-                    self.error_evts.append(
-                        (ts, "Current task event with no current task")
-                    )
-
-            elif evt.HasField("task_blocking_on_queue_peek"):
-                resource_id = evt.task_blocking_on_queue_peek
-
-                if self._current_task is not None:
-                    self.tasks[self._current_task]._state_when_switched_out = (
-                        TaskStateEvt(
-                            0,
-                            "blocked",
-                            f"peek from #q{resource_id} (#q_kind{resource_id})",
+                    if self.tasks[task_id].is_running():
+                        self.tasks[task_id]._state_when_switched_out = TaskStateEvt(
+                            0, "suspended", note
                         )
-                    )
-                else:
-                    self.error_evts.append(
-                        (ts, "Current task event with no current task")
-                    )
-
-            elif evt.HasField("task_blocking_on_queue_send"):
-                resource_id = evt.task_blocking_on_queue_send
-                if self._current_task is not None:
-                    self.tasks[self._current_task]._state_when_switched_out = (
-                        TaskStateEvt(
-                            0,
-                            "blocked",
-                            f"send to #q{resource_id} (#q_kind{resource_id})",
+                    else:
+                        self.tasks[task_id].state_evts.append(
+                            TaskStateEvt(ts, "suspended", note)
                         )
-                    )
-                else:
-                    self.error_evts.append(
-                        (ts, "Current task event with no current task")
-                    )
 
-            elif evt.HasField("task_blocking_on_queue_receive"):
-                resource_id = evt.task_blocking_on_queue_receive
-                if self._current_task is not None:
-                    self.tasks[self._current_task]._state_when_switched_out = (
-                        TaskStateEvt(
-                            0,
-                            "blocked",
-                            f"receive from #q{resource_id} (#q_kind{resource_id})",
+                elif evt.HasField("task_delay"):
+                    if self._current_task is not None:
+                        self.tasks[self._current_task]._state_when_switched_out = (
+                            TaskStateEvt(0, "blocked", "delay")
                         )
-                    )
+                    else:
+                        self.error_evts.append(
+                            (ts, "Current task event with no current task")
+                        )
+
+                elif evt.HasField("task_blocking_on_queue_peek"):
+                    resource_id = evt.task_blocking_on_queue_peek
+
+                    if self._current_task is not None:
+                        self.tasks[self._current_task]._state_when_switched_out = (
+                            TaskStateEvt(
+                                0,
+                                "blocked",
+                                f"peek from #q{resource_id} (#q_kind{resource_id})",
+                            )
+                        )
+                    else:
+                        self.error_evts.append(
+                            (ts, "Current task event with no current task")
+                        )
+
+                elif evt.HasField("task_blocking_on_queue_send"):
+                    resource_id = evt.task_blocking_on_queue_send
+                    if self._current_task is not None:
+                        self.tasks[self._current_task]._state_when_switched_out = (
+                            TaskStateEvt(
+                                0,
+                                "blocked",
+                                f"send to #q{resource_id} (#q_kind{resource_id})",
+                            )
+                        )
+                    else:
+                        self.error_evts.append(
+                            (ts, "Current task event with no current task")
+                        )
+
+                elif evt.HasField("task_blocking_on_queue_receive"):
+                    resource_id = evt.task_blocking_on_queue_receive
+                    if self._current_task is not None:
+                        self.tasks[self._current_task]._state_when_switched_out = (
+                            TaskStateEvt(
+                                0,
+                                "blocked",
+                                f"receive from #q{resource_id} (#q_kind{resource_id})",
+                            )
+                        )
+                    else:
+                        self.error_evts.append(
+                            (ts, "Current task event with no current task")
+                        )
+
+                elif evt.HasField("task_blocking_on_sb_send"):
+                    sb_id = evt.task_blocking_on_sb_send
+                    if self._current_task is not None:
+                        self.tasks[self._current_task]._state_when_switched_out = (
+                            TaskStateEvt(0, "blocked", f"sb send #sb{sb_id}")
+                        )
+                    else:
+                        self.error_evts.append(
+                            (ts, "Current task event with no current task")
+                        )
+
+                elif evt.HasField("task_blocking_on_sb_receive"):
+                    sb_id = evt.task_blocking_on_sb_receive
+                    if self._current_task is not None:
+                        self.tasks[self._current_task]._state_when_switched_out = (
+                            TaskStateEvt(0, "blocked", f"sb receive #sb{sb_id}")
+                        )
+                    else:
+                        self.error_evts.append(
+                            (ts, "Current task event with no current task")
+                        )
+
+                elif evt.HasField("task_priority_set"):
+                    task_id = evt.task_priority_set.task_id
+                    p = evt.task_priority_set.new_priority
+                    self.ensure_task_exists(task_id)
+                    self.tasks[task_id].priority_evts.append((ts, p))
+
+                elif evt.HasField("task_priority_inherit"):
+                    task_id = evt.task_priority_inherit.task_id
+                    p = evt.task_priority_inherit.new_priority
+                    self.ensure_task_exists(task_id)
+                    self.tasks[task_id].priority_evts.append((ts, p))
+
+                elif evt.HasField("task_priority_disinherit"):
+                    task_id = evt.task_priority_disinherit.task_id
+                    p = evt.task_priority_disinherit.new_priority
+                    self.ensure_task_exists(task_id)
+                    self.tasks[task_id].priority_evts.append((ts, p))
+
+                elif evt.HasField("task_create"):
+                    task_id = evt.task_create
+                    self.ensure_task_exists(task_id)
+
+                elif evt.HasField("task_name"):
+                    task_id = evt.task_name.id
+                    name = evt.task_name.name
+                    self.ensure_task_exists(task_id)
+                    self.tasks[task_id].name = name
+                
+                elif evt.HasField("task_is_idle_task"):
+                    eprint(f"idle task: {evt}")
+                    task_id = evt.task_is_idle_task
+                    self.idle_task_id = task_id
+                
+                elif evt.HasField("task_is_timer_task"):
+                    eprint(f"timer task: {evt}")
+                    task_id = evt.task_is_timer_task
+                    self.timer_task_id = task_id
+
+                elif evt.HasField("task_deleted"):
+                    task_id = evt.task_deleted
+                    self.ensure_task_exists(task_id)
+
+                    if self._current_task:
+                        note = f"by task #t{self._current_task}"
+                    else:
+                        note = None
+
+                    if self.tasks[task_id].is_running():
+                        self.tasks[task_id]._state_when_switched_out = TaskStateEvt(
+                            0, "deleted", note
+                        )
+                    else:
+                        self.tasks[task_id].state_evts.append(
+                            TaskStateEvt(ts, "deleted", note=note)
+                        )
+
+                elif evt.HasField("isr_enter"):
+                    isr_id = evt.isr_enter
+                    self.ensure_isr_exists(isr_id)
+                    self.isrs[isr_id].state_evts.append((ts, "enter"))
+
+                elif evt.HasField("isr_exit"):
+                    isr_id = evt.isr_exit
+                    if isr_id in self.isrs and self.isrs[isr_id].is_active():
+                        self.isrs[isr_id].state_evts.append((ts, "exit"))
+
+                elif evt.HasField("isr_name"):
+                    isr_id = evt.isr_name.id
+                    isr_name = evt.isr_name.name
+                    self.ensure_isr_exists(isr_id)
+                    self.isrs[isr_id].name = isr_name
+
+                elif evt.HasField("queue_create"):
+                    queue_id = evt.queue_create
+                    self.ensure_queue_exists(queue_id)
+
+                elif evt.HasField("queue_name"):
+                    queue_id = evt.queue_name.id
+                    name = evt.queue_name.name
+                    self.ensure_queue_exists(queue_id)
+                    self.queues[queue_id].name = name
+
+                elif evt.HasField("queue_kind"):
+                    queue_id = evt.queue_kind.id
+                    kind = evt.queue_kind.kind
+                    self.ensure_queue_exists(queue_id)
+                    self.queues[queue_id].set_kind(kind)
+
+                elif evt.HasField("queue_send"):
+                    queue_id = evt.queue_send
+                    self.ensure_queue_exists(queue_id)
+                    new_state = self.queues[queue_id].current_state() + 1
+                    self.queues[queue_id].state_evts.append((ts, new_state))
+
+                elif evt.HasField("queue_receive"):
+                    queue_id = evt.queue_receive
+                    self.ensure_queue_exists(queue_id)
+                    new_state = self.queues[queue_id].current_state() - 1
+                    self.queues[queue_id].state_evts.append((ts, new_state))
+
+                elif evt.HasField("queue_reset"):
+                    queue_id = evt.queue_reset
+                    self.ensure_queue_exists(queue_id)
+                    self.queues[queue_id].state_evts.append((ts, 0))
+
+                elif evt.HasField("stream_buffer_create"):
+                    sb_id = evt.stream_buffer_create
+                    self.ensure_stream_buffer_exists(sb_id)
+
+                elif evt.HasField("stream_buffer_kind"):
+                    sb_id = evt.stream_buffer_kind.id
+                    sb_kind = evt.stream_buffer_kind.kind
+                    self.ensure_stream_buffer_exists(sb_id)
+                    self.stream_buffers[sb_id].set_kind(sb_kind)
+
+                elif evt.HasField("stream_buffer_name"):
+                    sb_id = evt.stream_buffer_name.id
+                    name = evt.stream_buffer_name.name
+                    self.ensure_stream_buffer_exists(sb_id)
+                    self.stream_buffers[sb_id].name = name
+
+                elif evt.HasField("stream_buffer_receive"):
+                    sb_id = evt.stream_buffer_receive.id
+                    amt = evt.stream_buffer_receive.amnt
+                    self.ensure_stream_buffer_exists(sb_id)
+                    new_state = self.stream_buffers[sb_id].current_state() - amt
+                    self.stream_buffers[sb_id].state_evts.append((ts, new_state))
+
+                elif evt.HasField("stream_buffer_send"):
+                    sb_id = evt.stream_buffer_send.id
+                    amt = evt.stream_buffer_send.amnt
+                    self.ensure_stream_buffer_exists(sb_id)
+                    new_state = self.stream_buffers[sb_id].current_state() + amt
+                    self.stream_buffers[sb_id].state_evts.append((ts, new_state))
+
+                elif evt.HasField("stream_buffer_reset"):
+                    sb_id = evt.stream_buffer_reset
+                    self.ensure_stream_buffer_exists(sb_id)
+                    self.stream_buffers[sb_id].state_evts.append((ts, 0))
+
                 else:
-                    self.error_evts.append(
-                        (ts, "Current task event with no current task")
-                    )
-
-            elif evt.HasField("task_blocking_on_sb_send"):
-                sb_id = evt.task_blocking_on_sb_send
-                if self._current_task is not None:
-                    self.tasks[self._current_task]._state_when_switched_out = (
-                        TaskStateEvt(0, "blocked", f"sb send #sb{sb_id}")
-                    )
-                else:
-                    self.error_evts.append(
-                        (ts, "Current task event with no current task")
-                    )
-
-            elif evt.HasField("task_blocking_on_sb_receive"):
-                sb_id = evt.task_blocking_on_sb_receive
-                if self._current_task is not None:
-                    self.tasks[self._current_task]._state_when_switched_out = (
-                        TaskStateEvt(0, "blocked", f"sb receive #sb{sb_id}")
-                    )
-                else:
-                    self.error_evts.append(
-                        (ts, "Current task event with no current task")
-                    )
-
-            elif evt.HasField("task_priority_set"):
-                task_id = evt.task_priority_set.task_id
-                p = evt.task_priority_set.new_priority
-                self.ensure_task_exists(task_id)
-                self.tasks[task_id].priority_evts.append((ts, p))
-
-            elif evt.HasField("task_priority_inherit"):
-                task_id = evt.task_priority_inherit.task_id
-                p = evt.task_priority_inherit.new_priority
-                self.ensure_task_exists(task_id)
-                self.tasks[task_id].priority_evts.append((ts, p))
-
-            elif evt.HasField("task_priority_disinherit"):
-                task_id = evt.task_priority_disinherit.task_id
-                p = evt.task_priority_disinherit.new_priority
-                self.ensure_task_exists(task_id)
-                self.tasks[task_id].priority_evts.append((ts, p))
-
-            elif evt.HasField("task_create"):
-                task_id = evt.task_create
-                self.ensure_task_exists(task_id)
-
-            elif evt.HasField("task_name"):
-                task_id = evt.task_name.id
-                name = evt.task_name.name
-                self.ensure_task_exists(task_id)
-                self.tasks[task_id].name = name
-
-            elif evt.HasField("task_deleted"):
-                task_id = evt.task_deleted
-                self.ensure_task_exists(task_id)
-
-                if self._current_task:
-                    note = f"by task #t{self._current_task}"
-                else:
-                    note = None
-
-                if self.tasks[task_id].is_running():
-                    self.tasks[task_id]._state_when_switched_out = TaskStateEvt(
-                        0, "deleted", note
-                    )
-                else:
-                    self.tasks[task_id].state_evts.append(
-                        TaskStateEvt(ts, "deleted", note=note)
-                    )
-
-            elif evt.HasField("isr_enter"):
-                isr_id = evt.isr_enter
-                self.ensure_isr_exists(isr_id)
-                self.isrs[isr_id].state_evts.append((ts, "enter"))
-
-            elif evt.HasField("isr_exit"):
-                isr_id = evt.isr_exit
-                if isr_id in self.isrs and self.isrs[isr_id].is_active():
-                    self.isrs[isr_id].state_evts.append((ts, "exit"))
-
-            elif evt.HasField("isr_name"):
-                isr_id = evt.isr_name.id
-                isr_name = evt.isr_name.name
-                self.ensure_isr_exists(isr_id)
-                self.isrs[isr_id].name = isr_name
-
-            elif evt.HasField("queue_create"):
-                queue_id = evt.queue_create
-                self.ensure_queue_exists(queue_id)
-
-            elif evt.HasField("queue_name"):
-                queue_id = evt.queue_name.id
-                name = evt.queue_name.name
-                self.ensure_queue_exists(queue_id)
-                self.queues[queue_id].name = name
-
-            elif evt.HasField("queue_kind"):
-                queue_id = evt.queue_kind.id
-                kind = evt.queue_kind.kind
-                self.ensure_queue_exists(queue_id)
-                self.queues[queue_id].set_kind(kind)
-
-            elif evt.HasField("queue_send"):
-                queue_id = evt.queue_send
-                self.ensure_queue_exists(queue_id)
-                new_state = self.queues[queue_id].current_state() + 1
-                self.queues[queue_id].state_evts.append((ts, new_state))
-
-            elif evt.HasField("queue_receive"):
-                queue_id = evt.queue_receive
-                self.ensure_queue_exists(queue_id)
-                new_state = self.queues[queue_id].current_state() - 1
-                self.queues[queue_id].state_evts.append((ts, new_state))
-
-            elif evt.HasField("queue_reset"):
-                queue_id = evt.queue_reset
-                self.ensure_queue_exists(queue_id)
-                self.queues[queue_id].state_evts.append((ts, 0))
-
-            elif evt.HasField("stream_buffer_create"):
-                sb_id = evt.stream_buffer_create
-                self.ensure_stream_buffer_exists(sb_id)
-
-            elif evt.HasField("stream_buffer_kind"):
-                sb_id = evt.stream_buffer_kind.id
-                sb_kind = evt.stream_buffer_kind.kind
-                self.ensure_stream_buffer_exists(sb_id)
-                self.stream_buffers[sb_id].set_kind(sb_kind)
-
-            elif evt.HasField("stream_buffer_name"):
-                sb_id = evt.stream_buffer_name.id
-                name = evt.stream_buffer_name.name
-                self.ensure_stream_buffer_exists(sb_id)
-                self.stream_buffers[sb_id].name = name
-
-            elif evt.HasField("stream_buffer_receive"):
-                sb_id = evt.stream_buffer_receive.id
-                amt = evt.stream_buffer_receive.amnt
-                self.ensure_stream_buffer_exists(sb_id)
-                new_state = self.stream_buffers[sb_id].current_state() - amt
-                self.stream_buffers[sb_id].state_evts.append((ts, new_state))
-
-            elif evt.HasField("stream_buffer_send"):
-                sb_id = evt.stream_buffer_send.id
-                amt = evt.stream_buffer_send.amnt
-                self.ensure_stream_buffer_exists(sb_id)
-                new_state = self.stream_buffers[sb_id].current_state() + amt
-                self.stream_buffers[sb_id].state_evts.append((ts, new_state))
-
-            elif evt.HasField("stream_buffer_reset"):
-                sb_id = evt.stream_buffer_reset
-                self.ensure_stream_buffer_exists(sb_id)
-                self.stream_buffers[sb_id].state_evts.append((ts, 0))
+                    self.error_evts.append((evt.ts_ns, "Invalid Event"))
 
             else:
-                self.error_evts.append((evt.ts_ns, "Invalid Event"))
+                self.error_evts.append((evt.ts, "Invalid Event"))
 
-        else:
-            self.error_evts.append((evt.ts, "Invalid Event"))
+        if self.idle_task_id is None:
+            for (task_id, task) in self.tasks.items():
+                if task.name == "IDLE":
+                    self.idle_task_id = task_id
+                    break
+
+        if self.timer_task_id is None:
+            for (task_id, task) in self.tasks.items():
+                if task.name == "Tmr Svc":
+                    self.timer_task_id = task_id
+                    break
 
     def replace_id_markers(self, s: str) -> str:
         for task_id, task in self.tasks.items():
@@ -679,7 +706,7 @@ def generate_json(state: TraceState, evts: List[TraceEvent | InvalidEvent]) -> s
         # Running:
         is_running = False
 
-        if task.name is not None and task.name != "IDLE":
+        if task_id != state.idle_task_id:
             running_state_label = 'running'
         else:
             running_state_label = 'idle task running'
@@ -827,8 +854,7 @@ def main():
 
     # Interpret trace:
     state = TraceState()
-    for evt in decoded_events:
-        state.handle_evt(evt)
+    state.convert_evts(decoded_events)
 
     print(generate_json(state, decoded_events))
 

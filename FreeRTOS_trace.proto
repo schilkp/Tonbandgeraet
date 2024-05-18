@@ -45,72 +45,78 @@ message TraceEvent {
     // Task priority decreased to original value because it relased mutex.
     TaskPriorityEvent task_priority_disinherit = 22;
 
-    // A new task has been created. value is task id.
+    // A new task has been created. Value is task id.
     uint32 task_create = 23;
 
     // Task name information.
     NameEvent task_name = 24;
 
+    // Identify task as FreeRTOS idle task. Value is task id.
+    uint32 task_is_idle_task = 25;
+
+    // Identify task as FreeRTOS timer task. Value is task id.
+    uint32 task_is_timer_task = 26;
+
     // A task has been deleted. Value is task id.
-    uint32 task_deleted = 25;
+    uint32 task_deleted = 27;
 
     // ####### RTOS Queues #####################################################
 
-    // Queue (which could bequeue, mutex, semaphore) created. value is queue id.
-    uint32 queue_create = 26;
+    // Queue (which could bequeue, mutex, semaphore) created. Value is queue id.
+    uint32 queue_create = 28;
 
     // Queue named.
-    NameEvent queue_name = 27;
+    NameEvent queue_name = 29;
 
     // Queue kind specified.
-    QueueKindEvent queue_kind = 28;
+    QueueKindEvent queue_kind = 30;
 
     // Sent to queue. Value is queue id.
-    uint32 queue_send = 29;
+    uint32 queue_send = 31;
 
     // Overwritten to queue. Value is queue id.
-    uint32 queue_overwrite = 30;
+    uint32 queue_overwrite = 32;
 
     // Receive from queue. Value is queue id.
-    uint32 queue_receive = 31;
+    uint32 queue_receive = 33;
 
     // Receive from queue. Value is queue id.
-    uint32 queue_reset = 32;
+    uint32 queue_reset = 34;
 
     // Current task about to block on queue peek. Value is queue id.
-    uint32 task_blocking_on_queue_peek = 33;
+    uint32 task_blocking_on_queue_peek = 35;
 
     // uint32_t block on queue send. Value is queue id.
-    uint32 task_blocking_on_queue_send = 34;
+    uint32 task_blocking_on_queue_send = 36;
 
     // uint32_t block on queue receive. Value is queue id.
-    uint32 task_blocking_on_queue_receive = 35;
+    uint32 task_blocking_on_queue_receive = 37;
 
     // ######## Stream Buffers #################################################
 
     // Stream buffer created. Value is stream buffer id.
-    uint32 stream_buffer_create = 36;
+    uint32 stream_buffer_create = 38;
 
     // Stream buffer named.
-    NameEvent stream_buffer_name = 37;
+    NameEvent stream_buffer_name = 39;
 
     // Stream buffer named.
-    StreamBufferKindEvent stream_buffer_kind = 38;
+    StreamBufferKindEvent stream_buffer_kind = 40;
 
     // Receive from stream buffer.
-    StreamBufferTransferEvent stream_buffer_receive = 39;
+    StreamBufferTransferEvent stream_buffer_receive = 41;
 
     // Send to stream buffer.
-    StreamBufferTransferEvent stream_buffer_send = 40;
+    StreamBufferTransferEvent stream_buffer_send = 42;
 
-    // Stream buffer reset. value is stream buffer id.
-    uint32 stream_buffer_reset = 41;
+    // Stream buffer reset. Value is stream buffer id.
+    uint32 stream_buffer_reset = 43;
 
     // Current task about to block on stream buffer send. Value is sb id.
-    uint32 task_blocking_on_sb_send = 42;
+    uint32 task_blocking_on_sb_send = 44;
 
     // Current task about to block on stream buffer receive. Value is sb id.
-    uint32 task_blocking_on_sb_receive = 43;
+    uint32 task_blocking_on_sb_receive = 45;
   }
 }
 

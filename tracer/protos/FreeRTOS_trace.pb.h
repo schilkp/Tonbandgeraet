@@ -79,13 +79,17 @@ typedef struct _TraceEvent { /* Note: Use tags up to 15 for most common events, 
         TaskPriorityEvent task_priority_inherit;
         /* Task priority decreased to original value because it relased mutex. */
         TaskPriorityEvent task_priority_disinherit;
-        /* A new task has been created. value is task id. */
+        /* A new task has been created. Value is task id. */
         uint32_t task_create;
         /* Task name information. */
         NameEvent task_name;
+        /* Identify task as FreeRTOS idle task. Value is task id. */
+        uint32_t task_is_idle_task;
+        /* Identify task as FreeRTOS timer task. Value is task id. */
+        uint32_t task_is_timer_task;
         /* A task has been deleted. Value is task id. */
         uint32_t task_deleted;
-        /* Queue (which could bequeue, mutex, semaphore) created. value is queue id. */
+        /* Queue (which could bequeue, mutex, semaphore) created. Value is queue id. */
         uint32_t queue_create;
         /* Queue named. */
         NameEvent queue_name;
@@ -115,7 +119,7 @@ typedef struct _TraceEvent { /* Note: Use tags up to 15 for most common events, 
         StreamBufferTransferEvent stream_buffer_receive;
         /* Send to stream buffer. */
         StreamBufferTransferEvent stream_buffer_send;
-        /* Stream buffer reset. value is stream buffer id. */
+        /* Stream buffer reset. Value is stream buffer id. */
         uint32_t stream_buffer_reset;
         /* Current task about to block on stream buffer send. Value is sb id. */
         uint32_t task_blocking_on_sb_send;
@@ -187,25 +191,27 @@ extern "C" {
 #define TraceEvent_task_priority_disinherit_tag  22
 #define TraceEvent_task_create_tag               23
 #define TraceEvent_task_name_tag                 24
-#define TraceEvent_task_deleted_tag              25
-#define TraceEvent_queue_create_tag              26
-#define TraceEvent_queue_name_tag                27
-#define TraceEvent_queue_kind_tag                28
-#define TraceEvent_queue_send_tag                29
-#define TraceEvent_queue_overwrite_tag           30
-#define TraceEvent_queue_receive_tag             31
-#define TraceEvent_queue_reset_tag               32
-#define TraceEvent_task_blocking_on_queue_peek_tag 33
-#define TraceEvent_task_blocking_on_queue_send_tag 34
-#define TraceEvent_task_blocking_on_queue_receive_tag 35
-#define TraceEvent_stream_buffer_create_tag      36
-#define TraceEvent_stream_buffer_name_tag        37
-#define TraceEvent_stream_buffer_kind_tag        38
-#define TraceEvent_stream_buffer_receive_tag     39
-#define TraceEvent_stream_buffer_send_tag        40
-#define TraceEvent_stream_buffer_reset_tag       41
-#define TraceEvent_task_blocking_on_sb_send_tag  42
-#define TraceEvent_task_blocking_on_sb_receive_tag 43
+#define TraceEvent_task_is_idle_task_tag         25
+#define TraceEvent_task_is_timer_task_tag        26
+#define TraceEvent_task_deleted_tag              27
+#define TraceEvent_queue_create_tag              28
+#define TraceEvent_queue_name_tag                29
+#define TraceEvent_queue_kind_tag                30
+#define TraceEvent_queue_send_tag                31
+#define TraceEvent_queue_overwrite_tag           32
+#define TraceEvent_queue_receive_tag             33
+#define TraceEvent_queue_reset_tag               34
+#define TraceEvent_task_blocking_on_queue_peek_tag 35
+#define TraceEvent_task_blocking_on_queue_send_tag 36
+#define TraceEvent_task_blocking_on_queue_receive_tag 37
+#define TraceEvent_stream_buffer_create_tag      38
+#define TraceEvent_stream_buffer_name_tag        39
+#define TraceEvent_stream_buffer_kind_tag        40
+#define TraceEvent_stream_buffer_receive_tag     41
+#define TraceEvent_stream_buffer_send_tag        42
+#define TraceEvent_stream_buffer_reset_tag       43
+#define TraceEvent_task_blocking_on_sb_send_tag  44
+#define TraceEvent_task_blocking_on_sb_receive_tag 45
 
 /* Struct field encoding specification for nanopb */
 #define TraceEvent_FIELDLIST(X, a) \
@@ -224,25 +230,27 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (event,task_priority_inherit,event.task_prior
 X(a, STATIC,   ONEOF,    MESSAGE,  (event,task_priority_disinherit,event.task_priority_disinherit),  22) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,task_create,event.task_create),  23) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (event,task_name,event.task_name),  24) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,task_deleted,event.task_deleted),  25) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,queue_create,event.queue_create),  26) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_name,event.queue_name),  27) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_kind,event.queue_kind),  28) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,queue_send,event.queue_send),  29) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,queue_overwrite,event.queue_overwrite),  30) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,queue_receive,event.queue_receive),  31) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,queue_reset,event.queue_reset),  32) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_queue_peek,event.task_blocking_on_queue_peek),  33) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_queue_send,event.task_blocking_on_queue_send),  34) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_queue_receive,event.task_blocking_on_queue_receive),  35) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,stream_buffer_create,event.stream_buffer_create),  36) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_name,event.stream_buffer_name),  37) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_kind,event.stream_buffer_kind),  38) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_receive,event.stream_buffer_receive),  39) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_send,event.stream_buffer_send),  40) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,stream_buffer_reset,event.stream_buffer_reset),  41) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_sb_send,event.task_blocking_on_sb_send),  42) \
-X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_sb_receive,event.task_blocking_on_sb_receive),  43)
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_is_idle_task,event.task_is_idle_task),  25) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_is_timer_task,event.task_is_timer_task),  26) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_deleted,event.task_deleted),  27) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,queue_create,event.queue_create),  28) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_name,event.queue_name),  29) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,queue_kind,event.queue_kind),  30) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,queue_send,event.queue_send),  31) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,queue_overwrite,event.queue_overwrite),  32) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,queue_receive,event.queue_receive),  33) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,queue_reset,event.queue_reset),  34) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_queue_peek,event.task_blocking_on_queue_peek),  35) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_queue_send,event.task_blocking_on_queue_send),  36) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_queue_receive,event.task_blocking_on_queue_receive),  37) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,stream_buffer_create,event.stream_buffer_create),  38) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_name,event.stream_buffer_name),  39) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_kind,event.stream_buffer_kind),  40) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_receive,event.stream_buffer_receive),  41) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,stream_buffer_send,event.stream_buffer_send),  42) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,stream_buffer_reset,event.stream_buffer_reset),  43) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_sb_send,event.task_blocking_on_sb_send),  44) \
+X(a, STATIC,   ONEOF,    UINT32,   (event,task_blocking_on_sb_receive,event.task_blocking_on_sb_receive),  45)
 #define TraceEvent_CALLBACK NULL
 #define TraceEvent_DEFAULT NULL
 #define TraceEvent_event_isr_name_MSGTYPE NameEvent

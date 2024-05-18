@@ -135,6 +135,18 @@ extern "C" {
       (uint32_t)(pxTask)->uxPriority /* priority */,                                                                   \
       (pxTask)->pcTaskName /* name */                                                                                  \
     )
+  
+  void impl_trace_task_is_idle_task(void *handle);
+  
+  #define trace_task_is_idle_task(task_handle) impl_trace_task_is_idle_task(                                           \
+      (void*) (task_handle)                                                                                            \
+    )
+  
+  void impl_trace_task_is_timer_task(void *handle);
+  
+  #define trace_task_is_timer_task(task_handle) impl_trace_task_is_timer_task(                                         \
+      (void*) (task_handle)                                                                                            \
+    )
 
   void trace_task_delete(uint32_t task_id);
 
@@ -262,6 +274,14 @@ extern "C" {
 #endif /* traceconfigENABLE == 1*/
 
 // Provide shims for tracing hooks that are called manually if they are disabled:
+
+#ifndef trace_task_is_idle_task
+  #define trace_task_is_idle_task(task_handle)
+#endif /* trace_task_is_idle_task */
+  
+#ifndef trace_task_is_timer_task
+  #define trace_task_is_timer_task(task_handle)
+#endif /* trace_task_is_timer_task */
 
 #ifndef trace_isr_enter
   #define trace_isr_enter(isr_id)
