@@ -221,6 +221,11 @@ extern "C" {
       (uint32_t)(pxQueue)->uxQueueNumber /* queue id */,                                                               \
       queueSEND_TO_BACK /* copy position */                                                                            \
     )
+
+  // Provide empty hook for QUEUE_SET_SEND as we do not need this hook
+  // and because it falls back on QUEUE_SEND for historical reasons, which
+  // would cause extra queue messages to be counted.
+  #define traceQUEUE_SET_SEND(pxQueue)
   
   void trace_queue_receive(uint32_t id);
 
