@@ -61,7 +61,7 @@ message TraceEvent {
 
     // Queue named.
     NameEvent queue_name = 27;
-    
+
     // Queue kind specified.
     QueueKindEvent queue_kind = 28;
 
@@ -90,10 +90,10 @@ message TraceEvent {
 
     // Stream buffer created. Value is stream buffer id.
     uint32 stream_buffer_create = 36;
-    
+
     // Stream buffer named.
     NameEvent stream_buffer_name = 37;
-    
+
     // Stream buffer named.
     StreamBufferKindEvent stream_buffer_kind = 38;
 
@@ -125,9 +125,7 @@ message NameEvent {
 }
 
 enum QueueKind {
-  QK_QUEUE = 0;
-  QK_COUNTING_SEMAPHORE = 1;
-  QK_BINARY_SEMAPHORE = 2;
+  QK_QUEUE = 0; QK_COUNTING_SEMAPHORE = 1; QK_BINARY_SEMAPHORE = 2;
   QK_MUTEX = 3;
   QK_RECURSIVE_MUTEX = 4;
 }
@@ -137,10 +135,7 @@ message QueueKindEvent {
   required QueueKind kind = 2;
 }
 
-enum StreamBufferKind {
-  SB_NORMAL = 0;
-  SB_MESSAGE_BUFFER = 1;
-}
+enum StreamBufferKind { SB_NORMAL = 0; SB_MESSAGE_BUFFER = 1; }
 
 message StreamBufferKindEvent {
   required uint32 id = 1;

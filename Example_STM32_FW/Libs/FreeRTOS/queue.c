@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V11.1.0
+ * FreeRTOS Kernel <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -315,6 +315,9 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
         /* Check for multiplication overflow. */
         ( ( SIZE_MAX / pxQueue->uxLength ) >= pxQueue->uxItemSize ) )
     {
+
+        traceQUEUE_RESET( pxQueue, xNewQueue );
+
         taskENTER_CRITICAL();
         {
             pxQueue->u.xQueue.pcTail = pxQueue->pcHead + ( pxQueue->uxLength * pxQueue->uxItemSize );
@@ -966,7 +969,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
              * queue is full. */
             if( ( pxQueue->uxMessagesWaiting < pxQueue->uxLength ) || ( xCopyPosition == queueOVERWRITE ) )
             {
-                traceQUEUE_SEND( pxQueue );
+                traceQUEUE_SEND_EXT( pxQueue, xCopyPosition );
 
                 #if ( configUSE_QUEUE_SETS == 1 )
                 {
@@ -1200,7 +1203,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
             const int8_t cTxLock = pxQueue->cTxLock;
             const UBaseType_t uxPreviousMessagesWaiting = pxQueue->uxMessagesWaiting;
 
-            traceQUEUE_SEND_FROM_ISR( pxQueue );
+            traceQUEUE_SEND_FROM_ISR_EXT( pxQueue, xCopyPosition );
 
             /* Semaphores use xQueueGiveFromISR(), so pxQueue will not be a
              *  semaphore or mutex.  That means prvCopyDataToQueue() cannot result
@@ -1382,7 +1385,7 @@ BaseType_t xQueueGiveFromISR( QueueHandle_t xQueue,
         {
             const int8_t cTxLock = pxQueue->cTxLock;
 
-            traceQUEUE_SEND_FROM_ISR( pxQueue );
+            traceQUEUE_SEND_FROM_ISR_EXT( pxQueue, queueSEND_TO_BACK );
 
             /* A task can only have an inherited priority if it is a mutex
              * holder - and if there is a mutex holder then the mutex cannot be

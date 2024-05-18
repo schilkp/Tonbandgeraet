@@ -186,16 +186,30 @@ extern "C" {
 
   #define trace_recursive_mutex_name(handle, name) trace_queue_name((handle), (name))
 
-  void trace_queue_send(uint32_t id);
+  void trace_queue_send(uint32_t id, uint32_t copy_position);
 
+  #define traceQUEUE_SEND_EXT(pxQueue, xCopyPosition) trace_queue_send(                                                \
+      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */,                                                               \
+      xCopyPosition /* copy position */                                                                                \
+    )
+
+  #define traceQUEUE_SEND_FROM_ISR_EXT(pxQueue, xCopyPosition) trace_queue_send(                                       \
+      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */,                                                               \
+      xCopyPosition /* copy position */                                                                                \
+    )
+
+  // Fallback for old trace hook:
   #define traceQUEUE_SEND(pxQueue) trace_queue_send(                                                                   \
-      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */                                                                \
+      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */,                                                               \
+      queueSEND_TO_BACK /* copy position */                                                                            \
     )
 
+  // Fallback for old trace hook:
   #define traceQUEUE_SEND_FROM_ISR(pxQueue) trace_queue_send(                                                          \
-      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */                                                                \
+      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */,                                                               \
+      queueSEND_TO_BACK /* copy position */                                                                            \
     )
-
+  
   void trace_queue_receive(uint32_t id);
 
   #define traceQUEUE_RECEIVE(pxQueue) trace_queue_receive(                                                             \
@@ -203,6 +217,12 @@ extern "C" {
     )
 
   #define traceQUEUE_RECEIVE_FROM_ISR(pxQueue) trace_queue_receive(                                                    \
+      (uint32_t)(pxQueue)->uxQueueNumber /* queue id */                                                                \
+    )
+
+  void trace_queue_reset(uint32_t id);
+
+  #define traceQUEUE_RESET(pxQueue, xNewQueue) trace_queue_reset(                                                      \
       (uint32_t)(pxQueue)->uxQueueNumber /* queue id */                                                                \
     )
 

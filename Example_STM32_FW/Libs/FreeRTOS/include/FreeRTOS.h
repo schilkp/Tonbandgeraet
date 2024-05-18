@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V11.1.0
+ * FreeRTOS Kernel <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -48,12 +48,6 @@
  *     in FreeRTOS/source/stdint.readme for more information.
  */
 #include <stdint.h> /* READ COMMENT ABOVE. */
-
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Acceptable values for configTICK_TYPE_WIDTH_IN_BITS. */
 #define TICK_TYPE_WIDTH_16_BITS    0
@@ -128,6 +122,12 @@
     #include "picolibc-freertos.h"
 
 #endif /* if ( configUSE_PICOLIBC_TLS == 1 ) */
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 #ifndef configUSE_C_RUNTIME_TLS_SUPPORT
     #define configUSE_C_RUNTIME_TLS_SUPPORT    0
@@ -765,6 +765,12 @@
     #define traceQUEUE_SET_SEND    traceQUEUE_SEND
 #endif
 
+#ifndef traceQUEUE_SEND_EXT
+    /* Extended version of traceQUEUE_SEND that also reports the copy position
+     * of the sent data. */
+    #define traceQUEUE_SEND_EXT( pxQueue, xCopyPosition ) traceQUEUE_SEND( pxQueue )
+#endif
+
 #ifndef traceQUEUE_SEND
     #define traceQUEUE_SEND( pxQueue )
 #endif
@@ -793,6 +799,12 @@
     #define traceQUEUE_RECEIVE_FAILED( pxQueue )
 #endif
 
+#ifndef traceQUEUE_SEND_FROM_ISR_EXT
+    /* Extended version of traceQUEUE_SEND_FROM_ISR that also reports the copy 
+     * position of the sent data. */
+    #define traceQUEUE_SEND_FROM_ISR_EXT( pxQueue, xCopyPosition ) traceQUEUE_SEND_FROM_ISR( pxQueue )
+#endif
+
 #ifndef traceQUEUE_SEND_FROM_ISR
     #define traceQUEUE_SEND_FROM_ISR( pxQueue )
 #endif
@@ -811,6 +823,10 @@
 
 #ifndef traceQUEUE_PEEK_FROM_ISR_FAILED
     #define traceQUEUE_PEEK_FROM_ISR_FAILED( pxQueue )
+#endif
+
+#ifndef traceQUEUE_RESET
+    #define traceQUEUE_RESET( pxQueue, xNewQueue )
 #endif
 
 #ifndef traceQUEUE_DELETE

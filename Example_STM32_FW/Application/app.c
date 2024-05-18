@@ -66,11 +66,11 @@ void task1_entry(void *args) {
     xQueueSend(q1, &val, 0);
     xQueueSend(q1, &val, 0);
     xQueueSend(q1, &val, 0);
+    xQueueSend(q1, &val, 0);
     vTaskDelay(1);
     xQueueReceive(q1, &val, 0);
     xQueueReceive(q1, &val, 0);
-    xQueueReceive(q1, &val, 0);
-    xQueueReceive(q1, &val, 0);
+    xQueueReset(q1);
 
     if (cnt % 5 == 0) {
       for (size_t i = 0; i < 20; i++) {

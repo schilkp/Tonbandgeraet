@@ -375,12 +375,20 @@ void impl_trace_queue_name(void *queue_handle, char *name) {
   handle_trace_evt(&evt, true);
 }
 
-void trace_queue_send(uint32_t id) {
+void trace_queue_send(uint32_t id, uint32_t copy_position) {
+
   TraceEvent evt = {
       .ts_ns = traceportTIMESTAMP_NS(),
-      .which_event = TraceEvent_queue_send_tag,
-      .event.queue_send = id,
   };
+
+  if (copy_position == queueOVERWRITE) {
+      evt.which_event = TraceEvent_queue_overwrite_tag;
+      evt.event.queue_overwrite = id;
+  } else {
+      evt.which_event = TraceEvent_queue_send_tag;
+      evt.event.queue_send = id;
+  }
+
   include_dropped_evt_cnt(&evt);
   handle_trace_evt(&evt, false);
 }
@@ -390,6 +398,16 @@ void trace_queue_receive(uint32_t id) {
       .ts_ns = traceportTIMESTAMP_NS(),
       .which_event = TraceEvent_queue_receive_tag,
       .event.queue_receive = id,
+  };
+  include_dropped_evt_cnt(&evt);
+  handle_trace_evt(&evt, false);
+}
+
+void trace_queue_reset(uint32_t id) {
+  TraceEvent evt = {
+      .ts_ns = traceportTIMESTAMP_NS(),
+      .which_event = TraceEvent_queue_reset_tag,
+      .event.queue_reset = id,
   };
   include_dropped_evt_cnt(&evt);
   handle_trace_evt(&evt, false);
