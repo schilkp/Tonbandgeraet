@@ -4,7 +4,6 @@ message TraceEvent {
   // Note: Use tags up to 15 for most common events, as they encode to 1 byte.
 
   required uint64 ts_ns = 1;
-  optional uint32 dropped_evts_cnt = 2;
 
   oneof event {
 

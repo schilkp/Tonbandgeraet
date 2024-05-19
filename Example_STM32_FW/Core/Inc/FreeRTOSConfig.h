@@ -154,6 +154,6 @@ _Bool traceport_handle_raw_evt(uint8_t *buf, size_t len, _Bool is_medata);
 #define traceportHANDLE_RAW_EVT(_buf_, _len_, _is_metadata_) traceport_handle_raw_evt((_buf_), (_len_), (_is_metadata_))
 
 // Include tracing hooks:
-#include "tracing_hooks.h"
+// #include "tracing_hooks.h"
 
 #endif /* FREERTOS_CONFIG_H */

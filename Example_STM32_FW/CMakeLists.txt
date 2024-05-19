@@ -7,7 +7,8 @@ set(CMAKE_C_EXTENSIONS ON)
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    # set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 # Set the project name
@@ -55,13 +56,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ../tracer/protos/pb_common.c
     ../tracer/protos/pb_encode.c
     ../tracer/protos/FreeRTOS_trace.pb.c
-    ../tracer/tracer.c
 
     # Tracing backend:
-    Core/Src/tracing_backend.c
+    # Core/Src/tracing_backend.c
 
     # Application:
-    Application/app.c
+    # Application/app.c
 )
 
 # Add include paths

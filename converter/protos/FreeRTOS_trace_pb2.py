@@ -14,27 +14,27 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x46reeRTOS_trace.proto\"\xce\t\n\nTraceEvent\x12\r\n\x05ts_ns\x18\x01 \x02(\x04\x12\x18\n\x10\x64ropped_evts_cnt\x18\x02 \x01(\r\x12\x1a\n\x10task_switched_in\x18\x03 \x01(\rH\x00\x12\x1d\n\x13task_to_ready_state\x18\x04 \x01(\rH\x00\x12\x16\n\x0ctask_resumed\x18\x10 \x01(\rH\x00\x12\x18\n\x0etask_suspended\x18\x11 \x01(\rH\x00\x12\x1e\n\x08isr_name\x18\x12 \x01(\x0b\x32\n.NameEventH\x00\x12\x13\n\tisr_enter\x18\x05 \x01(\rH\x00\x12\x12\n\x08isr_exit\x18\x06 \x01(\rH\x00\x12\x14\n\ntask_delay\x18\x13 \x01(\x08H\x00\x12/\n\x11task_priority_set\x18\x14 \x01(\x0b\x32\x12.TaskPriorityEventH\x00\x12\x33\n\x15task_priority_inherit\x18\x15 \x01(\x0b\x32\x12.TaskPriorityEventH\x00\x12\x36\n\x18task_priority_disinherit\x18\x16 \x01(\x0b\x32\x12.TaskPriorityEventH\x00\x12\x15\n\x0btask_create\x18\x17 \x01(\rH\x00\x12\x1f\n\ttask_name\x18\x18 \x01(\x0b\x32\n.NameEventH\x00\x12\x1b\n\x11task_is_idle_task\x18\x19 \x01(\rH\x00\x12\x1c\n\x12task_is_timer_task\x18\x1a \x01(\rH\x00\x12\x16\n\x0ctask_deleted\x18\x1b \x01(\rH\x00\x12\x16\n\x0cqueue_create\x18\x1c \x01(\rH\x00\x12 \n\nqueue_name\x18\x1d \x01(\x0b\x32\n.NameEventH\x00\x12%\n\nqueue_kind\x18\x1e \x01(\x0b\x32\x0f.QueueKindEventH\x00\x12\x14\n\nqueue_send\x18\x1f \x01(\rH\x00\x12\x19\n\x0fqueue_overwrite\x18  \x01(\rH\x00\x12\x17\n\rqueue_receive\x18! \x01(\rH\x00\x12\x15\n\x0bqueue_reset\x18\" \x01(\rH\x00\x12%\n\x1btask_blocking_on_queue_peek\x18# \x01(\rH\x00\x12%\n\x1btask_blocking_on_queue_send\x18$ \x01(\rH\x00\x12(\n\x1etask_blocking_on_queue_receive\x18% \x01(\rH\x00\x12\x1e\n\x14stream_buffer_create\x18& \x01(\rH\x00\x12(\n\x12stream_buffer_name\x18\' \x01(\x0b\x32\n.NameEventH\x00\x12\x34\n\x12stream_buffer_kind\x18( \x01(\x0b\x32\x16.StreamBufferKindEventH\x00\x12;\n\x15stream_buffer_receive\x18) \x01(\x0b\x32\x1a.StreamBufferTransferEventH\x00\x12\x38\n\x12stream_buffer_send\x18* \x01(\x0b\x32\x1a.StreamBufferTransferEventH\x00\x12\x1d\n\x13stream_buffer_reset\x18+ \x01(\rH\x00\x12\"\n\x18task_blocking_on_sb_send\x18, \x01(\rH\x00\x12%\n\x1btask_blocking_on_sb_receive\x18- \x01(\rH\x00\x42\x07\n\x05\x65vent\":\n\x11TaskPriorityEvent\x12\x0f\n\x07task_id\x18\x01 \x02(\r\x12\x14\n\x0cnew_priority\x18\x02 \x02(\r\"%\n\tNameEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x0c\n\x04name\x18\x02 \x02(\t\"6\n\x0eQueueKindEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x18\n\x04kind\x18\x02 \x02(\x0e\x32\n.QueueKind\"D\n\x15StreamBufferKindEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x1f\n\x04kind\x18\x02 \x02(\x0e\x32\x11.StreamBufferKind\"5\n\x19StreamBufferTransferEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x0c\n\x04\x61mnt\x18\x02 \x02(\r*s\n\tQueueKind\x12\x0c\n\x08QK_QUEUE\x10\x00\x12\x19\n\x15QK_COUNTING_SEMAPHORE\x10\x01\x12\x17\n\x13QK_BINARY_SEMAPHORE\x10\x02\x12\x0c\n\x08QK_MUTEX\x10\x03\x12\x16\n\x12QK_RECURSIVE_MUTEX\x10\x04*8\n\x10StreamBufferKind\x12\r\n\tSB_NORMAL\x10\x00\x12\x15\n\x11SB_MESSAGE_BUFFER\x10\x01')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x46reeRTOS_trace.proto\"\xb4\t\n\nTraceEvent\x12\r\n\x05ts_ns\x18\x01 \x02(\x04\x12\x1a\n\x10task_switched_in\x18\x03 \x01(\rH\x00\x12\x1d\n\x13task_to_ready_state\x18\x04 \x01(\rH\x00\x12\x16\n\x0ctask_resumed\x18\x10 \x01(\rH\x00\x12\x18\n\x0etask_suspended\x18\x11 \x01(\rH\x00\x12\x1e\n\x08isr_name\x18\x12 \x01(\x0b\x32\n.NameEventH\x00\x12\x13\n\tisr_enter\x18\x05 \x01(\rH\x00\x12\x12\n\x08isr_exit\x18\x06 \x01(\rH\x00\x12\x14\n\ntask_delay\x18\x13 \x01(\x08H\x00\x12/\n\x11task_priority_set\x18\x14 \x01(\x0b\x32\x12.TaskPriorityEventH\x00\x12\x33\n\x15task_priority_inherit\x18\x15 \x01(\x0b\x32\x12.TaskPriorityEventH\x00\x12\x36\n\x18task_priority_disinherit\x18\x16 \x01(\x0b\x32\x12.TaskPriorityEventH\x00\x12\x15\n\x0btask_create\x18\x17 \x01(\rH\x00\x12\x1f\n\ttask_name\x18\x18 \x01(\x0b\x32\n.NameEventH\x00\x12\x1b\n\x11task_is_idle_task\x18\x19 \x01(\rH\x00\x12\x1c\n\x12task_is_timer_task\x18\x1a \x01(\rH\x00\x12\x16\n\x0ctask_deleted\x18\x1b \x01(\rH\x00\x12\x16\n\x0cqueue_create\x18\x1c \x01(\rH\x00\x12 \n\nqueue_name\x18\x1d \x01(\x0b\x32\n.NameEventH\x00\x12%\n\nqueue_kind\x18\x1e \x01(\x0b\x32\x0f.QueueKindEventH\x00\x12\x14\n\nqueue_send\x18\x1f \x01(\rH\x00\x12\x19\n\x0fqueue_overwrite\x18  \x01(\rH\x00\x12\x17\n\rqueue_receive\x18! \x01(\rH\x00\x12\x15\n\x0bqueue_reset\x18\" \x01(\rH\x00\x12%\n\x1btask_blocking_on_queue_peek\x18# \x01(\rH\x00\x12%\n\x1btask_blocking_on_queue_send\x18$ \x01(\rH\x00\x12(\n\x1etask_blocking_on_queue_receive\x18% \x01(\rH\x00\x12\x1e\n\x14stream_buffer_create\x18& \x01(\rH\x00\x12(\n\x12stream_buffer_name\x18\' \x01(\x0b\x32\n.NameEventH\x00\x12\x34\n\x12stream_buffer_kind\x18( \x01(\x0b\x32\x16.StreamBufferKindEventH\x00\x12;\n\x15stream_buffer_receive\x18) \x01(\x0b\x32\x1a.StreamBufferTransferEventH\x00\x12\x38\n\x12stream_buffer_send\x18* \x01(\x0b\x32\x1a.StreamBufferTransferEventH\x00\x12\x1d\n\x13stream_buffer_reset\x18+ \x01(\rH\x00\x12\"\n\x18task_blocking_on_sb_send\x18, \x01(\rH\x00\x12%\n\x1btask_blocking_on_sb_receive\x18- \x01(\rH\x00\x42\x07\n\x05\x65vent\":\n\x11TaskPriorityEvent\x12\x0f\n\x07task_id\x18\x01 \x02(\r\x12\x14\n\x0cnew_priority\x18\x02 \x02(\r\"%\n\tNameEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x0c\n\x04name\x18\x02 \x02(\t\"6\n\x0eQueueKindEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x18\n\x04kind\x18\x02 \x02(\x0e\x32\n.QueueKind\"D\n\x15StreamBufferKindEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x1f\n\x04kind\x18\x02 \x02(\x0e\x32\x11.StreamBufferKind\"5\n\x19StreamBufferTransferEvent\x12\n\n\x02id\x18\x01 \x02(\r\x12\x0c\n\x04\x61mnt\x18\x02 \x02(\r*s\n\tQueueKind\x12\x0c\n\x08QK_QUEUE\x10\x00\x12\x19\n\x15QK_COUNTING_SEMAPHORE\x10\x01\x12\x17\n\x13QK_BINARY_SEMAPHORE\x10\x02\x12\x0c\n\x08QK_MUTEX\x10\x03\x12\x16\n\x12QK_RECURSIVE_MUTEX\x10\x04*8\n\x10StreamBufferKind\x12\r\n\tSB_NORMAL\x10\x00\x12\x15\n\x11SB_MESSAGE_BUFFER\x10\x01')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'FreeRTOS_trace_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_QUEUEKIND']._serialized_start=1537
-  _globals['_QUEUEKIND']._serialized_end=1652
-  _globals['_STREAMBUFFERKIND']._serialized_start=1654
-  _globals['_STREAMBUFFERKIND']._serialized_end=1710
+  _globals['_QUEUEKIND']._serialized_start=1511
+  _globals['_QUEUEKIND']._serialized_end=1626
+  _globals['_STREAMBUFFERKIND']._serialized_start=1628
+  _globals['_STREAMBUFFERKIND']._serialized_end=1684
   _globals['_TRACEEVENT']._serialized_start=25
-  _globals['_TRACEEVENT']._serialized_end=1255
-  _globals['_TASKPRIORITYEVENT']._serialized_start=1257
-  _globals['_TASKPRIORITYEVENT']._serialized_end=1315
-  _globals['_NAMEEVENT']._serialized_start=1317
-  _globals['_NAMEEVENT']._serialized_end=1354
-  _globals['_QUEUEKINDEVENT']._serialized_start=1356
-  _globals['_QUEUEKINDEVENT']._serialized_end=1410
-  _globals['_STREAMBUFFERKINDEVENT']._serialized_start=1412
-  _globals['_STREAMBUFFERKINDEVENT']._serialized_end=1480
-  _globals['_STREAMBUFFERTRANSFEREVENT']._serialized_start=1482
-  _globals['_STREAMBUFFERTRANSFEREVENT']._serialized_end=1535
+  _globals['_TRACEEVENT']._serialized_end=1229
+  _globals['_TASKPRIORITYEVENT']._serialized_start=1231
+  _globals['_TASKPRIORITYEVENT']._serialized_end=1289
+  _globals['_NAMEEVENT']._serialized_start=1291
+  _globals['_NAMEEVENT']._serialized_end=1328
+  _globals['_QUEUEKINDEVENT']._serialized_start=1330
+  _globals['_QUEUEKINDEVENT']._serialized_end=1384
+  _globals['_STREAMBUFFERKINDEVENT']._serialized_start=1386
+  _globals['_STREAMBUFFERKINDEVENT']._serialized_end=1454
+  _globals['_STREAMBUFFERTRANSFEREVENT']._serialized_start=1456
+  _globals['_STREAMBUFFERTRANSFEREVENT']._serialized_end=1509
 # @@protoc_insertion_point(module_scope)

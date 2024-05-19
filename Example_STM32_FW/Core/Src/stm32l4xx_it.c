@@ -151,7 +151,7 @@ void DebugMon_Handler(void) {
  */
 void SysTick_Handler(void) {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  trace_isr_enter(SysTick_IRQn);
+  // trace_isr_enter(SysTick_IRQn);
   /* Clear overflow flag */
   SysTick->CTRL;
 
@@ -162,7 +162,7 @@ void SysTick_Handler(void) {
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
-  trace_isr_exit(SysTick_IRQn);
+  // trace_isr_exit(SysTick_IRQn);
   /* USER CODE END SysTick_IRQn 1 */
 }
 

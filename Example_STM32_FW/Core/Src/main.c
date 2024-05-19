@@ -18,10 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS_trace.pb.h"
 #include "app.h"
+#include "pb_encode.h"
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,6 +35,59 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+static void report_result(char *name, uint32_t *start_t, uint32_t *stop_t, uint32_t *msg_len,
+                          size_t s) {
+  printf("-- Result of %s --\r\n", name);
+  for (size_t i = 0; i < s; i++) {
+    printf("  CNT: %" PRIu32 " LEN: %" PRIu32 "\r\n", stop_t[i] - start_t[i], msg_len[i]);
+  }
+}
+
+static inline size_t encode_u8(uint8_t *buf, uint8_t val) {
+  buf[0] = val;
+  return 1;
+}
+
+static inline size_t encode_u32(uint8_t *buf, uint32_t val) {
+  for (size_t i = 0; i < 5; i++) {
+    uint8_t bits = val & 0x7F;
+    val = val >> 7;
+    if (val == 0) {
+      buf[i] = bits | 0x00;
+      return i + 1;
+    } else {
+      buf[i] = bits | 0x80;
+    }
+  }
+  return 5;
+}
+
+static inline size_t encode_u64(uint8_t *buf, uint64_t val) {
+  for (size_t i = 0; i < 10; i++) {
+    uint8_t bits = val & 0x7F;
+    val = val >> 7;
+    if (val == 0) {
+      buf[i] = bits | 0x00;
+      return i + 1;
+    } else {
+      buf[i] = bits | 0x80;
+    }
+  }
+  return 10;
+}
+
+static inline size_t encode_str(uint8_t *buf, char *str) {
+  size_t len = 0;
+
+  while (*str != 0) {
+    buf[len] = *str;
+    len++;
+    str++;
+  }
+
+  return len;
+}
 
 /* USER CODE END PD */
 
@@ -99,11 +156,170 @@ int main(void) {
 
   NVIC_SetPriority(SVCall_IRQn, 0U);
 
-  if (rtos_init() != 0) Error_Handler();
+  // Start DWT
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+  printf("START!\r\n");
 
-  trace_isr_name(SysTick_IRQn, "Tick");
+  static const size_t CNT = 10;
+  uint32_t start_t[CNT];
+  uint32_t stop_t[CNT];
+  uint32_t msg_len[CNT];
 
-  vTaskStartScheduler();
+  volatile uint8_t OUT_BUF[100];
+  volatile uint64_t ts = 0x12301231;
+  volatile uint32_t id = 0x2123;
+
+  // Nanopb: Empty evt (ts + kind) (task_delay)
+  memset(start_t, 0, sizeof(start_t));
+  memset(stop_t, 0, sizeof(stop_t));
+  memset(msg_len, 0, sizeof(msg_len));
+
+  for (size_t i = 0; i < CNT; i++) {
+    start_t[i] = DWT->CYCCNT;
+    uint8_t buf[100] = {0};
+    TraceEvent evt = {
+        .ts_ns = ts,
+        .which_event = TraceEvent_task_delay_tag,
+        .event.task_delay = true, // Value is dont-care
+    };
+    pb_ostream_t ostream = pb_ostream_from_buffer(buf, 100);
+    (void)pb_encode(&ostream, TraceEvent_fields, &evt);
+    size_t proto_len = ostream.bytes_written;
+    msg_len[i] = proto_len;
+    for (size_t j = 0; j < proto_len; j++) {
+      OUT_BUF[j] = buf[j];
+    }
+    stop_t[i] = DWT->CYCCNT;
+  }
+
+  report_result("nanopb empty", start_t, stop_t, msg_len, CNT);
+
+  // Nanopb: Basic evt (ts + kind + id)
+  memset(start_t, 0, sizeof(start_t));
+  memset(stop_t, 0, sizeof(stop_t));
+  memset(msg_len, 0, sizeof(msg_len));
+
+  for (size_t i = 0; i < CNT; i++) {
+    start_t[i] = DWT->CYCCNT;
+    uint8_t buf[100] = {0};
+    TraceEvent evt = {
+        .ts_ns = ts,
+        .which_event = TraceEvent_task_create_tag,
+        .event.task_create = id,
+    };
+    pb_ostream_t ostream = pb_ostream_from_buffer(buf, 100);
+    (void)pb_encode(&ostream, TraceEvent_fields, &evt);
+    size_t proto_len = ostream.bytes_written;
+    msg_len[i] = proto_len;
+    for (size_t j = 0; j < proto_len; j++) {
+      OUT_BUF[j] = buf[j];
+    }
+    stop_t[i] = DWT->CYCCNT;
+  }
+
+  report_result("nanopb basic", start_t, stop_t, msg_len, CNT);
+
+  // Nanopb: String evt (ts + kind + id + string)
+  memset(start_t, 0, sizeof(start_t));
+  memset(stop_t, 0, sizeof(stop_t));
+  memset(msg_len, 0, sizeof(msg_len));
+
+  for (size_t i = 0; i < CNT; i++) {
+    start_t[i] = DWT->CYCCNT;
+    uint8_t buf[100] = {0};
+    TraceEvent evt = {
+        .ts_ns = ts,
+        .which_event = TraceEvent_task_name_tag,
+        .event.task_name = {.id = id, .name = "name"},
+    };
+    pb_ostream_t ostream = pb_ostream_from_buffer(buf, 100);
+    (void)pb_encode(&ostream, TraceEvent_fields, &evt);
+    size_t proto_len = ostream.bytes_written;
+    msg_len[i] = proto_len;
+    for (size_t j = 0; j < proto_len; j++) {
+      OUT_BUF[j] = buf[j];
+    }
+    stop_t[i] = DWT->CYCCNT;
+  }
+
+  report_result("nanopb string", start_t, stop_t, msg_len, CNT);
+
+  // Custom: Empty evt (ts + kind) (task_delay)
+  memset(start_t, 0, sizeof(start_t));
+  memset(stop_t, 0, sizeof(stop_t));
+  memset(msg_len, 0, sizeof(msg_len));
+
+  for (size_t i = 0; i < CNT; i++) {
+    start_t[i] = DWT->CYCCNT;
+    uint8_t buf[100] = {0};
+    size_t len = 0;
+
+    len += encode_u8(buf + len, 19);
+    len += encode_u64(buf + len, ts);
+
+    msg_len[i] = len;
+    for (size_t j = 0; j < len; j++) {
+      OUT_BUF[j] = buf[j];
+    }
+    stop_t[i] = DWT->CYCCNT;
+  }
+
+  report_result("custom empty", start_t, stop_t, msg_len, CNT);
+
+  // Custom: Basic evt (ts + kind + id)
+  memset(start_t, 0, sizeof(start_t));
+  memset(stop_t, 0, sizeof(stop_t));
+  memset(msg_len, 0, sizeof(msg_len));
+
+  for (size_t i = 0; i < CNT; i++) {
+    start_t[i] = DWT->CYCCNT;
+    uint8_t buf[100] = {0};
+    size_t len = 0;
+
+    len += encode_u8(buf + len, 19);  // kind
+    len += encode_u64(buf + len, ts); // ts
+    len += encode_u32(buf + len, id); // id
+
+    msg_len[i] = len;
+    for (size_t j = 0; j < len; j++) {
+      OUT_BUF[j] = buf[j];
+    }
+    stop_t[i] = DWT->CYCCNT;
+  }
+
+  report_result("custom basic", start_t, stop_t, msg_len, CNT);
+
+  // Custom: String evt (ts + kind + id + string)
+  memset(start_t, 0, sizeof(start_t));
+  memset(stop_t, 0, sizeof(stop_t));
+  memset(msg_len, 0, sizeof(msg_len));
+
+  for (size_t i = 0; i < CNT; i++) {
+    start_t[i] = DWT->CYCCNT;
+    uint8_t buf[100] = {0};
+    size_t len = 0;
+
+    len += encode_u8(buf + len, 19);      // kind
+    len += encode_u64(buf + len, ts);     // ts
+    len += encode_u32(buf + len, id);     // id
+    len += encode_str(buf + len, "name"); // id
+
+    msg_len[i] = len;
+    for (size_t j = 0; j < len; j++) {
+      OUT_BUF[j] = buf[j];
+    }
+    stop_t[i] = DWT->CYCCNT;
+  }
+
+  report_result("custom string", start_t, stop_t, msg_len, CNT);
+
+  // if (rtos_init() != 0) Error_Handler();
+
+  // trace_isr_name(SysTick_IRQn, "Tick");
+
+  // vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
@@ -151,7 +367,8 @@ void SystemClock_Config(void) {
 
   /** Initializes the CPU, AHB and APB buses clocks
    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType =
+      RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;

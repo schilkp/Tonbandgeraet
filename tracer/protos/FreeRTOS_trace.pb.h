@@ -51,8 +51,6 @@ typedef struct _StreamBufferTransferEvent {
 
 typedef struct _TraceEvent { /* Note: Use tags up to 15 for most common events, as they encode to 1 byte. */
     uint64_t ts_ns;
-    bool has_dropped_evts_cnt;
-    uint32_t dropped_evts_cnt;
     pb_size_t which_event;
     union {
         /* A task has been allowed to run. Value is task id. */
@@ -152,13 +150,13 @@ extern "C" {
 
 
 /* Initializer values for message structs */
-#define TraceEvent_init_default                  {0, false, 0, 0, {0}}
+#define TraceEvent_init_default                  {0, 0, {0}}
 #define TaskPriorityEvent_init_default           {0, 0}
 #define NameEvent_init_default                   {0, ""}
 #define QueueKindEvent_init_default              {0, _QueueKind_MIN}
 #define StreamBufferKindEvent_init_default       {0, _StreamBufferKind_MIN}
 #define StreamBufferTransferEvent_init_default   {0, 0}
-#define TraceEvent_init_zero                     {0, false, 0, 0, {0}}
+#define TraceEvent_init_zero                     {0, 0, {0}}
 #define TaskPriorityEvent_init_zero              {0, 0}
 #define NameEvent_init_zero                      {0, ""}
 #define QueueKindEvent_init_zero                 {0, _QueueKind_MIN}
@@ -177,7 +175,6 @@ extern "C" {
 #define StreamBufferTransferEvent_id_tag         1
 #define StreamBufferTransferEvent_amnt_tag       2
 #define TraceEvent_ts_ns_tag                     1
-#define TraceEvent_dropped_evts_cnt_tag          2
 #define TraceEvent_task_switched_in_tag          3
 #define TraceEvent_task_to_ready_state_tag       4
 #define TraceEvent_isr_enter_tag                 5
@@ -216,7 +213,6 @@ extern "C" {
 /* Struct field encoding specification for nanopb */
 #define TraceEvent_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT64,   ts_ns,             1) \
-X(a, STATIC,   OPTIONAL, UINT32,   dropped_evts_cnt,   2) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,task_switched_in,event.task_switched_in),   3) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,task_to_ready_state,event.task_to_ready_state),   4) \
 X(a, STATIC,   ONEOF,    UINT32,   (event,isr_enter,event.isr_enter),   5) \
@@ -317,7 +313,7 @@ extern const pb_msgdesc_t StreamBufferTransferEvent_msg;
 #define StreamBufferKindEvent_size               8
 #define StreamBufferTransferEvent_size           12
 #define TaskPriorityEvent_size                   12
-#define TraceEvent_size                          37
+#define TraceEvent_size                          31
 
 #ifdef __cplusplus
 } /* extern "C" */
