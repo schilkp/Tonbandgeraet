@@ -1,6 +1,0 @@
-CompileFlags:
-    Add: [-I/usr/arm-none-eabi/include]
-    Remove: [-f*, -mfp*]
-    CompilationDatabase: Example_STM32_FW/build/Debug
-Diagnostics:
-  UnusedIncludes: None

@@ -1,0 +1,7 @@
+_default:
+    just --list
+
+# Download latest perfetto protobuffer amalgamation:
+update_perfetto_proto:
+    rm -rf src/perfetto_trace.proto
+    wget https://raw.githubusercontent.com/google/perfetto/master/protos/perfetto/trace/perfetto_trace.proto -O src/perfetto_trace.proto

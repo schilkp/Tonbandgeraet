@@ -1,0 +1,6 @@
+CompileFlags:
+  Add: [-I/usr/arm-none-eabi/include]
+  Remove: [-f*, -mfp*]
+  CompilationDatabase: build/Debug
+Diagnostics:
+  UnusedIncludes: None

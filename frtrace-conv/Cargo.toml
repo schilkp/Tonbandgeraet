@@ -1,0 +1,9 @@
+[workspace]
+
+resolver = "2"
+
+members = [ 
+    "frtrace-conv-core",
+    "frtrace-conv-cli",
+    "synthetto"
+]

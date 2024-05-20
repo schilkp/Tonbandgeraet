@@ -1,0 +1,10 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+ColumnLimit: 100
+ContinuationIndentWidth: 2
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortEnumsOnASingleLine: false
+AlignConsecutiveMacros: Consecutive
+IndentCaseLabels: true
+IndentGotoLabels: true

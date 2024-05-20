@@ -1,0 +1,10 @@
+_default:
+    just --list
+
+# Re-generate encoder/decoder code, compile and execute C unit tests.
+tracer_tests:
+    rm -rf build
+    mkdir -p build
+    cmake -B build -DCMAKE_GENERATOR=Ninja
+    ninja -C build
+    python run_tests.py -t 0.1 -j 1 build/bin/

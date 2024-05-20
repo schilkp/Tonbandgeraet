@@ -1,0 +1,10 @@
+[package]
+name = "synthetto"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prost = "0.12.6"
+
+[build-dependencies]
+prost-build = "0.12.6"

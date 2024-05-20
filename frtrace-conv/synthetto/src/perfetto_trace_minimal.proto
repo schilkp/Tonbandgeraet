@@ -1,0 +1,688 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Begin of protos/perfetto/trace/track_event/counter_descriptor.proto
+
+// Defines properties of a counter track, e.g. for built-in counters (thread
+// time, instruction count, ..) or user-specified counters (e.g. memory usage of
+// a specific app component).
+//
+// Counter tracks only support TYPE_COUNTER track events, which specify new
+// values for the counter. For counters that require per-slice values, counter
+// values can instead be provided in a more efficient encoding via TrackEvent's
+// |extra_counter_track_uuids| and |extra_counter_values| fields. However,
+// slice-type events cannot be emitted onto a counter track.
+//
+// Values for counters that are only emitted on a single packet sequence can
+// optionally be delta-encoded, see |is_incremental|.
+//
+// Next id: 7.
+message CounterDescriptor {
+
+  // Type of the values for the counters - to supply lower granularity units,
+  // see also |unit_multiplier|.
+  enum Unit {
+    UNIT_UNSPECIFIED = 0;
+    UNIT_TIME_NS = 1;
+    UNIT_COUNT = 2;
+    UNIT_SIZE_BYTES = 3;
+    // TODO(eseckler): Support more units as necessary.
+  }
+
+  reserved 1; // optional BuiltinCounterType type = 1;
+
+  // Names of categories of the counter (usually for user-specified counters).
+  // In the client library, categories are a way to turn groups of individual
+  // counters (or events) on or off.
+  repeated string categories = 2;
+
+  // Type of the counter's values. Built-in counters imply a value for this
+  // field.
+  optional Unit unit = 3;
+
+  // In order to use a unit not defined as a part of |Unit|, a free-form unit
+  // name can be used instead.
+  optional string unit_name = 6;
+
+  // Multiplication factor of this counter's values, e.g. to supply
+  // COUNTER_THREAD_TIME_NS timestamps in microseconds instead.
+  optional int64 unit_multiplier = 4;
+
+  // Whether values for this counter are provided as delta values. Only
+  // supported for counters that are emitted on a single packet-sequence (e.g.
+  // thread time). Counter values in subsequent packets on the current packet
+  // sequence will be interpreted as delta values from the sequence's most
+  // recent value for the counter. When incremental state is cleared, the
+  // counter value is considered to be reset to 0. Thus, the first value after
+  // incremental state is cleared is effectively an absolute value.
+  optional bool is_incremental = 5;
+}
+
+// Begin of protos/perfetto/trace/track_event/thread_descriptor.proto
+
+// Describes a thread's attributes. Emitted as part of a TrackDescriptor,
+// usually by the thread's trace writer.
+//
+// Next id: 9.
+message ThreadDescriptor {
+  optional int32 pid = 1;
+  optional int32 tid = 2;
+
+  optional string thread_name = 5;
+
+  reserved 4; // optional ChromeThreadType chrome_thread_type = 4;
+  reserved 6; // optional int64 reference_timestamp_us = 6;
+  reserved 7; // optional int64 reference_thread_time_us = 7;
+  reserved 8; // optional int64 reference_thread_instruction_count = 8;
+  reserved 3; // optional int32 legacy_sort_index = 3;
+}
+
+// End of protos/perfetto/trace/track_event/thread_descriptor.proto
+
+// Begin of protos/perfetto/trace/track_event/process_descriptor.proto
+
+// Describes a process's attributes. Emitted as part of a TrackDescriptor,
+// usually by the process's main thread.
+//
+// Next id: 9.
+message ProcessDescriptor {
+  optional int32 pid = 1;
+  repeated string cmdline = 2;
+  optional string process_name = 6;
+
+  optional int32 process_priority = 5;
+  // Process start time in nanoseconds.
+  // The timestamp refers to the trace clock by default. Other clock IDs
+  // provided in TracePacket are not supported.
+  optional int64 start_timestamp_ns = 7;
+
+  reserved 4; // optional ChromeProcessType chrome_process_type = 4;
+  reserved 3; // optional int32 legacy_sort_index = 3;
+  reserved 8; // repeated string process_labels = 8;
+}
+
+// End of protos/perfetto/trace/track_event/process_descriptor.proto
+
+// Begin of protos/perfetto/trace/track_event/debug_annotation.proto
+
+// Proto representation of untyped key/value annotations provided in TRACE_EVENT
+// macros. Users of the Perfetto SDK should prefer to use the
+// perfetto::TracedValue API to fill these protos, rather than filling them
+// manually.
+//
+// Debug annotations are intended for debug use and are not considered a stable
+// API of the trace contents. Trace-based metrics that use debug annotation
+// values are prone to breakage, so please rely on typed TrackEvent fields for
+// these instead.
+//
+// DebugAnnotations support nested arrays and dictionaries. Each entry is
+// encoded as a single DebugAnnotation message. Only dictionary entries
+// set the "name" field. The TrackEvent message forms an implicit root
+// dictionary.
+//
+// Example TrackEvent with nested annotations:
+//   track_event {
+//     debug_annotations {
+//       name: "foo"
+//       dict_entries {
+//         name: "a"
+//         bool_value: true
+//       }
+//       dict_entries {
+//         name: "b"
+//         int_value: 123
+//       }
+//     }
+//     debug_annotations {
+//       name: "bar"
+//       array_values {
+//         string_value: "hello"
+//       }
+//       array_values {
+//         string_value: "world"
+//       }
+//     }
+//   }
+//
+// Next ID: 18.
+// Reserved ID: 15
+message DebugAnnotation {
+  // Name fields are set only for dictionary entries.
+  oneof name_field {
+    // non-interned variant.
+    string name = 10;
+  }
+
+  // BEGIN: Reserved fields from 'name_field' oneof
+  reserved 1; // uint64 name_iid = 1;
+  // END: Reserved fields from 'name_field' oneof
+
+  oneof value {
+    bool bool_value = 2;
+    uint64 uint_value = 3;
+    int64 int_value = 4;
+    double double_value = 5;
+    // Pointers are stored in a separate type as the JSON output treats them
+    // differently from other uint64 values.
+    uint64 pointer_value = 7;
+
+    // interned and non-interned variants of strings.
+    string string_value = 6;
+  }
+
+  // BEGIN: Reserved fields from 'value' oneof
+
+  reserved 8;  // NestedValue nested_value = 8;
+  reserved 17; // uint64 string_value_iid = 17;
+  reserved 9;  // string legacy_json_value = 9;
+
+  // END: Reserved fields from 'value' oneof
+
+  // oneof proto_type_descriptor {
+  reserved 16; // string proto_type_name = 16;
+  reserved 13; // uint64 proto_type_name_iid = 13;
+  // }
+  reserved 14; // optional bytes proto_value = 14;
+
+  repeated DebugAnnotation dict_entries = 11;
+  repeated DebugAnnotation array_values = 12;
+}
+
+// End of protos/perfetto/trace/track_event/debug_annotation.proto
+
+// Begin of protos/perfetto/trace/track_event/track_descriptor.proto
+
+// Defines a track for TrackEvents. Slices and instant events on the same track
+// will be nested based on their timestamps, see TrackEvent::Type.
+//
+// A TrackDescriptor only needs to be emitted by one trace writer / producer and
+// is valid for the entirety of the trace. To ensure the descriptor isn't lost
+// when the ring buffer wraps, it should be reemitted whenever incremental state
+// is cleared.
+//
+// As a fallback, TrackEvents emitted without an explicit track association will
+// be associated with an implicit trace-global track (uuid = 0), see also
+// |TrackEvent::track_uuid|. It is possible but not necessary to emit a
+// TrackDescriptor for this implicit track.
+//
+// Next id: 11.
+message TrackDescriptor {
+  // Unique ID that identifies this track. This ID is global to the whole trace.
+  // Producers should ensure that it is unlikely to clash with IDs emitted by
+  // other producers. A value of 0 denotes the implicit trace-global track.
+  //
+  // For example, legacy TRACE_EVENT macros may use a hash involving the async
+  // event id + id_scope, pid, and/or tid to compute this ID.
+  optional uint64 uuid = 1;
+
+  // A parent track reference can be used to describe relationships between
+  // tracks. For example, to define an asynchronous track which is scoped to a
+  // specific process, specify the uuid for that process's process track here.
+  // Similarly, to associate a COUNTER_THREAD_TIME_NS counter track with a
+  // thread, specify the uuid for that thread's thread track here.
+  optional uint64 parent_uuid = 5;
+
+  // Name of the track. Optional - if unspecified, it may be derived from the
+  // process/thread name (process/thread tracks), the first event's name (async
+  // tracks), or counter name (counter tracks).
+  oneof static_or_dynamic_name {
+    string name = 2;
+    // This field is only set by the SDK when perfetto::StaticString is
+    // provided.
+  }
+  // BEGIN: Reserved fields from the 'static_or_dynamic_name' oneof
+  reserved 10; // string static_name = 10;
+  // END: Reserved fields from the 'static_or_dynamic_name' oneof
+
+  // Associate the track with a process, making it the process-global track.
+  // There should only be one such track per process (usually for instant
+  // events; trace processor uses this fact to detect pid reuse). If you need
+  // more (e.g. for asynchronous events), create child tracks using parent_uuid.
+  //
+  // Trace processor will merge events on a process track with slice-type events
+  // from other sources (e.g. ftrace) for the same process into a single
+  // timeline view.
+  optional ProcessDescriptor process = 3;
+  reserved 6; // optional ChromeProcessDescriptor chrome_process = 6;
+
+  // Associate the track with a thread, indicating that the track's events
+  // describe synchronous code execution on the thread. There should only be one
+  // such track per thread (trace processor uses this fact to detect tid reuse).
+  //
+  // Trace processor will merge events on a thread track with slice-type events
+  // from other sources (e.g. ftrace) for the same thread into a single timeline
+  // view.
+  optional ThreadDescriptor thread = 4;
+  reserved 7; // optional ChromeThreadDescriptor chrome_thread = 7;
+
+  // Descriptor for a counter track. If set, the track will only support
+  // TYPE_COUNTER TrackEvents (and values provided via TrackEvent's
+  // |extra_counter_values|).
+  optional CounterDescriptor counter = 8;
+
+  reserved 9; // optional bool disallow_merging_with_system_tracks = 9;
+}
+
+// End of protos/perfetto/trace/track_event/track_descriptor.proto
+
+// Begin of protos/perfetto/trace/track_event/track_event.proto
+
+// NOTE: Full TrackEvent support in the client lib and chrome is WIP, thus these
+// protos are still subject to change. Don't depend on them staying as they are.
+
+// Trace events emitted by client instrumentation library (TRACE_EVENT macros),
+// which describe activity on a track, such as a thread or asynchronous event
+// track. The track is specified using separate TrackDescriptor messages and
+// referred to via the track's UUID.
+//
+// A simple TrackEvent packet specifies a timestamp, category, name and type:
+// ```protobuf
+//   trace_packet {
+//     timestamp: 1000
+//     track_event {
+//       categories: ["my_cat"]
+//       name: "my_event"
+//       type: TYPE_INSTANT
+//      }
+//    }
+// ```
+//
+// To associate an event with a custom track (e.g. a thread), the track is
+// defined in a separate packet and referred to from the TrackEvent by its UUID:
+// ```protobuf
+//   trace_packet {
+//     track_descriptor {
+//       track_uuid: 1234
+//       name: "my_track"
+//
+//       // Optionally, associate the track with a thread.
+//       thread_descriptor {
+//         pid: 10
+//         tid: 10
+//         ..
+//       }
+//     }
+//   }
+// ```
+//
+// A pair of TYPE_SLICE_BEGIN and _END events form a slice on the track:
+//
+// ```protobuf
+//   trace_packet {
+//     timestamp: 1200
+//     track_event {
+//       track_uuid: 1234
+//       categories: ["my_cat"]
+//       name: "my_slice"
+//       type: TYPE_SLICE_BEGIN
+//     }
+//   }
+//   trace_packet {
+//     timestamp: 1400
+//     track_event {
+//       track_uuid: 1234
+//       type: TYPE_SLICE_END
+//     }
+//   }
+// ```
+// TrackEvents also support optimizations to reduce data repetition and encoded
+// data size, e.g. through data interning (names, categories, ...) and delta
+// encoding of timestamps/counters. For details, see the InternedData message.
+// Further, default values for attributes of events on the same sequence (e.g.
+// their default track association) can be emitted as part of a
+// TrackEventDefaults message.
+//
+// Next reserved id: 13 (up to 15). Next id: 52.
+message TrackEvent {
+  // Names of categories of the event. In the client library, categories are a
+  // way to turn groups of individual events on or off.
+  repeated string categories = 22;
+
+  reserved 3; // repeated uint64 category_iids = 3;
+
+  // Optional name of the event for its display in trace viewer. May be left
+  // unspecified for events with typed arguments.
+  //
+  // Note that metrics should not rely on event names, as they are prone to
+  // changing. Instead, they should use typed arguments to identify the events
+  // they are interested in.
+  oneof name_field {
+    // non-interned variant.
+    string name = 23;
+  }
+  // BEGIN: Reserved fields from 'name_field' oneof
+  reserved 10; // uint64 name_iid = 10;
+  // END: Reserved fields from 'name_field' oneof
+
+  // Type of the TrackEvent (required if |phase| in LegacyEvent is not set).
+  enum Type {
+    TYPE_UNSPECIFIED = 0;
+
+    // Slice events are events that have a begin and end timestamp, i.e. a
+    // duration. They can be nested similar to a callstack: If, on the same
+    // track, event B begins after event A, but before A ends, B is a child
+    // event of A and will be drawn as a nested event underneath A in the UI.
+    // Note that child events should always end before their parents (e.g. B
+    // before A).
+    //
+    // Each slice event is formed by a pair of BEGIN + END events. The END event
+    // does not need to repeat any TrackEvent fields it has in common with its
+    // corresponding BEGIN event. Arguments and debug annotations of the BEGIN +
+    // END pair will be merged during trace import.
+    //
+    // Note that we deliberately chose not to support COMPLETE events (which
+    // would specify a duration directly) since clients would need to delay
+    // writing them until the slice is completed, which can result in reordered
+    // events in the trace and loss of unfinished events at the end of a trace.
+    TYPE_SLICE_BEGIN = 1;
+    TYPE_SLICE_END = 2;
+
+    // Instant events are nestable events without duration. They can be children
+    // of slice events on the same track.
+    TYPE_INSTANT = 3;
+
+    // Event that provides a value for a counter track. |track_uuid| should
+    // refer to a counter track and |counter_value| set to the new value. Note
+    // that most other TrackEvent fields (e.g. categories, name, ..) are not
+    // supported for TYPE_COUNTER events. See also CounterDescriptor.
+    TYPE_COUNTER = 4;
+  }
+  optional Type type = 9;
+
+  // Identifies the track of the event. The default value may be overridden
+  // using TrackEventDefaults, e.g., to specify the track of the TraceWriter's
+  // sequence (in most cases sequence = one thread). If no value is specified
+  // here or in TrackEventDefaults, the TrackEvent will be associated with an
+  // implicit trace-global track (uuid 0). See TrackDescriptor::uuid.
+  optional uint64 track_uuid = 11;
+
+  // A new value for a counter track. |track_uuid| should refer to a track with
+  // a CounterDescriptor, and |type| should be TYPE_COUNTER. For a more
+  // efficient encoding of counter values that are sampled at the beginning/end
+  // of a slice, see |extra_counter_values| and |extra_counter_track_uuids|.
+  // Counter values can optionally be encoded in as delta values (positive or
+  // negative) on each packet sequence (see CounterIncrementalBase).
+  oneof counter_value_field {
+    int64 counter_value = 30;
+    double double_counter_value = 44;
+  }
+
+  reserved 31; // repeated uint64 extra_counter_track_uuids = 31;
+  reserved 12; // repeated int64 extra_counter_values = 12;
+  reserved 45; // repeated uint64 extra_double_counter_track_uuids = 45;
+  reserved 46; // repeated double extra_double_counter_values = 46;
+
+  // IDs of flows originating, passing through, or ending at this event.
+  // Flow IDs are global within a trace.
+  //
+  // A flow connects a sequence of TrackEvents within or across tracks, e.g.
+  // an input event may be handled on one thread but cause another event on
+  // a different thread - a flow between the two events can associate them.
+  //
+  // The direction of the flows between events is inferred from the events'
+  // timestamps. The earliest event with the same flow ID becomes the source
+  // of the flow. Any events thereafter are intermediate steps of the flow,
+  // until the flow terminates at the last event with the flow ID.
+  //
+  // Flows can also be explicitly terminated (see |terminating_flow_ids|), so
+  // that the same ID can later be reused for another flow.
+  // DEPRECATED. Only kept for backwards compatibility. Use |flow_ids|.
+  repeated fixed64 flow_ids = 47;
+
+  reserved 36; // repeated uint64 flow_ids_old = 36 [ deprecated = true ];
+
+  // List of flow ids which should terminate on this event
+  //
+  // Any one flow ID should be either listed as part of |flow_ids| OR
+  // |terminating_flow_ids|, not both.
+  repeated fixed64 terminating_flow_ids = 48;
+
+  reserved 42; // repeated uint64 terminating_flow_ids_old = 42 [ deprecated =
+               // true ];
+
+  // ---------------------------------------------------------------------------
+  // TrackEvent arguments:
+  // ---------------------------------------------------------------------------
+
+  // Unstable key/value annotations shown in the trace viewer but not intended
+  // for metrics use.
+  repeated DebugAnnotation debug_annotations = 4;
+
+  reserved 5;  // optional TaskExecution task_execution = 5;
+  reserved 21; // optional LogMessage log_message = 21;
+  reserved 24; // optional ChromeCompositorSchedulerState cc_scheduler_state =
+               // 24;
+  reserved 25; // optional ChromeUserEvent chrome_user_event = 25;
+  reserved 26; // optional ChromeKeyedService chrome_keyed_service = 26;
+  reserved 27; // optional ChromeLegacyIpc chrome_legacy_ipc = 27;
+  reserved 28; // optional ChromeHistogramSample chrome_histogram_sample = 28;
+  reserved 29; // optional ChromeLatencyInfo chrome_latency_info = 29;
+  reserved 32; // optional ChromeFrameReporter chrome_frame_reporter = 32;
+  reserved 39; // optional ChromeApplicationStateInfo
+               // chrome_application_state_info = 39;
+  reserved 40; // optional ChromeRendererSchedulerState
+               // chrome_renderer_scheduler_state = 40;
+  reserved 41; // optional ChromeWindowHandleEventInfo
+               // chrome_window_handle_event_info = 41;
+  reserved 43; // optional ChromeContentSettingsEventInfo
+               // chrome_content_settings_event_info = 43;
+  reserved 49; // optional ChromeActiveProcesses chrome_active_processes = 49;
+  reserved 50; // optional Screenshot screenshot = 50;
+  reserved 51; // optional PixelModemEventInsight pixel_modem_event_insight =
+               // 51;
+
+  // oneof source_location_field {
+  reserved 33; // SourceLocation source_location = 33;
+  reserved 34; // uint64 source_location_iid = 34;
+  // }
+
+  reserved 35; // optional ChromeMessagePump chrome_message_pump = 35;
+  reserved 38; // optional ChromeMojoEventInfo chrome_mojo_event_info = 38;
+
+  // https://source.chromium.org/chromium/chromium/src/+/main:base/tracing/protos/chrome_track_event.proto
+  extensions 1000 to 1999;
+  // Extension range reserved for https://b.corp.google.com/issues/301227627.
+  extensions 2000 to 2000;
+  // Extension range for future use.
+  extensions 2001 to 9899;
+  // Reserved for Perfetto unit and integration tests.
+  extensions 9900 to 10000;
+
+  reserved 1;  // int64 timestamp_delta_us = 1;
+  reserved 16; // int64 timestamp_absolute_us = 16;
+  reserved 2;  // int64 thread_time_delta_us = 2;
+  reserved 17; // int64 thread_time_absolute_us = 17;
+  reserved 8;  // int64 thread_instruction_count_delta = 8;
+  reserved 20; // int64 thread_instruction_count_absolute = 20;
+  reserved 6;  // optional LegacyEvent legacy_event = 6;
+}
+
+// End of protos/perfetto/trace/track_event/track_event.proto
+
+// Begin of protos/perfetto/trace/trace_packet.proto
+
+// TracePacket is the root object of a Perfetto trace.
+// A Perfetto trace is a linear sequence of TracePacket(s).
+//
+// The tracing service guarantees that all TracePacket(s) written by a given
+// TraceWriter are seen in-order, without gaps or duplicates. If, for any
+// reason, a TraceWriter sequence becomes invalid, no more packets are returned
+// to the Consumer (or written into the trace file).
+// TracePacket(s) written by different TraceWriter(s), hence even different
+// data sources, can be seen in arbitrary order.
+// The consumer can re-establish a total order, if interested, using the packet
+// timestamps, after having synchronized the different clocks onto a global
+// clock.
+//
+// The tracing service is agnostic of the content of TracePacket, with the
+// exception of few fields (e.g.. trusted_*, trace_config) that are written by
+// the service itself.
+//
+// See the [Buffers and Dataflow](/docs/concepts/buffers.md) doc for details.
+//
+// Next reserved id: 14 (up to 15).
+// Next id: 113.
+message TracePacket {
+  // The timestamp of the TracePacket.
+  // By default this timestamps refers to the trace clock (CLOCK_BOOTTIME on
+  // Android). It can be overridden using a different timestamp_clock_id.
+  // The clock domain definition in ClockSnapshot can also override:
+  // - The unit (default: 1ns).
+  // - The absolute vs delta encoding (default: absolute timestamp).
+  optional uint64 timestamp = 8;
+
+  // Specifies the ID of the clock used for the TracePacket |timestamp|. Can be
+  // one of the built-in types from ClockSnapshot::BuiltinClocks, or a
+  // producer-defined clock id.
+  // If unspecified and if no default per-sequence value has been provided via
+  // TracePacketDefaults, it defaults to BuiltinClocks::BOOTTIME.
+  reserved 58; // optional uint32 timestamp_clock_id = 58;
+
+  // BEGIN: Reserved fields from 'data' oneof
+  reserved 2;   // ProcessTree process_tree = 2;
+  reserved 9;   // ProcessStats process_stats = 9;
+  reserved 4;   // InodeFileMap inode_file_map = 4;
+  reserved 5;   // ChromeEventBundle chrome_events = 5;
+  reserved 6;   // ClockSnapshot clock_snapshot = 6;
+  reserved 7;   // SysStats sys_stats = 7;
+  reserved 89;  // TraceUuid trace_uuid = 89;
+  reserved 33;  // TraceConfig trace_config = 33;
+  reserved 34;  // FtraceStats ftrace_stats = 34;
+  reserved 35;  // TraceStats trace_stats = 35;
+  reserved 37;  // ProfilePacket profile_packet = 37;
+  reserved 74;  // StreamingAllocation streaming_allocation = 74;
+  reserved 75;  // StreamingFree streaming_free = 75;
+  reserved 38;  // BatteryCounters battery = 38;
+  reserved 40;  // PowerRails power_rails = 40;
+  reserved 39;  // AndroidLogPacket android_log = 39;
+  reserved 45;  // SystemInfo system_info = 45;
+  reserved 46;  // Trigger trigger = 46;
+  reserved 109; // ChromeTrigger chrome_trigger = 109;
+  reserved 47;  // PackagesList packages_list = 47;
+  reserved 48;  // ChromeBenchmarkMetadata chrome_benchmark_metadata = 48;
+  reserved 49;  // PerfettoMetatrace perfetto_metatrace = 49;
+  reserved 51;  // ChromeMetadataPacket chrome_metadata = 51;
+  reserved 52;  // GpuCounterEvent gpu_counter_event = 52;
+  reserved 53;  // GpuRenderStageEvent gpu_render_stage_event = 53;
+  reserved 54;  // StreamingProfilePacket streaming_profile_packet = 54;
+  reserved 56;  // HeapGraph heap_graph = 56;
+  reserved 57;  // GraphicsFrameEvent graphics_frame_event = 57;
+  reserved 62;  // VulkanMemoryEvent vulkan_memory_event = 62;
+  reserved 63;  // GpuLog gpu_log = 63;
+  reserved 65;  // VulkanApiEvent vulkan_api_event = 65;
+  reserved 66;  // PerfSample perf_sample = 66;
+  reserved 67;  // CpuInfo cpu_info = 67;
+  reserved 68;  // SmapsPacket smaps_packet = 68;
+  reserved 69;  // TracingServiceEvent service_event = 69;
+  reserved 70;  // InitialDisplayState initial_display_state = 70;
+  reserved 71;  // GpuMemTotalEvent gpu_mem_total_event = 71;
+  reserved 73;  // MemoryTrackerSnapshot memory_tracker_snapshot = 73;
+  reserved 76;  // FrameTimelineEvent frame_timeline_event = 76;
+  reserved 77;  // AndroidEnergyEstimationBreakdown
+                // android_energy_estimation_breakdown = 77;
+  reserved 80;  // AndroidCameraFrameEvent android_camera_frame_event = 80;
+  reserved 81;  // AndroidCameraSessionStats android_camera_session_stats = 81;
+  reserved 82;  // TranslationTable translation_table = 82;
+  reserved 83;  // AndroidGameInterventionList
+  reserved 84;  // StatsdAtom statsd_atom = 84;
+  reserved 86;  // AndroidSystemProperty android_system_property = 86;
+  reserved 91;  // EntityStateResidency entity_state_residency = 91;
+  reserved 55;  // ProfiledFrameSymbols profiled_frame_symbols = 55;
+  reserved 61;  // ModuleSymbols module_symbols = 61;
+  reserved 64;  // DeobfuscationMapping deobfuscation_mapping = 64;
+  reserved 43;  // ProcessDescriptor process_descriptor = 43;
+  reserved 44;  // ThreadDescriptor thread_descriptor = 44;
+  reserved 1;   // FtraceEventBundle ftrace_events = 1;
+  reserved 36;  // bytes synchronization_marker = 36;
+  reserved 50;  // bytes compressed_packets = 50;
+  reserved 72;  // ExtensionDescriptor extension_descriptor = 72;
+  reserved 88;  // NetworkPacketEvent network_packet = 88;
+  reserved 92;  // NetworkPacketBundle network_packet_bundle = 92;
+  reserved 90;  // TrackEventRangeOfInterest track_event_range_of_interest = 90;
+  reserved 93;  // LayersSnapshotProto surfaceflinger_layers_snapshot = 93;
+  reserved 94;  // TransactionTraceEntry surfaceflinger_transactions = 94;
+  reserved 96;  // ShellTransition shell_transition = 96;
+  reserved 97;  // ShellHandlerMappings shell_handler_mappings = 97;
+  reserved 104; // ProtoLogMessage protolog_message = 104;
+  reserved 105; // ProtoLogViewerConfig protolog_viewer_config = 105;
+  reserved 112; // WinscopeExtensions winscope_extensions = 112;
+  reserved 95;  // EtwTraceEventBundle etw_events = 95;
+  reserved 99;  // V8JsCode v8_js_code = 99;
+  reserved 100; // V8InternalCode v8_internal_code = 100;
+  reserved 101; // V8WasmCode v8_wasm_code = 101;
+  reserved 102; // V8RegExpCode v8_reg_exp_code = 102;
+  reserved 103; // V8CodeMove v8_code_move = 103;
+  reserved 107; // RemoteClockSync remote_clock_sync = 107;
+  reserved 110; // PixelModemEvents pixel_modem_events = 110;
+  reserved 111; // PixelModemTokenDatabase pixel_modem_token_database = 111;
+  reserved 900; // TestEvent for_testing = 900;
+  reserved 78;  // UiState ui_state = 78;
+  // END: Reserved fields from 'data' oneof
+
+  oneof data {
+    TrackEvent track_event = 11;
+    TrackDescriptor track_descriptor = 60;
+  }
+
+  reserved 106;
+
+  // Trusted user id of the producer which generated this packet. Keep in sync
+  // with TrustedPacket.trusted_uid.
+  //
+  // TODO(eseckler): Emit this field in a PacketSequenceDescriptor message
+  // instead.
+  oneof optional_trusted_uid { int32 trusted_uid = 3; };
+
+  // Service-assigned identifier of the packet sequence this packet belongs to.
+  // Uniquely identifies a producer + writer pair within the tracing session. A
+  // value of zero denotes an invalid ID. Keep in sync with
+  // TrustedPacket.trusted_packet_sequence_id.
+  oneof optional_trusted_packet_sequence_id {
+    uint32 trusted_packet_sequence_id = 10;
+  }
+
+  // Trusted process id of the producer which generated this packet, written by
+  // the service.
+  optional int32 trusted_pid = 79;
+
+  reserved 12; // optional InternedData interned_data = 12;
+  reserved 13; // reserved 13; // optional uint32 sequence_flags = 13;
+  reserved 41; // optional bool incremental_state_cleared = 41;
+  reserved 59; // optional TracePacketDefaults trace_packet_defaults = 59;
+  reserved 42; // optional bool previous_packet_dropped = 42;
+  reserved 87; // optional bool first_packet_on_sequence = 87;
+  reserved 98; // optional uint32 machine_id = 98;
+}
+
+// End of protos/perfetto/trace/trace_packet.proto
+
+// Begin of protos/perfetto/trace/trace.proto
+
+message Trace {
+  repeated TracePacket packet = 1;
+
+  // Do NOT add any other field here. This is just a convenience wrapper for
+  // the use case of a trace being saved to a file. There are other cases
+  // (streaming) where TracePacket are directly streamed without being wrapped
+  // in a Trace proto. Nothing should ever rely on the full trace, all the
+  // logic should be based on TracePacket(s).
+}
+
+// End of protos/perfetto/trace/trace.proto
