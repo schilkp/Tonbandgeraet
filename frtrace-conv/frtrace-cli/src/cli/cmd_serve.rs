@@ -5,11 +5,13 @@ use clap::Parser;
 use crate::open::{open_trace, serve_trace};
 
 #[derive(Parser, Debug)]
-#[command(about = "Serve trace file for perfetto.")]
+#[command(about = "Serve trace file for perfetto")]
 pub struct Cmd {
+    /// Perfetto trace file to be served
     #[arg(short, long)]
     pub input: PathBuf,
 
+    /// Open perfetto in browser
     #[arg(long, action = clap::ArgAction::SetTrue)]
     pub open: bool,
 }

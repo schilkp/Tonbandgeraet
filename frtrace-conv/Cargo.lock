@@ -357,7 +357,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "frtrace-conv-cli"
+name = "frtrace-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",

@@ -63,21 +63,29 @@ impl FromStr for InputFile {
 #[derive(Parser, Debug)]
 #[command(about = "Convert trace recording")]
 pub struct Cmd {
+    /// Input format
     #[arg(short, long, default_value = "bin")]
     pub format: InputFormat,
 
+    /// Number of cores of target
     #[arg(short, long, default_value = "1")]
     pub core_count: usize,
 
+    /// Location to store converted trace
     #[arg(short, long)]
     pub output: Option<PathBuf>,
 
+    /// Open converted trace in perfetto
     #[arg(long, action = clap::ArgAction::SetTrue)]
     pub open: bool,
 
+    /// Serve converted trace for perfetto
     #[arg(long, action = clap::ArgAction::SetTrue)]
     pub serve: bool,
 
+    /// Input files with optional core id.
+    ///
+    /// For split multi-core recording, append core id to file name as such: filename@core_id
     #[arg(action = clap::ArgAction::Append)]
     pub input: Vec<InputFile>,
 }

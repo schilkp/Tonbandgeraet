@@ -6,7 +6,7 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
-#[command(name = "frtrace-conv-cli")]
+#[command(name = "frtrace-cli")]
 pub struct Cli {
     #[arg(long, short, action = clap::ArgAction::Count)]
     pub verbose: u8,
