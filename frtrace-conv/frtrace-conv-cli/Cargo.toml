@@ -13,5 +13,5 @@ frtrace_conv_core = { path = "../frtrace-conv-core" }
 lazy_static = "1.4.0"
 log = "0.4.21"
 regex = "1.10.5"
-# rouille = "3.6.2"
-# webbrowser = "1.0.1"
+rouille = { version = "3.6.2", default-features = false }
+webbrowser = "1.0.1"

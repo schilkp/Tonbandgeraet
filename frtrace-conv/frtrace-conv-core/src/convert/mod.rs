@@ -1,6 +1,5 @@
 pub mod generate_perfetto;
 
-use crate::decode::evts;
 use crate::{
     decode::evts::{RawEvt, RawInvalidEvt, RawMetadataEvt, RawTraceEvt, RawTraceEvtKind},
     ISRState, QueueKind, QueueState, TaskBlockingReason, TaskKind, TaskState, Trace, TraceErrMarker, TraceEvtMarker,

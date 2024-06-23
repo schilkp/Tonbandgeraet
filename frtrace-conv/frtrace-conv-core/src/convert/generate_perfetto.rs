@@ -103,24 +103,22 @@ impl Trace {
             let mut running = false;
             for evt in &task.state.0 {
                 let ts = self.convert_ts(evt.ts);
-                let state_name = evt.inner.rich_name(&self);
+                let state_name = evt.inner.rich_name(self);
                 if let TaskState::Running { .. } = evt.inner {
                     if !running {
                         evts.push(running_track.slice_begin_evt(ts, Some(state_name)));
                         running = true;
                     }
-                } else {
-                    if running {
-                        evts.push(running_track.slice_end_evt(ts));
-                        running = false;
-                    }
+                } else if running {
+                    evts.push(running_track.slice_end_evt(ts));
+                    running = false;
                 }
             }
 
             // Generate "state" track:
             for (idx, evt) in task.state.0.iter().enumerate() {
                 let ts = self.convert_ts(evt.ts);
-                let state_name = evt.inner.rich_name(&self);
+                let state_name = evt.inner.rich_name(self);
 
                 if idx != 0 {
                     evts.push(state_track.slice_end_evt(ts));
@@ -169,11 +167,9 @@ impl Trace {
                                 task_running_on_core = true;
                             }
                         }
-                    } else {
-                        if task_running_on_core {
-                            evts.push(core_track.slice_end_evt(ts));
-                            task_running_on_core = false;
-                        }
+                    } else if task_running_on_core {
+                        evts.push(core_track.slice_end_evt(ts));
+                        task_running_on_core = false;
                     }
                 }
             }

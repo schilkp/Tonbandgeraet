@@ -1,11 +1,12 @@
 mod cmd_completion;
-pub(crate) mod cmd_convert;
+mod cmd_convert;
+mod cmd_serve;
 
 use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
-#[command(name = "frtrace-conv")]
+#[command(name = "frtrace-conv-cli")]
 pub struct Cli {
     #[arg(long, short, action = clap::ArgAction::Count)]
     pub verbose: u8,
@@ -17,5 +18,6 @@ pub struct Cli {
 #[derive(Parser, Debug)]
 pub enum CliCmd {
     Conv(cmd_convert::Cmd),
+    Serve(cmd_serve::Cmd),
     Completion(cmd_completion::Cmd),
 }

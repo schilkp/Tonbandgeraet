@@ -2,6 +2,7 @@ use prost::Message;
 
 mod protos {
     #![allow(clippy::large_enum_variant)]
+    #![allow(clippy::enum_variant_names)]
     include!(concat!(env!("OUT_DIR"), "/perfetto.protos.rs"));
 }
 
@@ -20,6 +21,12 @@ pub struct Synthetto {
     last_emited_descriptor: Option<usize>,
 }
 
+impl Default for Synthetto {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Synthetto {
     pub fn new() -> Self {
         Synthetto {
@@ -32,7 +39,7 @@ impl Synthetto {
     pub fn next_uuid(&mut self) -> u64 {
         let uuid = self.uuid_cnt;
         self.uuid_cnt += 1;
-        return uuid;
+        uuid
     }
 
     pub fn new_process(
@@ -82,11 +89,7 @@ impl Synthetto {
 
         self.track_descriptors.push(evt);
 
-        Thread {
-            uuid,
-            pid: process.pid,
-            tid,
-        }
+        Thread { uuid }
     }
 
     fn generate_track_descriptor(&mut self, name: String, parent_uuid: Option<u64>) -> u64 {
@@ -295,8 +298,6 @@ impl TrackScope for Process {}
 
 pub struct Thread {
     uuid: u64,
-    pid: i32,
-    tid: i32,
 }
 
 impl TrackScope for Thread {}
@@ -320,7 +321,7 @@ impl<S: TrackScope> Track<S, EventTrack> {
         TracePacket {
             timestamp: Some(ts),
             data: Some(protos::trace_packet::Data::TrackEvent(protos::TrackEvent {
-                name_field: name.map(|x| protos::track_event::NameField::Name(x)),
+                name_field: name.map(protos::track_event::NameField::Name),
                 track_uuid: Some(self.uuid),
                 r#type: Some(protos::track_event::Type::SliceBegin as i32),
                 ..protos::TrackEvent::default()
@@ -416,9 +417,9 @@ impl CounterTrackUnit {
         } as i32)
     }
 
-    fn to_proto_unit_name(self) -> Option<String> {
+    fn to_proto_unit_name(&self) -> Option<String> {
         if let Self::Custom(name) = self {
-            Some(name)
+            Some(name.clone())
         } else {
             None
         }

@@ -225,6 +225,7 @@ impl CoreTrace {
 
 impl<'a> CoreTrace {
     fn isr(&'a mut self, isr_id: usize) -> &'a ISRTrace {
+        #![allow(unused)];
         self.ensure_isr_exists(isr_id);
         self.isrs.get(&isr_id).unwrap()
     }
@@ -285,7 +286,6 @@ impl From<evts::QueueKind> for QueueKind {
         }
     }
 }
-
 
 pub struct QueueState {
     fill: u32,
@@ -374,7 +374,7 @@ impl Trace {
                 return format!("Task {name} (#{id})");
             }
         }
-        return format!("Task #{id}");
+        format!("Task #{id}")
     }
 
     fn name_isr(&self, core_id: usize, id: usize) -> String {
@@ -383,7 +383,7 @@ impl Trace {
                 return format!("ISR {name} (#{id})");
             }
         }
-        return format!("ISR #{id}");
+        format!("ISR #{id}")
     }
 
     fn name_queue(&self, id: usize) -> String {
@@ -394,12 +394,13 @@ impl Trace {
                 return format!("{} #{id}", queue.kind);
             }
         }
-        return format!("Queue #{id}");
+        format!("Queue #{id}")
     }
 }
 
 impl<'a> Trace {
     fn task(&'a mut self, task_id: usize) -> &'a TaskTrace {
+        #![allow(unused)];
         self.ensure_task_exists(task_id);
         self.tasks.get(&task_id).unwrap()
     }
@@ -418,6 +419,7 @@ impl<'a> Trace {
     }
 
     fn queue(&'a mut self, queue_id: usize) -> &'a QueueTrace {
+        #![allow(unused)];
         self.ensure_queue_exists(queue_id);
         self.queues.get(&queue_id).unwrap()
     }

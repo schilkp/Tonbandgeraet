@@ -1,5 +1,5 @@
 mod cli;
-mod convert;
+mod open;
 
 use std::io::Write;
 
@@ -37,6 +37,7 @@ fn main() -> ExitCode {
 
     let rst = match cli.cmd {
         CliCmd::Conv(cmd) => cmd.run(),
+        CliCmd::Serve(cmd) => cmd.run(),
         CliCmd::Completion(cmd) => cmd.run(),
     };
 
