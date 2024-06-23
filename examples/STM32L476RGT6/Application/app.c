@@ -43,7 +43,7 @@ static uint8_t q1_storage[Q1_QUEUE_LENGTH * Q1_ITEM_SIZE]; // Storage
 void task1_entry(void *args) {
   UNUSED(args);
 
-  frtrace_gather_scheduler_metadata();
+  frtrace_gather_system_metadata();
 
   // trace_task_is_idle_task(xTaskGetIdleTaskHandle());
   // trace_task_is_timer_task(xTimerGetTimerDaemonTaskHandle());

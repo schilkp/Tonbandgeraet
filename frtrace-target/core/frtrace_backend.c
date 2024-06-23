@@ -197,10 +197,6 @@ bool frtrace_tracing_backend_finished(unsigned int core_id) {
 
 // ==== Metadata Buffer ========================================================
 
-// FIXME: Should metadata buffer be per-core? Wastes quite some space because every core needs a
-// large buffer.. Should this be configurable? Maybe instead provide mechanism for
-// externally-allocated buffers that can be different sizes?
-
 #if (frtrace_configUSE_METADATA_BUF == 1)
 
 struct metadata_buf {

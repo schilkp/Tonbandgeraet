@@ -26,9 +26,39 @@
     #define frtrace_configTRACE_DROP_CNT_EVERY (50)
   #endif /* frtrace_configTRACE_DROP_CNT_EVERY */
 
+  #ifndef frtrace_configTASK_TRACE_ENABLE
+    #define frtrace_configTASK_TRACE_ENABLE 1
+  #endif /* frtrace_configTASK_TRACE_ENABLE */
+
+  #ifndef frtrace_configQUEUE_TRACE_ENABLE
+    #define frtrace_configQUEUE_TRACE_ENABLE 1
+  #endif /* frtrace_configQUEUE_TRACE_ENABLE */
+
+  #ifndef frtrace_configSTREAM_BUFFER_TRACE_ENABLE
+    #define frtrace_configSTREAM_BUFFER_TRACE_ENABLE 1
+  #endif /* frtrace_configSTREAM_BUFFER_TRACE_ENABLE */
+
   #ifndef frtrace_configISR_TRACE_ENABLE
-    #define frtrace_configISR_TRACE_ENABLE 0
+    #define frtrace_configISR_TRACE_ENABLE 1
   #endif /* frtrace_configISR_TRACE_ENABLE */
+
+  #ifndef frtrace_configFREERTOS_TRACE_ENABLE
+    // Config not manually set. Enable FreeRTOS tracing if any FreeRTOS resource is being traced.
+    #if ((frtrace_configTASK_TRACE_ENABLE == 1) || (frtrace_configQUEUE_TRACE_ENABLE == 1) || (frtrace_configSTREAM_BUFFER_TRACE_ENABLE == 1))
+      #define frtrace_configFREERTOS_TRACE_ENABLE 1
+    #else
+      #define frtrace_configFREERTOS_TRACE_ENABLE 0
+    #endif
+
+  #else /* frtrace_configFREERTOS_TRACE_ENABLE */
+    // Config manually set. Ensure FreeRTOS tracing is enabled if any FreeRTOS resource is being traced.
+    #if ((frtrace_configTASK_TRACE_ENABLE == 1) || (frtrace_configQUEUE_TRACE_ENABLE == 1) || (frtrace_configSTREAM_BUFFER_TRACE_ENABLE == 1))
+      #if (frtrace_configFREERTOS_TRACE_ENABLE != 1) 
+        #error "frtrace_configFREERTOS_TRACE_ENABLE must be enabled if any FreeRTOS resource is being traced!"
+      #endif
+    #endif
+
+  #endif /* frtrace_configFREERTOS_TRACE_ENABLE */
 
   // == CONFIG: METADATA BUF ===================================================
 
@@ -106,7 +136,7 @@
     int frtrace_stop_streaming();
 
   #endif /* frtrace_configUSE_BACKEND_STREAMING == 1 */
-  
+
   // == API: STREAMING BACKEND =================================================
 
   #if (frtrace_configUSE_BACKEND_SNAPSHOT == 1)
@@ -124,7 +154,7 @@
   #endif /* frtrace_configUSE_BACKEND_SNAPSHOT == 1 */
 
   // == API: POST-MORTEM BACKEND ===============================================
-  
+
   #if (frtrace_configUSE_BACKEND_POST_MORTEM == 1)
 
   #endif /* frtrace_configUSE_BACKEND_POST_MORTEM == 1*/

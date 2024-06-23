@@ -12,12 +12,16 @@
 #include <stdbool.h>
 
 // FreeRTOS:
+#if (frtrace_configFREERTOS_TRACE_ENABLE == 1)
+
 #include "queue.h"
 #include "task.h"
 
-#if (configUSE_TIMERS != 0)
+#if (configUSE_TIMERS == 1)
 #include "timers.h"
-#endif /* (configUSE_TIMERS != 0) */
+#endif /* (configUSE_TIMERS == 1) */
+
+#endif /* (frtrace_configFREERTOS_TRACE_ENABLE == 1) */
 
 // encoder:
 #include "frtrace_encode.h"
@@ -62,9 +66,10 @@ volatile unsigned long last_traced_dropped_evt_cnts[configNUMBER_OF_CORES] = {0}
 
 // ===== TRACE HOOKS ===========================================================
 
-void impl_frtrace_gather_scheduler_metadata(void) {
+void impl_frtrace_gather_system_metadata(void) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
+#if (frtrace_configFREERTOS_TRACE_ENABLE == 1)
   {
 #if (configNUMBER_OF_CORES > 1)
     for (size_t core_id = 0; core_id < configNUMBER_OF_CORES; core_id++) {
@@ -82,7 +87,7 @@ void impl_frtrace_gather_scheduler_metadata(void) {
     handle_trace_evt(buf, len, EVT_TASK_IS_IDLE_TASK_IS_METADATA, ts);
 #endif /* configNUMBER_OF_CORES */
   }
-#if (configUSE_TIMERS != 0)
+#if (configUSE_TIMERS == 1)
   {
     TaskHandle_t timer_svc = xTimerGetTimerDaemonTaskHandle();
     uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(timer_svc);
@@ -90,7 +95,8 @@ void impl_frtrace_gather_scheduler_metadata(void) {
     size_t len = encode_task_is_timer_task(buf, task_id);
     handle_trace_evt(buf, len, EVT_TASK_IS_TIMER_TASK_IS_METADATA, ts);
   }
-#endif /* (configUSE_TIMERS != 0) */
+#endif /* (configUSE_TIMERS == 1) */
+#endif /* (frtrace_configFREERTOS_TRACE_ENABLE == 1) */
   {
     uint8_t buf[EVT_TS_RESOLUTION_NS_MAXLEN];
     size_t len = encode_ts_resolution_ns(buf, frtrace_portTIMESTAMP_RESOLUTION_NS);
@@ -99,6 +105,7 @@ void impl_frtrace_gather_scheduler_metadata(void) {
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_switched_in(uint32_t task_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -107,7 +114,9 @@ void impl_frtrace_task_switched_in(uint32_t task_id) {
   handle_trace_evt(buf, len, EVT_TASK_SWITCHED_IN_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_moved_task_to_ready_state(uint32_t task_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -116,7 +125,9 @@ void impl_frtrace_moved_task_to_ready_state(uint32_t task_id) {
   handle_trace_evt(buf, len, EVT_TASK_TO_RDY_STATE_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_resumed(uint32_t task_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -125,7 +136,9 @@ void impl_frtrace_task_resumed(uint32_t task_id) {
   handle_trace_evt(buf, len, EVT_TASK_RESUMED_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_resumed_from_isr(uint32_t task_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -134,7 +147,9 @@ void impl_frtrace_task_resumed_from_isr(uint32_t task_id) {
   handle_trace_evt(buf, len, EVT_TASK_RESUMED_FROM_ISR_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_suspended(uint32_t task_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -143,7 +158,9 @@ void impl_frtrace_task_suspended(uint32_t task_id) {
   handle_trace_evt(buf, len, EVT_TASK_SUSPENDED_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_delay(uint32_t ticks) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -152,7 +169,9 @@ void impl_frtrace_task_delay(uint32_t ticks) {
   handle_trace_evt(buf, len, EVT_CURTASK_DELAY_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_delay_until(uint32_t time_to_wake) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -161,7 +180,9 @@ void impl_frtrace_task_delay_until(uint32_t time_to_wake) {
   handle_trace_evt(buf, len, EVT_CURTASK_DELAY_UNTIL_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_priority_set(uint32_t task_id, uint32_t priority) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -170,7 +191,9 @@ void impl_frtrace_task_priority_set(uint32_t task_id, uint32_t priority) {
   handle_trace_evt(buf, len, EVT_TASK_PRIORITY_SET_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_priority_inherit(uint32_t task_id, uint32_t priority) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -179,7 +202,9 @@ void impl_frtrace_task_priority_inherit(uint32_t task_id, uint32_t priority) {
   handle_trace_evt(buf, len, EVT_TASK_PRIORITY_INHERIT_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_priority_disinherit(uint32_t task_id, uint32_t priority) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -188,6 +213,9 @@ void impl_frtrace_task_priority_disinherit(uint32_t task_id, uint32_t priority) 
   handle_trace_evt(buf, len, EVT_TASK_PRIORITY_DISINHERIT_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
+
+#if (frtrace_configFREERTOS_TRACE_ENABLE == 1)
 
 void impl_frtrace_task_create(void *task_handle, uint32_t priority, char *name) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
@@ -197,24 +225,30 @@ void impl_frtrace_task_create(void *task_handle, uint32_t priority, char *name) 
   uint32_t task_id = (uint32_t)atomic_fetch_add(&next_task_id, 1);
   vTaskSetTaskNumber(task, (UBaseType_t)task_id);
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
   {
     uint8_t buf[EVT_TASK_CREATED_MAXLEN];
     size_t len = encode_task_created(buf, ts, task_id);
     handle_trace_evt(buf, len, EVT_TASK_CREATED_IS_METADATA, ts);
   }
   {
-    uint8_t buf[EVT_TASK_NAME_MAXLEN];
-    size_t len = encode_task_name(buf, task_id, name);
-    handle_trace_evt(buf, len, EVT_TASK_NAME_IS_METADATA, ts);
-  }
-  {
     uint8_t buf[EVT_TASK_PRIORITY_SET_MAXLEN];
     size_t len = encode_task_priority_set(buf, ts, task_id, priority);
     handle_trace_evt(buf, len, EVT_TASK_PRIORITY_SET_IS_METADATA, ts);
   }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
+
+  {
+    uint8_t buf[EVT_TASK_NAME_MAXLEN];
+    size_t len = encode_task_name(buf, task_id, name);
+    handle_trace_evt(buf, len, EVT_TASK_NAME_IS_METADATA, ts);
+  }
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
 
+#endif /* (frtrace_configFREERTOS_TRACE_ENABLE == 1) */
+
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_task_deleted(uint32_t task_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -223,7 +257,9 @@ void impl_frtrace_task_deleted(uint32_t task_id) {
   handle_trace_evt(buf, len, EVT_TASK_DELETED_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configISR_TRACE_ENABLE == 1)
 void impl_frtrace_isr_name(uint32_t isr_id, char *name) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -232,7 +268,9 @@ void impl_frtrace_isr_name(uint32_t isr_id, char *name) {
   handle_trace_evt(buf, len, EVT_ISR_NAME_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* *frtrace_configISR_TRACE_ENABLE == 1) */
 
+#if (frtrace_configISR_TRACE_ENABLE == 1)
 void impl_frtrace_isr_enter(uint32_t isr_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -241,7 +279,9 @@ void impl_frtrace_isr_enter(uint32_t isr_id) {
   handle_trace_evt(buf, len, EVT_ISR_ENTER_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* *frtrace_configISR_TRACE_ENABLE == 1) */
 
+#if (frtrace_configISR_TRACE_ENABLE == 1)
 void impl_frtrace_isr_exit(uint32_t isr_id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -250,7 +290,9 @@ void impl_frtrace_isr_exit(uint32_t isr_id) {
   handle_trace_evt(buf, len, EVT_ISR_EXIT_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* frtrace_configISR_TRACE_ENABLE == 1 */
 
+#if (frtrace_configFREERTOS_TRACE_ENABLE == 1)
 void impl_frtrace_queue_created(void *handle, uint8_t type_val) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -292,14 +334,20 @@ void impl_frtrace_queue_created(void *handle, uint8_t type_val) {
     size_t len = encode_queue_created(buf, ts, id);
     handle_trace_evt(buf, len, EVT_QUEUE_CREATED_IS_METADATA, ts);
   }
+
+#if (frtrace_configQUEUE_TRACE_ENABLE == 1)
   {
     uint8_t buf[EVT_QUEUE_KIND_MAXLEN];
     size_t len = encode_queue_kind(buf, id, kind);
     handle_trace_evt(buf, len, EVT_QUEUE_KIND_IS_METADATA, ts);
   }
+#endif /* (frtrace_configQUEUE_TRACE_ENABLE == 1) */
+
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configFREERTOS_TRACE_ENABLE == 1) */
 
+#if (frtrace_configFREERTOS_TRACE_ENABLE == 1)
 void impl_frtrace_queue_name(void *queue_handle, char *name) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -309,7 +357,9 @@ void impl_frtrace_queue_name(void *queue_handle, char *name) {
   handle_trace_evt(buf, len, EVT_QUEUE_NAME_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configFREERTOS_TRACE_ENABLE == 1) */
 
+#if (frtrace_configQUEUE_TRACE_ENABLE == 1)
 void impl_frtrace_queue_send(uint32_t id, uint32_t copy_position, uint32_t size_before) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -324,7 +374,9 @@ void impl_frtrace_queue_send(uint32_t id, uint32_t copy_position, uint32_t size_
   }
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configQUEUE_TRACE_ENABLE == 1) */
 
+#if (frtrace_configQUEUE_TRACE_ENABLE == 1)
 void impl_frtrace_queue_send_from_isr(uint32_t id, uint32_t copy_position, uint32_t size_before) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -339,7 +391,9 @@ void impl_frtrace_queue_send_from_isr(uint32_t id, uint32_t copy_position, uint3
   }
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configQUEUE_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_blocking_on_queue_send(uint32_t queue_id, uint32_t ticks_to_wait) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -348,7 +402,9 @@ void impl_frtrace_blocking_on_queue_send(uint32_t queue_id, uint32_t ticks_to_wa
   handle_trace_evt(buf, len, EVT_CURTASK_BLOCK_ON_QUEUE_SEND_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configQUEUE_TRACE_ENABLE == 1)
 void impl_frtrace_queue_receive(uint32_t id, uint32_t size_before) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -358,7 +414,9 @@ void impl_frtrace_queue_receive(uint32_t id, uint32_t size_before) {
   handle_trace_evt(buf, len, EVT_QUEUE_RECEIVE_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configQUEUE_TRACE_ENABLE == 1) */
 
+#if (frtrace_configQUEUE_TRACE_ENABLE == 1)
 void impl_frtrace_queue_receive_from_isr(uint32_t id, uint32_t size_before) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -368,7 +426,9 @@ void impl_frtrace_queue_receive_from_isr(uint32_t id, uint32_t size_before) {
   handle_trace_evt(buf, len, EVT_QUEUE_RECEIVE_FROM_ISR_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configQUEUE_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_blocking_on_queue_receive(uint32_t queue_id, uint32_t ticks_to_wait) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -377,7 +437,9 @@ void impl_frtrace_blocking_on_queue_receive(uint32_t queue_id, uint32_t ticks_to
   handle_trace_evt(buf, len, EVT_CURTASK_BLOCK_ON_QUEUE_RECEIVE_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+#if (frtrace_configQUEUE_TRACE_ENABLE == 1)
 void impl_frtrace_queue_reset(uint32_t id) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -386,7 +448,9 @@ void impl_frtrace_queue_reset(uint32_t id) {
   handle_trace_evt(buf, len, EVT_QUEUE_RESET_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configQUEUE_TRACE_ENABLE == 1) */
 
+#if (frtrace_configTASK_TRACE_ENABLE == 1)
 void impl_frtrace_blocking_on_queue_peek(uint32_t queue_id, uint32_t ticks_to_wait) {
   frtrace_portKERNEL_ENTER_CRITICAL_FROM_ANY();
   uint64_t ts = frtrace_portTIMESTAMP();
@@ -395,6 +459,7 @@ void impl_frtrace_blocking_on_queue_peek(uint32_t queue_id, uint32_t ticks_to_wa
   handle_trace_evt(buf, len, EVT_CURTASK_BLOCK_ON_QUEUE_PEEK_IS_METADATA, ts);
   frtrace_portKERNEL_EXIT_CRITICAL_FROM_ANY();
 }
+#endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
 // ===== Trace Handling ========================================================
 
