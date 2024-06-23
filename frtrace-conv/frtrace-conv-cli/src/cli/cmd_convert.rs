@@ -61,13 +61,13 @@ pub struct Cmd {
     pub core_count: usize,
     
     #[arg(short, long)]
-    pub output: Option<PathBuf>,
+    pub output: PathBuf,
 
-    #[arg(long, action = clap::ArgAction::SetTrue)]
-    pub open: bool,
-    
-    #[arg(long, action = clap::ArgAction::SetTrue)]
-    pub link: bool,
+    // #[arg(long, action = clap::ArgAction::SetTrue)]
+    // pub open: bool,
+    // 
+    // #[arg(long, action = clap::ArgAction::SetTrue)]
+    // pub link: bool,
 
     #[arg(action = clap::ArgAction::Append)]
     pub input: Vec<InputFile>,

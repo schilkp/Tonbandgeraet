@@ -81,6 +81,64 @@ fn decode_file(bytes: &[u8]) -> anyhow::Result<Vec<RawEvt>> {
     Ok(evts)
 }
 
+// pub fn serve_file(path: &PathBuf) -> anyhow::Result<()> {
+//     info!("Starting server..");
+//     let dir = path
+//         .to_owned()
+//         .parent()
+//         .ok_or(anyhow!("Cannot determine base directory of output path."))?
+//         .to_path_buf();
+//
+//     let thread = std::thread::spawn(move || {
+//         info!("Temporary Server running! Serving from '{}'", dir.to_string_lossy());
+//         // if std::env::set_current_dir(dir.clone()).is_err() {
+//         //     error!("Failed to change into trace file directory..");
+//         // }
+//
+//         rouille::start_server("127.0.0.1:9001", move |request| {
+//             info!("{:?}", request);
+//
+//             match request.method() {
+//                 "GET" => {
+//                     let response =
+//                         rouille::match_assets(request, ".").with_additional_header("Access-Control-Allow-Origin", "*");
+//                     if response.is_success() {
+//                         info!("Temporary Server serving file!");
+//                         debug!("{:?}", response);
+//                         return response;
+//                     } else {
+//                         warn!("Temporary Server could not serve file!");
+//                         return Response::html("404 error.").with_status_code(404);
+//                     }
+//                 }
+//                 "POST" => {
+//                     let resp = Response::html("")
+//                         .with_status_code(200)
+//                         .with_additional_header("Access-Control-Allow-Origin", "*");
+//                     debug!("{:?}", resp);
+//                     return resp;
+//                 }
+//                 "OPTIONS" => {
+//                     let resp = Response::html("")
+//                         .with_status_code(200)
+//                         .with_additional_header("Access-Control-Allow-Origin", "*");
+//
+//                     debug!("{:?}", resp);
+//                     return resp;
+//                 }
+//                 _ => {
+//                     error!("Temporary status err!");
+//                     return Response::html("404 error.").with_status_code(404);
+//                 }
+//             }
+//         });
+//     });
+//
+//     let _ = thread.join();
+//
+//     Ok(())
+// }
+
 pub fn convert(cmd: cli::cmd_convert::Cmd) -> anyhow::Result<()> {
     let mut tc = TraceConverter::new(cmd.core_count)?;
 
@@ -103,18 +161,30 @@ pub fn convert(cmd: cli::cmd_convert::Cmd) -> anyhow::Result<()> {
     let trace = trace.generate_perfetto_trace();
     info!("Conversion finished.");
 
-    if let Some(output_path) = &cmd.output {
-        info!("Saving to '{}'.", output_path.to_string_lossy());
-        std::fs::write(output_path, trace)?;
-    }
+    info!("Saving to '{}'.", cmd.output.to_string_lossy());
+    std::fs::write(cmd.output.clone(), trace)?;
 
-    if cmd.open {
-        todo!()
-    }
+    // let file_name = cmd
+    //     .output
+    //     .file_name()
+    //     .ok_or(anyhow!("Cannot determine filename of output path"))?;
+    // let file_name = PathBuf::from(file_name);
+    // let link = format!("https://ui.perfetto.dev/#!/?url=http://127.0.0.1:9001/{}", file_name.to_string_lossy());
 
-    if cmd.link {
-        todo!()
-    }
+    //if cmd.open {
+    //     webbrowser::open(&format!(
+    //         "https://ui.perfetto.dev/#!/?url=http://127.0.0.1:9001/{}",
+    //         file_name.to_string_lossy()
+    //     ))?;
+    //     serve_file(&cmd.output)?;
+    //}
+
+    // if cmd.link {
+    //     println!("");
+    //     println!("{}", link);
+    //     println!("");
+    //     serve_file(&cmd.output)?;
+    // }
 
     Ok(())
 }
