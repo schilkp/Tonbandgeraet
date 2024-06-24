@@ -86,11 +86,10 @@ impl Trace {
         for (task_id, task) in &self.tasks {
             let process_name = self.name_task(*task_id);
 
-            let task_track_process =
-                syn.new_process((*task_id as i32) + self.task_pid_offset(), process_name, vec![], None);
-            let state_track = syn.new_process_track("State".to_string(), &task_track_process);
+            let task_track_process = syn.new_process((*task_id as i32) + self.task_pid_offset(), process_name.clone(), vec![], None);
+            let state_track = syn.new_process_track(format!("{process_name} State"), &task_track_process);
             let priority_track = syn.new_process_counter_track(
-                "Priority".to_string(),
+                format!("{process_name} Priority"),
                 CounterTrackUnit::Custom(String::from("Priority")),
                 1,
                 false,
