@@ -2,8 +2,9 @@ import os
 import sys
 from os.path import abspath, dirname, join
 
-import gen_c_encoder
-import gen_rs_decoder
+from c_encoder import gen_c_encoder
+from c_tests import gen_c_tests
+from rs_decoder import gen_rs_decoder
 from model import S64, U32, U64, Evt, Str, U8Enum, U8EnumDefinition
 
 # ==== Trace messages definition ===============================================
@@ -122,12 +123,15 @@ def main():
 
     script_loc = dirname(__file__)
 
-    c_output_file = abspath(join(script_loc, "..", "frtrace-target", "core", "frtrace_encode.h"))
-    gen_c_encoder.gen(EVTS, ENUMS, c_output_file)
+    c_encoder_file = abspath(join(script_loc, "..", "frtrace-target", "core", "frtrace_encode.h"))
+    gen_c_encoder.gen(EVTS, ENUMS, c_encoder_file)
+    
+    c_test_file = abspath(join(script_loc, "..", "frtrace-target", "tests", "test_encoding_funcs", "test.c"))
+    gen_c_tests.gen(EVTS, ENUMS, c_test_file)
 
     rs_crate_dir = abspath(join(script_loc, "..", "frtrace-conv", "frtrace-conv"))
-    rs_output_file = abspath(join(script_loc, "..", "frtrace-conv", "frtrace-conv", "src", "decode", "evts.rs"))
-    gen_rs_decoder.gen(EVTS, ENUMS, rs_output_file, rs_crate_dir)
+    rs_decoder_file = abspath(join(script_loc, "..", "frtrace-conv", "frtrace-conv", "src", "decode", "evts.rs"))
+    gen_rs_decoder.gen(EVTS, ENUMS, rs_decoder_file, rs_crate_dir)
 
 if __name__ == '__main__':
     main()

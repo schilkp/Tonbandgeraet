@@ -96,13 +96,17 @@ fn decode_s64(evt_buf: &[u8], current_idx: &mut usize) -> anyhow::Result<i64> {
         }
     }
 
-    let sign: bool = (bin_result & 0x1) != 0;
-    let magn: u64 = bin_result >> 1;
-
-    if sign {
-        Ok(-(magn as i64))
+    if bin_result == 0x01 {
+        Ok(i64::MIN)
     } else {
-        Ok(magn as i64)
+        let sign: bool = (bin_result & 0x1) != 0;
+        let magn: u64 = bin_result >> 1;
+
+        if sign {
+            Ok(-(magn as i64))
+        } else {
+            Ok(magn as i64)
+        }
     }
 }
 
@@ -187,7 +191,7 @@ mod tests {
         let mut idx: usize = 0;
         let buf = [0, 1, 2, 3, 4, 5];
         assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 0);
-        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 0);
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), i64::MIN);
         assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 1);
         assert_eq!(decode_s64(&buf, &mut idx).unwrap(), -1);
         assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 2);

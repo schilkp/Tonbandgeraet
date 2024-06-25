@@ -22,7 +22,7 @@ where
 impl<T> Default for ObjectMap<T>
 where
     T: NewWithId,
- {
+{
     fn default() -> Self {
         Self::new()
     }
@@ -177,7 +177,7 @@ pub enum UserEvtMarker {
 
 pub struct UserEvtMarkerTrace {
     #[allow(unused)]
-    id: usize, 
+    id: usize,
     name: Option<String>,
     markers: Timeseries<UserEvtMarker>,
 }

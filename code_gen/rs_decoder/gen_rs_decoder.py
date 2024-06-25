@@ -18,7 +18,7 @@ def read_file(f: str) -> str:
         return infile.read()
 
 
-HEADER = read_file("rs_file_header.rs")
+HEADER = read_file("header.rs")
 
 
 def gen_u8_enum(e: U8EnumDefinition) -> str:

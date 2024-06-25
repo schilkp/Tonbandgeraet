@@ -7,7 +7,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_BUILD_TYPE Debug)
 
 add_compile_definitions(UNITY_INCLUDE_EXEC_TIME)
-add_compile_options(-Wall -Wextra -Wpedantic -fanalyzer)
+add_compile_options(-Wall -Wextra -Wpedantic -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
+add_link_options(-Wall -Wextra -Wpedantic -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
 
 # Compile test framework to static lib:
 add_library(TestFramework STATIC Unity/unity.c)
@@ -39,3 +40,4 @@ endfunction()
 
 add_unit_test(test_cobs_framing)
 add_unit_test(test_varint_enc)
+add_unit_test(test_encoding_funcs)

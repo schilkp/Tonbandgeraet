@@ -13,8 +13,8 @@ def read_file(f: str) -> str:
         return infile.read()
 
 
-HEADER = read_file("c_file_header.h")
-FOOTER = read_file("c_file_footer.h")
+HEADER = read_file("header.h")
+FOOTER = read_file("footer.h")
 
 
 def basic_field_type(f: BasicFieldKind) -> str:
@@ -78,7 +78,7 @@ def gen_enc_func(name: str, id: int, is_metadata: bool, fields: List[BasicField]
     # Max len define:
     maxlen_unframed = 0
     maxlen_unframed += basic_field_maxlen('u8')  # ID
-    if is_metadata:
+    if not is_metadata:
         maxlen_unframed += basic_field_maxlen('u64')  # TS
     for field in fields:
         maxlen_unframed += basic_field_maxlen(field.kind)
@@ -120,7 +120,7 @@ def gen_enc_func(name: str, id: int, is_metadata: bool, fields: List[BasicField]
                 result += f"  encode_u64(&cobs, {field.name});\n"
             case "s64":
                 result += f"  encode_s64(&cobs, {field.name});\n"
-            case _: # u8_enum
+            case _:  # u8_enum
                 result += f"  encode_u8(&cobs, (uint8_t){field.name});\n"
 
     if varlen_field is not None:
