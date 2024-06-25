@@ -1,12 +1,53 @@
 use std::{
     sync::{Arc, Condvar, Mutex},
+    thread,
     time::{Duration, SystemTime},
 };
 
-use log::{debug, info, trace, warn};
-use rouille::Response;
+use axum::{
+    http::{header, Response, StatusCode},
+    routing::{get, post},
+    Router,
+};
+use log::{debug, info};
+use tokio::sync::mpsc;
 
 const ORIGIN: &str = "https://ui.perfetto.dev";
+
+async fn server(trace: Vec<u8>, notif_trace_served: Arc<Condvar>) {
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let etag: String = ((now as u64) ^ 0xd3f4_0305_c9f8_e911_u64).to_string();
+
+    let app = Router::new()
+        .route(
+            "/trace.proto",
+            get(|| async move {
+                let resp = Response::builder()
+                    .status(200)
+                    .header(header::CONTENT_TYPE, "application/octet-stream")
+                    .header(header::ETAG, etag.clone())
+                    .header("Access-Control-Allow-Origin", ORIGIN.to_string())
+                    .body(trace.clone())
+                    .unwrap();
+                notif_trace_served.notify_all();
+                info!("SERVER: Serving trace for /trace.proto GET request.");
+                resp.into_parts()
+            }),
+        )
+        .route(
+            "/status",
+            post(|| async move {
+                debug!("SERVER: Serving OK for status GET request.");
+                StatusCode::OK
+            }),
+        );
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:9001").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
 
 fn start_trace_server(trace: &[u8], temporary: bool) -> anyhow::Result<()> {
     if temporary {
@@ -20,48 +61,22 @@ fn start_trace_server(trace: &[u8], temporary: bool) -> anyhow::Result<()> {
     let notif_trace_served = Arc::new(Condvar::new());
     let wait_trace_served = notif_trace_served.clone();
 
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    let etag: String = ((now as u64) ^ 0xd3f4_0305_c9f8_e911_u64).to_string();
+    let (send_stop, mut stop) = mpsc::channel::<()>(1);
 
-    let server = rouille::Server::new("127.0.0.1:9001", move |request| {
-        trace!("SERVER: Received request '{:?}'", request);
-
-        let resp = match request.method() {
-            "GET" => {
-                if request.url() == "/trace.proto" {
-                    info!("Server: Serving trace.");
-                    notif_trace_served.notify_all();
-                    Response::from_data("application/octet-stream", trace.clone())
-                        .with_etag(request, etag.clone())
-                        .with_additional_header("Access-Control-Allow-Origin", ORIGIN.to_string())
-                } else {
-                    warn!("Server: Unknown GET request.");
-                    Response::html("404 error.").with_status_code(404)
+    let server_thread = thread::spawn(move || {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                tokio::select! {
+                    _ = server(trace, notif_trace_served) => {
+                    }
+                    _ = stop.recv() => {
+                    }
                 }
-            }
-            "POST" => {
-                debug!("Server: Acknowledging POST request.");
-                Response::html("").with_status_code(200)
-            }
-            "OPTIONS" => {
-                debug!("Server: Acknowledging OPTIONS request.");
-                Response::html("").with_status_code(200)
-            }
-            _ => {
-                warn!("Server: Unknown request method.");
-                Response::html("404 error.").with_status_code(404)
-            }
-        };
-
-        trace!("SERVER: Response: '{:?}'", resp);
-        resp
-    })
-    .unwrap();
-
-    let (handle, stop) = server.stoppable();
+            })
+    });
 
     if temporary {
         let m: Mutex<()> = Mutex::new(());
@@ -69,11 +84,10 @@ fn start_trace_server(trace: &[u8], temporary: bool) -> anyhow::Result<()> {
         let _lock = wait_trace_served.wait(l).unwrap();
         std::thread::sleep(Duration::from_millis(250));
         info!("Stopping server..");
-        stop.send(()).unwrap();
+        send_stop.blocking_send(()).unwrap();
     }
 
-    let _ = handle.join();
-
+    let _ = server_thread.join();
     info!("Server stopped.");
 
     Ok(())
