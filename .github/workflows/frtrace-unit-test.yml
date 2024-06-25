@@ -1,0 +1,31 @@
+name: Build and run tests.
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        freertos_version: ["v10_3_1", "v11_1_0"]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install just
+        run: curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/
+
+      - name: Fetch FreeRTOS
+        working-directory: ${{github.workspace}}
+        run: ~/just clone_freertos
+
+      - name: Checkout FreeRTOS
+        working-directory: ${{github.workspace}}
+        run: ~/just checkout_${{ matrix.freertos_version }}
+
+      - name: Run
+        working-directory: ${{github.workspace}}/frtrace-target/tests
+        run: ~/just test

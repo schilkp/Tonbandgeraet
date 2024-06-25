@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  cargo-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - uses: arduino/setup-protoc@v3
+      - name: Cargo Test
+        working-directory: ${{github.workspace}}/frtrace-conv/
+        run: cargo test --all
+
+  fmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt
+      - name: Format Check
+        working-directory: ${{github.workspace}}/frtrace-conv/
+        run: cargo fmt -- --check
+
+  clippy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: arduino/setup-protoc@v3
+        with:
+          toolchain: stable
+          components: clippy
+      - name: Lint
+        working-directory: ${{github.workspace}}/frtrace-conv/
+        run: cargo clippy --all-features -- -D warnings

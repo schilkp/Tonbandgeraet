@@ -5,6 +5,6 @@ _default:
 test:
     rm -rf build
     mkdir -p build
-    cmake -B build -DCMAKE_GENERATOR=Ninja
-    ninja -C build
-    python run_tests.py -t 0.1 -j 4 build/bin/
+    cmake -B build -DCMAKE_GENERATOR="Unix Makefiles"
+    make -C build -j 4
+    python run_tests.py -t 0.5 -j 4 build/bin/
