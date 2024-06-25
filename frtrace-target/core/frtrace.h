@@ -12,13 +12,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include "frtrace_port.h"
 
 #ifndef frtrace_configENABLE
   #define frtrace_configENABLE 0
 #endif /* frtrace_configENABLE */
 
 #if (frtrace_configENABLE == 1)
+
+  #include "frtrace_port.h"
 
   // == CONFIG: GENERAL ========================================================
 
@@ -107,7 +108,14 @@
 
   // == CONFIG: BACKENDS =======================================================
 
-  #if ((frtrace_configUSE_BACKEND_POST_MORTEM + frtrace_configUSE_BACKEND_SNAPSHOT + frtrace_configUSE_BACKEND_STREAMING) != 1)
+  #ifndef frtrace_configUSE_BACKEND_EXTERNAL
+    #define frtrace_configUSE_BACKEND_EXTERNAL 0
+  #endif /* frtrace_configUSE_BACKEND_EXTERNAL */
+
+  #if ((frtrace_configUSE_BACKEND_POST_MORTEM +                                \
+        frtrace_configUSE_BACKEND_SNAPSHOT +                                   \
+        frtrace_configUSE_BACKEND_STREAMING +                                  \
+        frtrace_configUSE_BACKEND_EXTERNAL) != 1)
     #error "Exactly one backend must be enabled!"
   #endif /* only one backend selected */
 

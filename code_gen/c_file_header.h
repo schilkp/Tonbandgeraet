@@ -11,6 +11,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef frtrace_configENABLE
+  #error This file should not be included if tracing is not enabled.
+#endif /* frtrace_configENABLE */
+
 // ==== COBS Framing ===========================================================
 
 // COBS framing state

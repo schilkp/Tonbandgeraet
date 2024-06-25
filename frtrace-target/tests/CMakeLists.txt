@@ -7,19 +7,35 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_BUILD_TYPE Debug)
 
 add_compile_definitions(UNITY_INCLUDE_EXEC_TIME)
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic -fanalyzer)
 
 # Compile test framework to static lib:
 add_library(TestFramework STATIC Unity/unity.c)
 target_include_directories(TestFramework PUBLIC Unity)
 
 # Util function to add a new test file.
-function(add_unit_test TEST_SOURCE)
-    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WLE)
-    add_executable(${TEST_NAME} ${TEST_SOURCE})
-    target_link_libraries(${TEST_NAME} PUBLIC TestFramework)
-    target_include_directories(${TEST_NAME} PUBLIC ../core/)
+function(add_unit_test TEST_FOLDER)
+    # New test executable:
+    add_executable(${TEST_FOLDER})
+    target_sources(${TEST_FOLDER} PRIVATE ${TEST_FOLDER}/test.c)
+    target_include_directories(${TEST_FOLDER} PUBLIC ${TEST_FOLDER})
+
+    # Unity test framework:
+    target_link_libraries(${TEST_FOLDER} PUBLIC TestFramework)
+
+    # FreeRTOS headers:
+    target_include_directories(${TEST_FOLDER} PUBLIC ../../FreeRTOS-Kernel/include)
+
+    # frtrace core:
+    target_include_directories(${TEST_FOLDER} PUBLIC ../core/)
+    target_sources(${TEST_FOLDER} PRIVATE ../core/frtrace.c)
+    target_sources(${TEST_FOLDER} PRIVATE ../core/frtrace_backend.c)
+
+    # Testing stubs/mocks:
+    target_include_directories(${TEST_FOLDER} PUBLIC mocks/inc/)
+    target_sources(${TEST_FOLDER} PRIVATE mocks/src/function_mocks.c)
+
 endfunction()
 
-add_unit_test(test_cobs_framing.c)
-add_unit_test(test_varint_enc.c)
+add_unit_test(test_cobs_framing)
+add_unit_test(test_varint_enc)

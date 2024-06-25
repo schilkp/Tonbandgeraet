@@ -1,8 +1,11 @@
+#include <string.h>
+
 #include "unity.h"
 #include "unity_internals.h"
 
+#include "FreeRTOS.h"
+
 #include "frtrace_encode.h"
-#include <string.h>
 
 void util_print_array(uint8_t *in, size_t in_len, char *name) {
   printf("%s: ", name);

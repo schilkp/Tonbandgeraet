@@ -62,7 +62,7 @@ static volatile atomic_ulong dropped_evt_cnt = 0;
 static volatile uint32_t dropped_evt_trace_periodic_cnts[configNUMBER_OF_CORES] = {0};
 
 // Last submitted dropped event count (local to core)
-volatile unsigned long last_traced_dropped_evt_cnts[configNUMBER_OF_CORES] = {0};
+static volatile unsigned long last_traced_dropped_evt_cnts[configNUMBER_OF_CORES] = {0};
 
 // ===== TRACE HOOKS ===========================================================
 

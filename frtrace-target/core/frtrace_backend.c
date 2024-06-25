@@ -325,7 +325,7 @@ int frtrace_start_streaming() {
 
     uint8_t *buf = (uint8_t *)metadata_bufs[core_id].buf;
     if (metadata_amnt > 0) {
-      uint8_t core_id_msg[CORE_ID_MAXLEN] = {0};
+      uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
       size_t core_id_msg_len = encode_core_id(core_id_msg, 0, core_id);
       did_drop |= frtrace_portBACKEND_STREAM_DATA(core_id_msg, core_id_msg_len);
       did_drop |= frtrace_portBACKEND_STREAM_DATA(buf, metadata_amnt);
@@ -334,7 +334,7 @@ int frtrace_start_streaming() {
   }
 
   // Reset to current core:
-  uint8_t core_id_msg[CORE_ID_MAXLEN] = {0};
+  uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
   size_t core_id_msg_len = encode_core_id(core_id_msg, 0, portGET_CORE_ID());
   did_drop |= frtrace_portBACKEND_STREAM_DATA(core_id_msg, core_id_msg_len);
 

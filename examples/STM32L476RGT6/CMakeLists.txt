@@ -39,16 +39,16 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # FreeRTOS Core:
-    ../FreeRTOS-Kernel/croutine.c
-    ../FreeRTOS-Kernel/event_groups.c
-    ../FreeRTOS-Kernel/list.c
-    ../FreeRTOS-Kernel/queue.c
-    ../FreeRTOS-Kernel/stream_buffer.c
-    ../FreeRTOS-Kernel/tasks.c
-    ../FreeRTOS-Kernel/timers.c
+    ../../FreeRTOS-Kernel/croutine.c
+    ../../FreeRTOS-Kernel/event_groups.c
+    ../../FreeRTOS-Kernel/list.c
+    ../../FreeRTOS-Kernel/queue.c
+    ../../FreeRTOS-Kernel/stream_buffer.c
+    ../../FreeRTOS-Kernel/tasks.c
+    ../../FreeRTOS-Kernel/timers.c
 
     # FreeRTOS port:
-    ../FreeRTOS-Kernel/portable/GCC/ARM_CM4F/port.c
+    ../../FreeRTOS-Kernel/portable/GCC/ARM_CM4F/port.c
     Core/Src/static_mem.c
 
     # Tracing:
@@ -64,8 +64,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # FreeRTOS:
-    ../FreeRTOS-Kernel/include
-    ../FreeRTOS-Kernel/portable/GCC/ARM_CM4F/
+    ../../FreeRTOS-Kernel/include
+    ../../FreeRTOS-Kernel/portable/GCC/ARM_CM4F/
 
     # Tracing:
     ../../frtrace-target/core/

@@ -7,3 +7,4 @@ env
 *.bin
 *.hex
 .cache/
+FreeRTOS-Kernel
