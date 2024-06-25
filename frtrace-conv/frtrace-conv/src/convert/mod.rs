@@ -107,7 +107,7 @@ impl TraceConverter {
 
             RawMetadataEvt::TaskName(evt) => {
                 let task_id = evt.task_id as usize;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 if let Some(previous_name) = &mut task.name {
                     if *previous_name != evt.name {
                         warn!("[--METADATA--] Overiding task #{task_id} name from '{previous_name}' to '{}'", evt.name);
@@ -118,7 +118,7 @@ impl TraceConverter {
 
             RawMetadataEvt::TaskIsIdleTask(evt) => {
                 let task_id = evt.task_id as usize;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 let new_kind = TaskKind::Idle {
                     core_id: evt.core_id as usize,
                 };
@@ -130,7 +130,7 @@ impl TraceConverter {
 
             RawMetadataEvt::TaskIsTimerTask(evt) => {
                 let task_id = evt.task_id as usize;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 let new_kind = TaskKind::TimerSvc;
                 if !matches!(task.kind, TaskKind::Normal) && new_kind != task.kind {
                     warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'!", task.kind, new_kind);
@@ -140,7 +140,7 @@ impl TraceConverter {
 
             RawMetadataEvt::IsrName(evt) => {
                 let isr_id = evt.isr_id as usize;
-                let isr = t.core_mut(core_id).isr_mut(isr_id);
+                let isr = t.core_mut(core_id).isrs.get_mut_or_create(isr_id);
                 if let Some(previous_name) = &mut isr.name {
                     if *previous_name != evt.name {
                         warn!("[--METADATA--] Overiding isr #{isr_id} name from '{previous_name}' to '{}'", evt.name);
@@ -151,7 +151,7 @@ impl TraceConverter {
 
             RawMetadataEvt::QueueName(evt) => {
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 if let Some(previous_name) = &mut queue.name {
                     if *previous_name != evt.name {
                         warn!(
@@ -165,7 +165,7 @@ impl TraceConverter {
 
             RawMetadataEvt::QueueKind(evt) => {
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 let new_kind: QueueKind = evt.kind.clone().into();
 
                 if queue.kind == new_kind && !matches!(new_kind, QueueKind::Queue) {
@@ -176,7 +176,7 @@ impl TraceConverter {
 
             RawMetadataEvt::EvtmarkerName(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
-                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                let evtmarker = t.user_evt_markers.get_mut_or_create(evtmarker_id);
                 if let Some(previous_name) = &evtmarker.name {
                     if *previous_name != evt.name {
                         warn!(
@@ -190,7 +190,7 @@ impl TraceConverter {
 
             RawMetadataEvt::ValmarkerName(evt) => {
                 let valmarker_id = evt.valmarker_id as usize;
-                let valmarker = t.user_val_marker_mut(valmarker_id);
+                let valmarker = t.user_val_markers.get_mut_or_create(valmarker_id);
                 if let Some(previous_name) = &valmarker.name {
                     if *previous_name != evt.name {
                         warn!(
@@ -205,7 +205,11 @@ impl TraceConverter {
             RawMetadataEvt::TaskEvtmarkerName(evt) => {
                 let task_id = evt.task_id as usize;
                 let evtmarker_id = evt.evtmarker_id as usize;
-                let evtmarker = t.task_mut(task_id).user_evt_marker_mut(evtmarker_id);
+                let evtmarker = t
+                    .tasks
+                    .get_mut_or_create(task_id)
+                    .user_evt_markers
+                    .get_mut_or_create(evtmarker_id);
                 if let Some(previous_name) = &evtmarker.name {
                     if *previous_name != evt.name {
                         warn!(
@@ -221,7 +225,11 @@ impl TraceConverter {
             RawMetadataEvt::TaskValmarkerName(evt) => {
                 let task_id = evt.task_id as usize;
                 let valmarker_id = evt.valmarker_id as usize;
-                let valmarker = t.task_mut(task_id).user_val_marker_mut(valmarker_id);
+                let valmarker = t
+                    .tasks
+                    .get_mut_or_create(task_id)
+                    .user_val_markers
+                    .get_mut_or_create(valmarker_id);
                 if let Some(previous_name) = &valmarker.name {
                     if *previous_name != evt.name {
                         warn!(
@@ -257,25 +265,28 @@ impl TraceConverter {
 
             RawTraceEvtKind::TaskSwitchedIn(evt) => {
                 let task_id = evt.task_id as usize;
-                t.ensure_task_exists(task_id);
+                t.tasks.ensure_exists(task_id);
 
                 // Switch-out previous task (if any):
                 if let Some(previous_task_id) = t.core(core_id).current_task_id {
-                    let previous_task = t.task_mut(previous_task_id);
+                    let previous_task = t.tasks.get_mut_or_create(previous_task_id);
                     previous_task
                         .state
                         .push(ts, previous_task.state_when_switched_out.clone());
                 }
 
                 // Switch-in next task:
-                t.task_mut(task_id).state_when_switched_out = TaskState::Ready;
-                t.task_mut(task_id).state.push(ts, TaskState::Running { core_id });
+                t.tasks.get_mut_or_create(task_id).state_when_switched_out = TaskState::Ready;
+                t.tasks
+                    .get_mut_or_create(task_id)
+                    .state
+                    .push(ts, TaskState::Running { core_id });
                 t.core_mut(core_id).current_task_id = Some(task_id);
             }
 
             RawTraceEvtKind::TaskToRdyState(evt) => {
                 let task_id = evt.task_id as usize;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 if !task.is_running() {
                     task.state.push(ts, TaskState::Ready);
                 }
@@ -283,20 +294,20 @@ impl TraceConverter {
 
             RawTraceEvtKind::TaskResumed(evt) => {
                 let task_id = evt.task_id as usize;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 task.state.push(ts, TaskState::Ready);
             }
 
             RawTraceEvtKind::TaskResumedFromIsr(evt) => {
                 let task_id = evt.task_id as usize;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 task.state.push(ts, TaskState::Ready);
             }
 
             RawTraceEvtKind::TaskSuspended(evt) => {
                 let task_id = evt.task_id as usize;
                 let current_task_id = t.core(core_id).current_task_id;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 if task.is_running() {
                     task.state_when_switched_out = TaskState::Suspended {
                         by_task_id: current_task_id,
@@ -313,7 +324,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::CurtaskDelay(evt) => {
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    t.task_mut(current_task_id).state_when_switched_out =
+                    t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::Delay { ticks: evt.ticks })
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
@@ -323,7 +334,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::CurtaskDelayUntil(evt) => {
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    t.task_mut(current_task_id).state_when_switched_out =
+                    t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::DelayUntil {
                             time_to_wake: evt.time_to_wake,
                         })
@@ -335,28 +346,28 @@ impl TraceConverter {
 
             RawTraceEvtKind::TaskPrioritySet(evt) => {
                 let task_id = evt.task_id as usize;
-                t.task_mut(task_id).priority.push(ts, evt.priority);
+                t.tasks.get_mut_or_create(task_id).priority.push(ts, evt.priority);
             }
 
             RawTraceEvtKind::TaskPriorityInherit(evt) => {
                 let task_id = evt.task_id as usize;
-                t.task_mut(task_id).priority.push(ts, evt.priority);
+                t.tasks.get_mut_or_create(task_id).priority.push(ts, evt.priority);
             }
 
             RawTraceEvtKind::TaskPriorityDisinherit(evt) => {
                 let task_id = evt.task_id as usize;
-                t.task_mut(task_id).priority.push(ts, evt.priority);
+                t.tasks.get_mut_or_create(task_id).priority.push(ts, evt.priority);
             }
 
             RawTraceEvtKind::TaskCreated(evt) => {
                 let task_id = evt.task_id as usize;
-                t.ensure_task_exists(task_id);
+                t.tasks.ensure_exists(task_id);
             }
 
             RawTraceEvtKind::TaskDeleted(evt) => {
                 let task_id = evt.task_id as usize;
                 let current_task_id = t.core(core_id).current_task_id;
-                let task = t.task_mut(task_id);
+                let task = t.tasks.get_mut_or_create(task_id);
                 if task.is_running() {
                     task.state_when_switched_out = TaskState::Deleted {
                         by_task_id: current_task_id,
@@ -373,7 +384,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::IsrEnter(evt) => {
                 let isr_id = evt.isr_id as usize;
-                let isr = t.core_mut(core_id).isr_mut(isr_id);
+                let isr = t.core_mut(core_id).isrs.get_mut_or_create(isr_id);
                 if matches!(isr.current_state, ISRState::NotActive) {
                     isr.state.push(ts, ISRState::Active);
                     isr.current_state = ISRState::Active;
@@ -382,7 +393,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::IsrExit(evt) => {
                 let isr_id = evt.isr_id as usize;
-                let isr = t.core_mut(core_id).isr_mut(isr_id);
+                let isr = t.core_mut(core_id).isrs.get_mut_or_create(isr_id);
                 if matches!(isr.current_state, ISRState::Active) {
                     isr.state.push(ts, ISRState::NotActive);
                     isr.current_state = ISRState::NotActive;
@@ -391,13 +402,13 @@ impl TraceConverter {
 
             RawTraceEvtKind::QueueCreated(evt) => {
                 let queue_id = evt.queue_id as usize;
-                t.ensure_queue_exists(queue_id);
+                t.queues.ensure_exists(queue_id);
             }
 
             RawTraceEvtKind::QueueSend(evt) => {
                 let current_task = t.core(core_id).current_task_id;
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -409,7 +420,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::QueueSendFromIsr(evt) => {
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -422,7 +433,7 @@ impl TraceConverter {
             RawTraceEvtKind::QueueOverwrite(evt) => {
                 let current_task = t.core(core_id).current_task_id;
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -434,7 +445,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::QueueOverwriteFromIsr(evt) => {
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -447,7 +458,7 @@ impl TraceConverter {
             RawTraceEvtKind::QueueReceive(evt) => {
                 let current_task = t.core(core_id).current_task_id;
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -460,7 +471,7 @@ impl TraceConverter {
             RawTraceEvtKind::QueueReceiveFromIsr(evt) => {
                 let current_task = t.core(core_id).current_task_id;
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -473,7 +484,7 @@ impl TraceConverter {
             RawTraceEvtKind::QueueReset(evt) => {
                 let current_task = t.core(core_id).current_task_id;
                 let queue_id = evt.queue_id as usize;
-                let queue = t.queue_mut(queue_id);
+                let queue = t.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
@@ -485,9 +496,9 @@ impl TraceConverter {
 
             RawTraceEvtKind::CurtaskBlockOnQueuePeek(evt) => {
                 let queue_id = evt.queue_id as usize;
-                t.ensure_queue_exists(queue_id);
+                t.queues.ensure_exists(queue_id);
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    t.task_mut(current_task_id).state_when_switched_out =
+                    t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueuePeek { queue_id })
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
@@ -497,9 +508,9 @@ impl TraceConverter {
 
             RawTraceEvtKind::CurtaskBlockOnQueueSend(evt) => {
                 let queue_id = evt.queue_id as usize;
-                t.ensure_queue_exists(queue_id);
+                t.queues.ensure_exists(queue_id);
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    t.task_mut(current_task_id).state_when_switched_out =
+                    t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueueSend { queue_id })
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
@@ -509,9 +520,10 @@ impl TraceConverter {
 
             RawTraceEvtKind::CurtaskBlockOnQueueReceive(evt) => {
                 let queue_id = evt.queue_id as usize;
-                t.ensure_queue_exists(queue_id);
+                t.queues.ensure_exists(queue_id);
+
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    t.task_mut(current_task_id).state_when_switched_out =
+                    t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueueReceive { queue_id })
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
@@ -521,7 +533,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::Evtmarker(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
-                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                let evtmarker = t.user_evt_markers.get_mut_or_create(evtmarker_id);
                 evtmarker
                     .markers
                     .push(ts, UserEvtMarker::Instant { msg: evt.msg.clone() })
@@ -529,7 +541,7 @@ impl TraceConverter {
 
             RawTraceEvtKind::EvtmarkerBegin(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
-                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                let evtmarker = t.user_evt_markers.get_mut_or_create(evtmarker_id);
                 evtmarker
                     .markers
                     .push(ts, UserEvtMarker::SliceBegin { msg: evt.msg.clone() })
@@ -537,20 +549,24 @@ impl TraceConverter {
 
             RawTraceEvtKind::EvtmarkerEnd(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
-                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                let evtmarker = t.user_evt_markers.get_mut_or_create(evtmarker_id);
                 evtmarker.markers.push(ts, UserEvtMarker::SliceEnd)
             }
 
             RawTraceEvtKind::Valmarker(evt) => {
                 let valmarker_id = evt.valmarker_id as usize;
-                let valmarker = t.user_val_marker_mut(valmarker_id);
+                let valmarker = t.user_val_markers.get_mut_or_create(valmarker_id);
                 valmarker.vals.push(ts, evt.val)
             }
 
             RawTraceEvtKind::TaskEvtmarker(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    let evtmarker = t.task_mut(current_task_id).user_evt_marker_mut(evtmarker_id);
+                    let evtmarker = t
+                        .tasks
+                        .get_mut_or_create(current_task_id)
+                        .user_evt_markers
+                        .get_mut_or_create(evtmarker_id);
                     evtmarker
                         .markers
                         .push(ts, UserEvtMarker::Instant { msg: evt.msg.clone() })
@@ -563,7 +579,11 @@ impl TraceConverter {
             RawTraceEvtKind::TaskEvtmarkerBegin(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    let evtmarker = t.task_mut(current_task_id).user_evt_marker_mut(evtmarker_id);
+                    let evtmarker = t
+                        .tasks
+                        .get_mut_or_create(current_task_id)
+                        .user_evt_markers
+                        .get_mut_or_create(evtmarker_id);
                     evtmarker
                         .markers
                         .push(ts, UserEvtMarker::SliceBegin { msg: evt.msg.clone() })
@@ -576,7 +596,11 @@ impl TraceConverter {
             RawTraceEvtKind::TaskEvtmarkerEnd(evt) => {
                 let evtmarker_id = evt.evtmarker_id as usize;
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    let evtmarker = t.task_mut(current_task_id).user_evt_marker_mut(evtmarker_id);
+                    let evtmarker = t
+                        .tasks
+                        .get_mut_or_create(current_task_id)
+                        .user_evt_markers
+                        .get_mut_or_create(evtmarker_id);
                     evtmarker.markers.push(ts, UserEvtMarker::SliceEnd)
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
@@ -587,7 +611,11 @@ impl TraceConverter {
             RawTraceEvtKind::TaskValmarker(evt) => {
                 let valmarker_id = evt.valmarker_id as usize;
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
-                    let valmarker = t.task_mut(current_task_id).user_val_marker_mut(valmarker_id);
+                    let valmarker = t
+                        .tasks
+                        .get_mut_or_create(current_task_id)
+                        .user_val_markers
+                        .get_mut_or_create(valmarker_id);
                     valmarker.vals.push(ts, evt.val)
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);

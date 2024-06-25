@@ -1,11 +1,97 @@
 pub mod convert;
 pub mod decode;
 
-use std::{collections::BTreeMap, fmt::Display, rc::Rc};
+use std::{
+    collections::{btree_map, BTreeMap},
+    fmt::Display,
+    rc::Rc,
+};
 
 use decode::evts::{self, RawEvt, RawInvalidEvt};
 
-// TODO: Refactor BTreeMaps into wrapper with "get_or_create" and "get_or_create_mut".
+// == Object Registry ==========================================================
+
+pub trait NewWithId {
+    fn new(id: usize) -> Self;
+}
+
+pub struct ObjectMap<T>(pub BTreeMap<usize, T>)
+where
+    T: NewWithId;
+
+impl<T> Default for ObjectMap<T>
+where
+    T: NewWithId,
+ {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T> ObjectMap<T>
+where
+    T: NewWithId,
+{
+    pub fn new() -> Self {
+        ObjectMap(BTreeMap::new())
+    }
+
+    pub fn get(&self, id: usize) -> Option<&T> {
+        self.0.get(&id)
+    }
+
+    pub fn get_mut(&mut self, id: usize) -> Option<&mut T> {
+        self.0.get_mut(&id)
+    }
+
+    pub fn get_or_create(&mut self, id: usize) -> &T {
+        self.0.entry(id).or_insert_with(|| T::new(id))
+    }
+
+    pub fn get_mut_or_create(&mut self, id: usize) -> &mut T {
+        self.0.entry(id).or_insert_with(|| T::new(id))
+    }
+
+    pub fn ensure_exists(&mut self, id: usize) {
+        self.0.entry(id).or_insert_with(|| T::new(id));
+    }
+}
+
+impl<'a, T> IntoIterator for &'a ObjectMap<T>
+where
+    T: NewWithId,
+{
+    type Item = (&'a usize, &'a T);
+    type IntoIter = btree_map::Iter<'a, usize, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut ObjectMap<T>
+where
+    T: NewWithId,
+{
+    type Item = (&'a usize, &'a mut T);
+    type IntoIter = btree_map::IterMut<'a, usize, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
+    }
+}
+
+impl<T> IntoIterator for ObjectMap<T>
+where
+    T: NewWithId,
+{
+    type Item = (usize, T);
+    type IntoIter = btree_map::IntoIter<usize, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
 
 // == Timestamped Value ========================================================
 
@@ -90,13 +176,14 @@ pub enum UserEvtMarker {
 }
 
 pub struct UserEvtMarkerTrace {
-    id: usize,
+    #[allow(unused)]
+    id: usize, 
     name: Option<String>,
     markers: Timeseries<UserEvtMarker>,
 }
 
-impl UserEvtMarkerTrace {
-    pub fn new(id: usize) -> Self {
+impl NewWithId for UserEvtMarkerTrace {
+    fn new(id: usize) -> Self {
         Self {
             id,
             name: None,
@@ -106,13 +193,14 @@ impl UserEvtMarkerTrace {
 }
 
 pub struct UserValMarkerTrace {
+    #[allow(unused)]
     id: usize,
     name: Option<String>,
     vals: Timeseries<i64>,
 }
 
-impl UserValMarkerTrace {
-    pub fn new(id: usize) -> Self {
+impl NewWithId for UserValMarkerTrace {
+    fn new(id: usize) -> Self {
         Self {
             id,
             name: None,
@@ -197,14 +285,14 @@ pub struct TaskTrace {
     pub priority: Timeseries<u32>,
 
     // User markers:
-    pub user_evt_markers: BTreeMap<usize, UserEvtMarkerTrace>,
-    pub user_val_markers: BTreeMap<usize, UserValMarkerTrace>,
+    pub user_evt_markers: ObjectMap<UserEvtMarkerTrace>,
+    pub user_val_markers: ObjectMap<UserValMarkerTrace>,
 
     // Conversion state:
     state_when_switched_out: TaskState,
 }
 
-impl TaskTrace {
+impl NewWithId for TaskTrace {
     fn new(id: usize) -> Self {
         Self {
             id,
@@ -212,12 +300,14 @@ impl TaskTrace {
             kind: TaskKind::Normal,
             state: Timeseries::new(),
             priority: Timeseries::new(),
-            user_evt_markers: BTreeMap::new(),
-            user_val_markers: BTreeMap::new(),
+            user_evt_markers: ObjectMap::new(),
+            user_val_markers: ObjectMap::new(),
             state_when_switched_out: TaskState::Ready,
         }
     }
+}
 
+impl TaskTrace {
     fn is_running(&self) -> bool {
         self.state
             .0
@@ -226,21 +316,9 @@ impl TaskTrace {
             .unwrap_or(false)
     }
 
-    fn ensure_user_evt_marker_exists(&mut self, id: usize) {
-        self.user_evt_markers
-            .entry(id)
-            .or_insert_with(|| UserEvtMarkerTrace::new(id));
-    }
-
-    fn ensure_user_val_marker_exists(&mut self, id: usize) {
-        self.user_val_markers
-            .entry(id)
-            .or_insert_with(|| UserValMarkerTrace::new(id));
-    }
-
     fn name_user_evtmarker(&self, id: usize) -> String {
         let task_name = self.name();
-        if let Some(marker) = self.user_evt_markers.get(&id) {
+        if let Some(marker) = self.user_evt_markers.get(id) {
             if let Some(name) = &marker.name {
                 return format!("{task_name} Marker {name} (#{id})");
             }
@@ -250,7 +328,7 @@ impl TaskTrace {
 
     fn name_user_valmarker(&self, id: usize) -> String {
         let task_name = self.name();
-        if let Some(marker) = self.user_val_markers.get(&id) {
+        if let Some(marker) = self.user_val_markers.get(id) {
             if let Some(name) = &marker.name {
                 return format!("{task_name} Value {name} (#{id})");
             }
@@ -264,28 +342,6 @@ impl TaskTrace {
             return format!("Task {name} (#{id})");
         }
         format!("Task #{id}")
-    }
-}
-
-impl<'a> TaskTrace {
-    fn user_evt_marker(&'a mut self, marker_id: usize) -> &'a UserEvtMarkerTrace {
-        self.ensure_user_evt_marker_exists(marker_id);
-        self.user_evt_markers.get(&marker_id).unwrap()
-    }
-
-    fn user_evt_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserEvtMarkerTrace {
-        self.ensure_user_evt_marker_exists(marker_id);
-        self.user_evt_markers.get_mut(&marker_id).unwrap()
-    }
-
-    fn user_val_marker(&'a mut self, marker_id: usize) -> &'a UserValMarkerTrace {
-        self.ensure_user_val_marker_exists(marker_id);
-        self.user_val_markers.get(&marker_id).unwrap()
-    }
-
-    fn user_val_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserValMarkerTrace {
-        self.ensure_user_val_marker_exists(marker_id);
-        self.user_val_markers.get_mut(&marker_id).unwrap()
     }
 }
 
@@ -305,46 +361,34 @@ pub struct ISRTrace {
     current_state: ISRState,
 }
 
+impl NewWithId for ISRTrace {
+    fn new(id: usize) -> Self {
+        ISRTrace {
+            id,
+            name: None,
+            state: Timeseries::new(),
+            current_state: ISRState::NotActive,
+        }
+    }
+}
+
 pub struct CoreTrace {
     pub id: usize,
-    pub isrs: BTreeMap<usize, ISRTrace>,
+    pub isrs: ObjectMap<ISRTrace>,
     pub evts: Timeseries<TraceEvtMarker>,
 
     // Conversion state:
     current_task_id: Option<usize>,
 }
 
-impl CoreTrace {
+impl NewWithId for CoreTrace {
     fn new(id: usize) -> Self {
         CoreTrace {
             id,
-            isrs: BTreeMap::new(),
+            isrs: ObjectMap::new(),
             evts: Timeseries::new(),
             current_task_id: None,
         }
-    }
-
-    fn ensure_isr_exists(&mut self, id: usize) {
-        self.isrs.entry(id).or_insert_with(|| ISRTrace {
-            id,
-            name: None,
-            state: Timeseries::new(),
-
-            current_state: ISRState::NotActive,
-        });
-    }
-}
-
-impl<'a> CoreTrace {
-    fn isr(&'a mut self, isr_id: usize) -> &'a ISRTrace {
-        #![allow(unused)]
-        self.ensure_isr_exists(isr_id);
-        self.isrs.get(&isr_id).unwrap()
-    }
-
-    fn isr_mut(&'a mut self, isr_id: usize) -> &'a mut ISRTrace {
-        self.ensure_isr_exists(isr_id);
-        self.isrs.get_mut(&isr_id).unwrap()
     }
 }
 
@@ -413,8 +457,8 @@ pub struct QueueTrace {
     pub state: Timeseries<QueueState>,
 }
 
-impl QueueTrace {
-    pub fn new(id: usize) -> Self {
+impl NewWithId for QueueTrace {
+    fn new(id: usize) -> Self {
         Self {
             id,
             name: None,
@@ -438,15 +482,15 @@ pub struct Trace {
     pub cores: BTreeMap<usize, CoreTrace>,
 
     // Tasks:
-    pub tasks: BTreeMap<usize, TaskTrace>,
+    pub tasks: ObjectMap<TaskTrace>,
 
     // Resources:
-    pub queues: BTreeMap<usize, QueueTrace>,
+    pub queues: ObjectMap<QueueTrace>,
     // pub stream_buffers: ..
 
     // Global markers:
-    pub user_evt_markers: BTreeMap<usize, UserEvtMarkerTrace>,
-    pub user_val_markers: BTreeMap<usize, UserValMarkerTrace>,
+    pub user_evt_markers: ObjectMap<UserEvtMarkerTrace>,
+    pub user_val_markers: ObjectMap<UserValMarkerTrace>,
 
     // Conversion state:
     dropped_evt_cnt: u32,
@@ -459,10 +503,10 @@ impl Trace {
             ts_resolution_ns: None,
             error_evts: Timeseries::new(),
             cores: BTreeMap::new(),
-            tasks: BTreeMap::new(),
-            queues: BTreeMap::new(),
-            user_evt_markers: BTreeMap::new(),
-            user_val_markers: BTreeMap::new(),
+            tasks: ObjectMap::new(),
+            queues: ObjectMap::new(),
+            user_evt_markers: ObjectMap::new(),
+            user_val_markers: ObjectMap::new(),
             dropped_evt_cnt: 0,
         };
 
@@ -473,33 +517,13 @@ impl Trace {
         s
     }
 
-    fn ensure_task_exists(&mut self, id: usize) {
-        self.tasks.entry(id).or_insert_with(|| TaskTrace::new(id));
-    }
-
-    fn ensure_queue_exists(&mut self, id: usize) {
-        self.queues.entry(id).or_insert_with(|| QueueTrace::new(id));
-    }
-
-    fn ensure_user_evt_marker_exists(&mut self, id: usize) {
-        self.user_evt_markers
-            .entry(id)
-            .or_insert_with(|| UserEvtMarkerTrace::new(id));
-    }
-
-    fn ensure_user_val_marker_exists(&mut self, id: usize) {
-        self.user_val_markers
-            .entry(id)
-            .or_insert_with(|| UserValMarkerTrace::new(id));
-    }
-
     fn convert_ts(&self, ts: u64) -> u64 {
         let ts_resolution_ns = self.ts_resolution_ns.unwrap_or(1);
         ts * ts_resolution_ns
     }
 
     fn name_task(&self, id: usize) -> String {
-        if let Some(task) = self.tasks.get(&id) {
+        if let Some(task) = self.tasks.get(id) {
             if let Some(name) = &task.name {
                 return format!("Task {name} (#{id})");
             }
@@ -508,7 +532,7 @@ impl Trace {
     }
 
     fn name_isr(&self, core_id: usize, id: usize) -> String {
-        if let Some(isr) = self.core(core_id).isrs.get(&id) {
+        if let Some(isr) = self.cores[&core_id].isrs.get(id) {
             if let Some(name) = &isr.name {
                 return format!("ISR {name} (#{id})");
             }
@@ -517,7 +541,7 @@ impl Trace {
     }
 
     fn name_queue(&self, id: usize) -> String {
-        if let Some(queue) = self.queues.get(&id) {
+        if let Some(queue) = self.queues.get(id) {
             if let Some(name) = &queue.name {
                 return format!("{} {name} (#{id})", queue.kind);
             } else {
@@ -528,7 +552,7 @@ impl Trace {
     }
 
     fn name_user_evtmarker(&self, id: usize) -> String {
-        if let Some(marker) = self.user_evt_markers.get(&id) {
+        if let Some(marker) = self.user_evt_markers.get(id) {
             if let Some(name) = &marker.name {
                 return format!("Marker {name} (#{id})");
             }
@@ -537,63 +561,20 @@ impl Trace {
     }
 
     fn name_user_valmarker(&self, id: usize) -> String {
-        if let Some(marker) = self.user_val_markers.get(&id) {
+        if let Some(marker) = self.user_val_markers.get(id) {
             if let Some(name) = &marker.name {
                 return format!("Value {name} (#{id})");
             }
         }
         format!("Value #{id}")
     }
-}
 
-impl<'a> Trace {
-    fn task(&'a mut self, task_id: usize) -> &'a TaskTrace {
-        #![allow(unused)]
-        self.ensure_task_exists(task_id);
-        self.tasks.get(&task_id).unwrap()
+    fn core(&self, id: usize) -> &CoreTrace {
+        assert!(id < self.core_count);
+        &self.cores[&id]
     }
 
-    fn task_mut(&'a mut self, task_id: usize) -> &'a mut TaskTrace {
-        self.ensure_task_exists(task_id);
-        self.tasks.get_mut(&task_id).unwrap()
-    }
-
-    fn core(&'a self, core_id: usize) -> &'a CoreTrace {
-        self.cores.get(&core_id).unwrap()
-    }
-
-    fn core_mut(&'a mut self, core_id: usize) -> &'a mut CoreTrace {
-        self.cores.get_mut(&core_id).unwrap()
-    }
-
-    fn queue(&'a mut self, queue_id: usize) -> &'a QueueTrace {
-        #![allow(unused)]
-        self.ensure_queue_exists(queue_id);
-        self.queues.get(&queue_id).unwrap()
-    }
-
-    fn queue_mut(&'a mut self, queue_id: usize) -> &'a mut QueueTrace {
-        self.ensure_queue_exists(queue_id);
-        self.queues.get_mut(&queue_id).unwrap()
-    }
-
-    fn user_evt_marker(&'a mut self, marker_id: usize) -> &'a UserEvtMarkerTrace {
-        self.ensure_user_evt_marker_exists(marker_id);
-        self.user_evt_markers.get(&marker_id).unwrap()
-    }
-
-    fn user_evt_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserEvtMarkerTrace {
-        self.ensure_user_evt_marker_exists(marker_id);
-        self.user_evt_markers.get_mut(&marker_id).unwrap()
-    }
-
-    fn user_val_marker(&'a mut self, marker_id: usize) -> &'a UserValMarkerTrace {
-        self.ensure_user_val_marker_exists(marker_id);
-        self.user_val_markers.get(&marker_id).unwrap()
-    }
-
-    fn user_val_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserValMarkerTrace {
-        self.ensure_user_val_marker_exists(marker_id);
-        self.user_val_markers.get_mut(&marker_id).unwrap()
+    fn core_mut(&mut self, id: usize) -> &mut CoreTrace {
+        self.cores.get_mut(&id).expect("Invalid core id")
     }
 }
