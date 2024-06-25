@@ -272,6 +272,54 @@ extern "C" {
       )
   #endif /* (frtrace_configTASK_TRACE_ENABLE == 1) */
 
+  // == Markers ================================================================
+
+  #if (frtrace_configMARKER_TRACE_ENABLE == 1)
+  
+  void impl_frtrace_evtmarker_name(uint32_t id, const char* name);
+  #define frtrace_evtmarker_name(id, name) impl_frtrace_evtmarker_name(id, name)
+
+  void impl_frtrace_evtmarker(uint32_t id, const char* msg);
+  #define frtrace_evtmarker(id, msg) impl_frtrace_evtmarker(id, msg)
+
+  void impl_frtrace_evtmarker_begin(uint32_t id, const char* msg);
+  #define frtrace_evtmarker_begin(id, msg) impl_frtrace_evtmarker_begin(id, msg)
+
+  void impl_frtrace_evtmarker_end(uint32_t id);
+  #define frtrace_evtmarker_end(id) impl_frtrace_evtmarker_end(id)
+
+  void impl_frtrace_valmarker_name(uint32_t id, const char* name);
+  #define frtrace_valmarker_name(id, name) impl_frtrace_valmarker_name(id, name)
+
+  void impl_frtrace_valmarker(uint32_t id, int64_t val);
+  #define frtrace_valmarker(id, val) impl_frtrace_valmarker(id, val)
+
+  #endif /* (frtrace_configMARKER_TRACE_ENABLE == 1) */
+
+  // == Task-Local Markers =====================================================
+
+  #if ((frtrace_configMARKER_TRACE_ENABLE == 1) && (frtrace_configFREERTOS_TRACE_ENABLE == 1))
+
+  void impl_frtrace_task_evtmarker_name(uint32_t id, const char* name);
+  #define frtrace_task_evtmarker_name(id, name) impl_frtrace_task_evtmarker_name(id, name)
+
+  void impl_frtrace_task_evtmarker(uint32_t id, const char* msg);
+  #define frtrace_task_evtmarker(id, msg) impl_frtrace_task_evtmarker(id, msg)
+
+  void impl_frtrace_task_evtmarker_begin(uint32_t id, const char* msg);
+  #define frtrace_task_evtmarker_begin(id, msg) impl_frtrace_task_evtmarker_begin(id, msg)
+
+  void impl_frtrace_task_evtmarker_end(uint32_t id);
+  #define frtrace_task_evtmarker_end(id) impl_frtrace_task_evtmarker_end(id)
+
+  void impl_frtrace_task_valmarker_name(uint32_t id, const char* name);
+  #define frtrace_task_valmarker_name(id, name) impl_frtrace_task_valmarker_name(id, name)
+
+  void impl_frtrace_task_valmarker(uint32_t id, int64_t val);
+  #define frtrace_task_valmarker(id, val) impl_frtrace_task_valmarker(id, val)
+
+  #endif /* ((frtrace_configMARKER_TRACE_ENABLE == 1) && (frtrace_configFREERTOS_TRACE_ENABLE == 1)) */
+
 #endif /* frtrace_configENABLE == 1*/
 
 // Provide shims for tracing hooks that are called manually if they are disabled:
@@ -311,6 +359,54 @@ extern "C" {
 #ifndef frtrace_recursive_mutex_name
   #define frtrace_recursive_mutex_name(handle, name)
 #endif /* frtrace_recursive_mutex_name */
+
+#ifndef frtrace_evtmarker_name
+  #define frtrace_evtmarker_name(id, name)
+#endif /* frtrace_evtmarker_name */
+
+#ifndef frtrace_evtmarker
+  #define frtrace_evtmarker(id, msg)
+#endif /* frtrace_evtmarker */
+
+#ifndef frtrace_evtmarker_begin
+  #define frtrace_evtmarker_begin(id, msg)
+#endif /* frtrace_evtmarker_begin */
+
+#ifndef frtrace_evtmarker_end
+  #define frtrace_evtmarker_end(id, msg)
+#endif /* frtrace_evtmarker_end */
+
+#ifndef frtrace_task_evtmarker_name
+  #define frtrace_task_evtmarker_name(id, name)
+#endif /* frtrace_task_evtmarker_name */
+
+#ifndef frtrace_task_evtmarker
+  #define frtrace_task_evtmarker(id, msg)
+#endif /* frtrace_task_evtmarker */
+
+#ifndef frtrace_task_evtmarker_begin
+  #define frtrace_task_evtmarker_begin(id, msg)
+#endif /* frtrace_task_evtmarker_begin */
+
+#ifndef frtrace_task_evtmarker_end
+  #define frtrace_task_evtmarker_end(id)
+#endif /* frtrace_task_evtmarker_end */
+
+#ifndef frtrace_valmarker_name
+  #define frtrace_valmarker_name(id, name)
+#endif /* frtrace_valmarker_name */
+
+#ifndef frtrace_valmarker
+  #define frtrace_valmarker(id, val)
+#endif /* frtrace_valmarker */
+
+#ifndef frtrace_task_valmarker_name
+  #define frtrace_task_valmarker_name(id, name)
+#endif /* frtrace_task_valmarker_name */
+
+#ifndef frtrace_task_valmarker
+  #define frtrace_task_valmarker(id, val)
+#endif /* frtrace_task_valmarker */
 
 #if defined(__cplusplus)
 }

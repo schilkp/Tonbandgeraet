@@ -73,6 +73,39 @@ fn decode_u64(evt_buf: &[u8], current_idx: &mut usize) -> anyhow::Result<u64> {
     Ok(result)
 }
 
+fn decode_s64(evt_buf: &[u8], current_idx: &mut usize) -> anyhow::Result<i64> {
+    if !bytes_left(evt_buf, *current_idx) {
+        return Err(anyhow!("Insufficient bytes left in event to decode a s64"));
+    }
+    let mut bin_result: u64 = 0;
+
+    for i in 0..10 {
+        if !bytes_left(evt_buf, *current_idx) {
+            return Err(anyhow!("Unterminated s64"));
+        }
+        let byte = evt_buf[*current_idx];
+        bin_result |= ((byte as u64) & 0x7F) << (7 * i);
+        *current_idx += 1;
+
+        if i == 9 && (byte & !0x1 != 0) {
+            return Err(anyhow!("s64 too long!"));
+        }
+
+        if byte & 0x80 == 0 {
+            break;
+        }
+    }
+
+    let sign: bool = (bin_result & 0x1) != 0;
+    let magn: u64 = bin_result >> 1;
+
+    if sign {
+        Ok(-(magn as i64))
+    } else {
+        Ok(magn as i64)
+    }
+}
+
 fn decode_string(evt_buf: &[u8], current_idx: &mut usize) -> anyhow::Result<String> {
     if !bytes_left(evt_buf, *current_idx) {
         Ok(String::new())
@@ -147,6 +180,37 @@ mod tests {
 
         // Unterminated
         decode_u64(&[0xFF, 0xFF, 0xFF, 0xFF], &mut 0).unwrap_err();
+    }
+
+    #[test]
+    fn test_decode_s64() {
+        let mut idx: usize = 0;
+        let buf = [0, 1, 2, 3, 4, 5];
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 0);
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 0);
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 1);
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), -1);
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), 2);
+        assert_eq!(decode_s64(&buf, &mut idx).unwrap(), -2);
+        assert_eq!(idx, 6);
+        decode_u64(&buf, &mut idx).unwrap_err();
+
+        assert_eq!(
+            decode_s64(&[0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01], &mut 0).unwrap(),
+            i64::MAX,
+        );
+
+        assert_eq!(
+            decode_s64(&[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01], &mut 0).unwrap(),
+            i64::MIN + 1,
+        );
+
+        // Too long
+        decode_s64(&[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x3], &mut 0).unwrap_err();
+        decode_s64(&[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x81], &mut 0).unwrap_err();
+
+        // Unterminated
+        decode_s64(&[0xFF, 0xFF, 0xFF, 0xFF], &mut 0).unwrap_err();
     }
 
     #[test]

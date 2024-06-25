@@ -25,6 +25,8 @@ def basic_field_type(f: BasicFieldKind) -> str:
             return "uint32_t"
         case "u64":
             return "uint64_t"
+        case "s64":
+            return "int64_t"
         case u8_enum:
             return "enum " + u8_enum.name
 
@@ -37,6 +39,8 @@ def basic_field_maxlen(f: BasicFieldKind) -> int:
             return 5
         case "u64":
             return 10
+        case "s64":
+            return 10
         case _:  # u8_enum
             return 1
 
@@ -44,13 +48,13 @@ def basic_field_maxlen(f: BasicFieldKind) -> int:
 def varlen_field_type(f: VarlenFieldKind) -> str:
     match f:
         case "str":
-            return "char *"
+            return "const char *"
 
 
 def varlen_field_maxlen(f: VarlenFieldKind) -> str:
     match f:
         case "str":
-            return "traceconfigMAX_STR_LEN"
+            return "frtrace_configMAX_STR_LEN"
 
 
 def gen_u8_enum(e: U8EnumDefinition) -> str:
@@ -114,7 +118,9 @@ def gen_enc_func(name: str, id: int, is_metadata: bool, fields: List[BasicField]
                 result += f"  encode_u32(&cobs, {field.name});\n"
             case "u64":
                 result += f"  encode_u64(&cobs, {field.name});\n"
-            case _:
+            case "s64":
+                result += f"  encode_s64(&cobs, {field.name});\n"
+            case _: # u8_enum
                 result += f"  encode_u8(&cobs, (uint8_t){field.name});\n"
 
     if varlen_field is not None:
@@ -160,4 +166,3 @@ def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str):
         outfile.write(result)
 
     print(f"Generated {output_file}.", file=sys.stderr)
-

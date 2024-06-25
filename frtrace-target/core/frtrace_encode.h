@@ -11,10 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef traceconfigMAX_STR_LEN
-  #define traceconfigMAX_STR_LEN (10)
-#endif /* traceconfigMAX_STR_LEN */
-
 // ==== COBS Framing ===========================================================
 
 // COBS framing state
@@ -111,8 +107,42 @@ static inline void encode_u64(struct cobs_state *cobs, uint64_t v) {
   }
 }
 
-static inline void encode_str(struct cobs_state *cobs, char *str) {
-  for (size_t i = 0; i <traceconfigMAX_STR_LEN; i++) {
+static inline void encode_s64(struct cobs_state *cobs, int64_t v) {
+  // Unrepresentable value:
+  if (v == INT64_MIN) {
+    v = 0;
+  }
+
+  // Seperate sign, convert to positive value:
+  uint8_t sign = 0;
+  uint64_t bin_repr = 0;
+  if (v < 0) {
+    sign = 1;
+    bin_repr = (uint64_t) -v;
+  } else {
+    bin_repr = (uint64_t) v;
+  }
+
+  // Generate bytes to encode, with sign at LSB
+  bin_repr <<= 1;
+  bin_repr |= sign;
+
+  // varint encoding:
+  for (size_t i = 0; i < 10; i++) {
+    uint8_t bits = bin_repr & 0x7F;
+    bin_repr = bin_repr >> 7;
+    if (bin_repr != 0) {
+      cobs_add_byte(cobs, bits | 0x80);
+    } else {
+      cobs_add_byte(cobs, bits | 0x00);
+      break;
+    }
+  }
+}
+
+static inline void encode_str(struct cobs_state *cobs, const char *str) {
+  if (str == 0) return;
+  for (size_t i = 0; i < frtrace_configMAX_STR_LEN; i++) {
     if (*str == 0) {
       break;
     }
@@ -120,7 +150,6 @@ static inline void encode_str(struct cobs_state *cobs, char *str) {
     str++;
   }
 }
-
 
 // ==== Enums ==================================================================
 
@@ -283,8 +312,8 @@ static inline size_t encode_task_created(uint8_t buf[EVT_TASK_CREATED_MAXLEN], u
 }
 
 #define EVT_TASK_NAME_IS_METADATA (1)
-#define EVT_TASK_NAME_MAXLEN (COBS_MAXLEN((16 + traceconfigMAX_STR_LEN)))
-static inline size_t encode_task_name(uint8_t buf[EVT_TASK_NAME_MAXLEN], uint32_t task_id, char *name) {
+#define EVT_TASK_NAME_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_task_name(uint8_t buf[EVT_TASK_NAME_MAXLEN], uint32_t task_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
   encode_u8(&cobs, 0xE);
   encode_u32(&cobs, task_id);
@@ -322,8 +351,8 @@ static inline size_t encode_task_deleted(uint8_t buf[EVT_TASK_DELETED_MAXLEN], u
 }
 
 #define EVT_ISR_NAME_IS_METADATA (1)
-#define EVT_ISR_NAME_MAXLEN (COBS_MAXLEN((16 + traceconfigMAX_STR_LEN)))
-static inline size_t encode_isr_name(uint8_t buf[EVT_ISR_NAME_MAXLEN], uint32_t isr_id, char *name) {
+#define EVT_ISR_NAME_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_isr_name(uint8_t buf[EVT_ISR_NAME_MAXLEN], uint32_t isr_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
   encode_u8(&cobs, 0x12);
   encode_u32(&cobs, isr_id);
@@ -362,8 +391,8 @@ static inline size_t encode_queue_created(uint8_t buf[EVT_QUEUE_CREATED_MAXLEN],
 }
 
 #define EVT_QUEUE_NAME_IS_METADATA (1)
-#define EVT_QUEUE_NAME_MAXLEN (COBS_MAXLEN((16 + traceconfigMAX_STR_LEN)))
-static inline size_t encode_queue_name(uint8_t buf[EVT_QUEUE_NAME_MAXLEN], uint32_t queue_id, char *name) {
+#define EVT_QUEUE_NAME_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_queue_name(uint8_t buf[EVT_QUEUE_NAME_MAXLEN], uint32_t queue_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
   encode_u8(&cobs, 0x16);
   encode_u32(&cobs, queue_id);
@@ -487,6 +516,134 @@ static inline size_t encode_curtask_block_on_queue_receive(uint8_t buf[EVT_CURTA
   encode_u64(&cobs, ts);
   encode_u32(&cobs, queue_id);
   encode_u32(&cobs, ticks_to_wait);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_EVTMARKER_NAME_IS_METADATA (1)
+#define EVT_EVTMARKER_NAME_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_evtmarker_name(uint8_t buf[EVT_EVTMARKER_NAME_MAXLEN], uint32_t evtmarker_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x22);
+  encode_u32(&cobs, evtmarker_id);
+  encode_str(&cobs, name);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_EVTMARKER_IS_METADATA (0)
+#define EVT_EVTMARKER_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_evtmarker(uint8_t buf[EVT_EVTMARKER_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x23);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, evtmarker_id);
+  encode_str(&cobs, msg);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_EVTMARKER_BEGIN_IS_METADATA (0)
+#define EVT_EVTMARKER_BEGIN_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_evtmarker_begin(uint8_t buf[EVT_EVTMARKER_BEGIN_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x24);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, evtmarker_id);
+  encode_str(&cobs, msg);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_EVTMARKER_END_IS_METADATA (0)
+#define EVT_EVTMARKER_END_MAXLEN (COBS_MAXLEN((6)))
+static inline size_t encode_evtmarker_end(uint8_t buf[EVT_EVTMARKER_END_MAXLEN], uint64_t ts, uint32_t evtmarker_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x25);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, evtmarker_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_VALMARKER_NAME_IS_METADATA (1)
+#define EVT_VALMARKER_NAME_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_valmarker_name(uint8_t buf[EVT_VALMARKER_NAME_MAXLEN], uint32_t valmarker_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x26);
+  encode_u32(&cobs, valmarker_id);
+  encode_str(&cobs, name);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_VALMARKER_IS_METADATA (0)
+#define EVT_VALMARKER_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_valmarker(uint8_t buf[EVT_VALMARKER_MAXLEN], uint64_t ts, uint32_t valmarker_id, int64_t val) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x27);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, valmarker_id);
+  encode_s64(&cobs, val);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_TASK_EVTMARKER_NAME_IS_METADATA (1)
+#define EVT_TASK_EVTMARKER_NAME_MAXLEN (COBS_MAXLEN((21 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_task_evtmarker_name(uint8_t buf[EVT_TASK_EVTMARKER_NAME_MAXLEN], uint32_t evtmarker_id, uint32_t task_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x28);
+  encode_u32(&cobs, evtmarker_id);
+  encode_u32(&cobs, task_id);
+  encode_str(&cobs, name);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_TASK_EVTMARKER_IS_METADATA (0)
+#define EVT_TASK_EVTMARKER_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_task_evtmarker(uint8_t buf[EVT_TASK_EVTMARKER_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x29);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, evtmarker_id);
+  encode_str(&cobs, msg);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_TASK_EVTMARKER_BEGIN_IS_METADATA (0)
+#define EVT_TASK_EVTMARKER_BEGIN_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_task_evtmarker_begin(uint8_t buf[EVT_TASK_EVTMARKER_BEGIN_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x2A);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, evtmarker_id);
+  encode_str(&cobs, msg);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_TASK_EVTMARKER_END_IS_METADATA (0)
+#define EVT_TASK_EVTMARKER_END_MAXLEN (COBS_MAXLEN((6)))
+static inline size_t encode_task_evtmarker_end(uint8_t buf[EVT_TASK_EVTMARKER_END_MAXLEN], uint64_t ts, uint32_t evtmarker_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x2B);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, evtmarker_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_TASK_VALMARKER_NAME_IS_METADATA (1)
+#define EVT_TASK_VALMARKER_NAME_MAXLEN (COBS_MAXLEN((21 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_task_valmarker_name(uint8_t buf[EVT_TASK_VALMARKER_NAME_MAXLEN], uint32_t valmarker_id, uint32_t task_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x2C);
+  encode_u32(&cobs, valmarker_id);
+  encode_u32(&cobs, task_id);
+  encode_str(&cobs, name);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_TASK_VALMARKER_IS_METADATA (0)
+#define EVT_TASK_VALMARKER_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_task_valmarker(uint8_t buf[EVT_TASK_VALMARKER_MAXLEN], uint64_t ts, uint32_t valmarker_id, int64_t val) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x2D);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, valmarker_id);
+  encode_s64(&cobs, val);
   return cobs_finish(&cobs);
 }
 

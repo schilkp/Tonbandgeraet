@@ -3,6 +3,7 @@ pub mod generate_perfetto;
 use crate::{
     decode::evts::{RawEvt, RawInvalidEvt, RawMetadataEvt, RawTraceEvt, RawTraceEvtKind},
     ISRState, QueueKind, QueueState, TaskBlockingReason, TaskKind, TaskState, Trace, TraceErrMarker, TraceEvtMarker,
+    UserEvtMarker,
 };
 use anyhow::anyhow;
 use log::{debug, info, trace, warn};
@@ -165,12 +166,71 @@ impl TraceConverter {
             RawMetadataEvt::QueueKind(evt) => {
                 let queue_id = evt.queue_id as usize;
                 let queue = t.queue_mut(queue_id);
-                let new_kind: QueueKind = evt.kind.into();
+                let new_kind: QueueKind = evt.kind.clone().into();
 
                 if queue.kind == new_kind && !matches!(new_kind, QueueKind::Queue) {
                     warn!("[--METADATA--] Overriding queue #{queue_id} type from '{}' to '{}'!", queue.kind, new_kind);
                 }
                 queue.kind = new_kind;
+            }
+
+            RawMetadataEvt::EvtmarkerName(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                if let Some(previous_name) = &evtmarker.name {
+                    if *previous_name != evt.name {
+                        warn!(
+                            "[--METADATA--] Overiding Event Marker #{evtmarker_id} name from '{previous_name}' to '{}'",
+                            evt.name
+                        );
+                    }
+                }
+                evtmarker.name = Some(evt.name.clone());
+            }
+
+            RawMetadataEvt::ValmarkerName(evt) => {
+                let valmarker_id = evt.valmarker_id as usize;
+                let valmarker = t.user_val_marker_mut(valmarker_id);
+                if let Some(previous_name) = &valmarker.name {
+                    if *previous_name != evt.name {
+                        warn!(
+                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'",
+                            evt.name
+                        );
+                    }
+                }
+                valmarker.name = Some(evt.name.clone());
+            }
+
+            RawMetadataEvt::TaskEvtmarkerName(evt) => {
+                let task_id = evt.task_id as usize;
+                let evtmarker_id = evt.evtmarker_id as usize;
+                let evtmarker = t.task_mut(task_id).user_evt_marker_mut(evtmarker_id);
+                if let Some(previous_name) = &evtmarker.name {
+                    if *previous_name != evt.name {
+                        warn!(
+                            "[--METADATA--] Overiding Task #{} Marker #{evtmarker_id} name from '{previous_name}' to '{}'",
+                            task_id,
+                            evt.name
+                        );
+                    }
+                }
+                evtmarker.name = Some(evt.name.clone());
+            }
+
+            RawMetadataEvt::TaskValmarkerName(evt) => {
+                let task_id = evt.task_id as usize;
+                let valmarker_id = evt.valmarker_id as usize;
+                let valmarker = t.task_mut(task_id).user_val_marker_mut(valmarker_id);
+                if let Some(previous_name) = &valmarker.name {
+                    if *previous_name != evt.name {
+                        warn!(
+                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'",
+                            evt.name
+                        );
+                    }
+                }
+                valmarker.name = Some(evt.name.clone());
             }
         }
     }
@@ -453,6 +513,82 @@ impl TraceConverter {
                 if let Some(current_task_id) = t.core(core_id).current_task_id {
                     t.task_mut(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueueReceive { queue_id })
+                } else {
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
+                }
+            }
+
+            RawTraceEvtKind::Evtmarker(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                evtmarker
+                    .markers
+                    .push(ts, UserEvtMarker::Instant { msg: evt.msg.clone() })
+            }
+
+            RawTraceEvtKind::EvtmarkerBegin(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                evtmarker
+                    .markers
+                    .push(ts, UserEvtMarker::SliceBegin { msg: evt.msg.clone() })
+            }
+
+            RawTraceEvtKind::EvtmarkerEnd(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                let evtmarker = t.user_evt_marker_mut(evtmarker_id);
+                evtmarker.markers.push(ts, UserEvtMarker::SliceEnd)
+            }
+
+            RawTraceEvtKind::Valmarker(evt) => {
+                let valmarker_id = evt.valmarker_id as usize;
+                let valmarker = t.user_val_marker_mut(valmarker_id);
+                valmarker.vals.push(ts, evt.val)
+            }
+
+            RawTraceEvtKind::TaskEvtmarker(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                if let Some(current_task_id) = t.core(core_id).current_task_id {
+                    let evtmarker = t.task_mut(current_task_id).user_evt_marker_mut(evtmarker_id);
+                    evtmarker
+                        .markers
+                        .push(ts, UserEvtMarker::Instant { msg: evt.msg.clone() })
+                } else {
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
+                }
+            }
+
+            RawTraceEvtKind::TaskEvtmarkerBegin(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                if let Some(current_task_id) = t.core(core_id).current_task_id {
+                    let evtmarker = t.task_mut(current_task_id).user_evt_marker_mut(evtmarker_id);
+                    evtmarker
+                        .markers
+                        .push(ts, UserEvtMarker::SliceBegin { msg: evt.msg.clone() })
+                } else {
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
+                }
+            }
+
+            RawTraceEvtKind::TaskEvtmarkerEnd(evt) => {
+                let evtmarker_id = evt.evtmarker_id as usize;
+                if let Some(current_task_id) = t.core(core_id).current_task_id {
+                    let evtmarker = t.task_mut(current_task_id).user_evt_marker_mut(evtmarker_id);
+                    evtmarker.markers.push(ts, UserEvtMarker::SliceEnd)
+                } else {
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
+                }
+            }
+
+            RawTraceEvtKind::TaskValmarker(evt) => {
+                let valmarker_id = evt.valmarker_id as usize;
+                if let Some(current_task_id) = t.core(core_id).current_task_id {
+                    let valmarker = t.task_mut(current_task_id).user_val_marker_mut(valmarker_id);
+                    valmarker.vals.push(ts, evt.val)
                 } else {
                     warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));

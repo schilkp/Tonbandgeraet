@@ -11,10 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef traceconfigMAX_STR_LEN
-  #define traceconfigMAX_STR_LEN (10)
-#endif /* traceconfigMAX_STR_LEN */
-
 // ==== COBS Framing ===========================================================
 
 // COBS framing state
@@ -111,8 +107,42 @@ static inline void encode_u64(struct cobs_state *cobs, uint64_t v) {
   }
 }
 
-static inline void encode_str(struct cobs_state *cobs, char *str) {
-  for (size_t i = 0; i <traceconfigMAX_STR_LEN; i++) {
+static inline void encode_s64(struct cobs_state *cobs, int64_t v) {
+  // Unrepresentable value:
+  if (v == INT64_MIN) {
+    v = 0;
+  }
+
+  // Seperate sign, convert to positive value:
+  uint8_t sign = 0;
+  uint64_t bin_repr = 0;
+  if (v < 0) {
+    sign = 1;
+    bin_repr = (uint64_t) -v;
+  } else {
+    bin_repr = (uint64_t) v;
+  }
+
+  // Generate bytes to encode, with sign at LSB
+  bin_repr <<= 1;
+  bin_repr |= sign;
+
+  // varint encoding:
+  for (size_t i = 0; i < 10; i++) {
+    uint8_t bits = bin_repr & 0x7F;
+    bin_repr = bin_repr >> 7;
+    if (bin_repr != 0) {
+      cobs_add_byte(cobs, bits | 0x80);
+    } else {
+      cobs_add_byte(cobs, bits | 0x00);
+      break;
+    }
+  }
+}
+
+static inline void encode_str(struct cobs_state *cobs, const char *str) {
+  if (str == 0) return;
+  for (size_t i = 0; i < frtrace_configMAX_STR_LEN; i++) {
     if (*str == 0) {
       break;
     }
@@ -120,4 +150,3 @@ static inline void encode_str(struct cobs_state *cobs, char *str) {
     str++;
   }
 }
-

@@ -1,9 +1,10 @@
 import os
 import sys
+from os.path import abspath, dirname, join
 
 import gen_c_encoder
 import gen_rs_decoder
-from model import U32, U64, Evt, Str, U8Enum, U8EnumDefinition
+from model import S64, U32, U64, Evt, Str, U8Enum, U8EnumDefinition
 
 # ==== Trace messages definition ===============================================
 
@@ -83,6 +84,26 @@ EVTS = [
     # Evt("streambuffer_reset",                    id=41, fields=[U32("streambuffer_id")]),
     # Evt("curtask_block_on_streambuffer_send",    id=42, fields=[U32("streambuffer_id"), U32("ticks_to_wait")]),
     # Evt("curtask_block_on_streambuffer_receive", id=43, fields=[U32("streambuffer_id"), U32("ticks_to_wait")]),
+
+    # Event Markers:
+    Evt("evtmarker_name",  id=34, fields=[U32("evtmarker_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("evtmarker",       id=35, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("evtmarker_begin", id=36, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("evtmarker_end",   id=37, fields=[U32("evtmarker_id")]),
+
+    # Value Markers:
+    Evt("valmarker_name", id=38, fields=[U32("valmarker_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("valmarker",      id=39, fields=[U32("valmarker_id"), S64("val")]),
+
+    # Task Event Markers:
+    Evt("task_evtmarker_name",  id=40, fields=[U32("evtmarker_id"), U32("task_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("task_evtmarker",       id=41, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("task_evtmarker_begin", id=42, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("task_evtmarker_end",   id=43, fields=[U32("evtmarker_id")]),
+
+    # Task Value Markers:
+    Evt("task_valmarker_name", id=44, fields=[U32("valmarker_id"), U32("task_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("task_valmarker",      id=45, fields=[U32("valmarker_id"), S64("val")]),
 ]
 # fmt: on
 
@@ -99,13 +120,13 @@ def main():
 
     print("Events ok.", file=sys.stderr)
 
-    script_loc = os.path.dirname(__file__)
+    script_loc = dirname(__file__)
 
-    c_output_file = os.path.join(script_loc, "..", "frtrace-target", "core", "frtrace_encode.h")
+    c_output_file = abspath(join(script_loc, "..", "frtrace-target", "core", "frtrace_encode.h"))
     gen_c_encoder.gen(EVTS, ENUMS, c_output_file)
-    
-    rs_crate_dir = os.path.join(script_loc, "..", "frtrace-conv", "frtrace-conv-core")
-    rs_output_file = os.path.join(script_loc, "..", "frtrace-conv", "frtrace-conv-core", "src", "decode", "evts.rs")
+
+    rs_crate_dir = abspath(join(script_loc, "..", "frtrace-conv", "frtrace-conv"))
+    rs_output_file = abspath(join(script_loc, "..", "frtrace-conv", "frtrace-conv", "src", "decode", "evts.rs"))
     gen_rs_decoder.gen(EVTS, ENUMS, rs_output_file, rs_crate_dir)
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ impl Trace {
         // Global Tracks:
         self.generate_error_track(&mut syn, &mut proto_evts);
         self.generate_queue_tracks(&mut syn, &mut proto_evts);
+        self.generate_marker_tracks(&mut syn, &mut proto_evts);
 
         // Per-Task tracks:
         self.generate_task_tracks(&mut syn, &mut proto_evts);
@@ -74,6 +75,41 @@ impl Trace {
         }
     }
 
+    fn generate_marker_tracks(&self, syn: &mut Synthetto, evts: &mut Vec<TracePacket>) {
+        for (marker_id, marker) in &self.user_evt_markers {
+            let marker_name = self.name_user_evtmarker(*marker_id);
+
+            let track = syn.new_global_track(marker_name);
+            evts.extend(syn.new_descriptor_trace_evts());
+
+            for evt in &marker.markers.0 {
+                let ts = self.convert_ts(evt.ts);
+                match &evt.inner {
+                    crate::UserEvtMarker::Instant { msg } => {
+                        evts.push(track.instant_evt(ts, msg.clone()));
+                    }
+                    crate::UserEvtMarker::SliceBegin { msg } => {
+                        evts.push(track.slice_begin_evt(ts, Some(msg.clone())));
+                    }
+                    crate::UserEvtMarker::SliceEnd => {
+                        evts.push(track.slice_end_evt(ts));
+                    }
+                }
+            }
+        }
+
+        for (marker_id, marker) in &self.user_val_markers {
+            let marker_name = self.name_user_valmarker(*marker_id);
+            let track = syn.new_global_counter_track(marker_name, CounterTrackUnit::Unspecified, 1, false);
+            evts.extend(syn.new_descriptor_trace_evts());
+
+            for evt in &marker.vals.0 {
+                let ts = self.convert_ts(evt.ts);
+                evts.push(track.int_counter_evt(ts, evt.inner));
+            }
+        }
+    }
+
     fn core_pid_offset(&self) -> i32 {
         1
     }
@@ -86,7 +122,8 @@ impl Trace {
         for (task_id, task) in &self.tasks {
             let process_name = self.name_task(*task_id);
 
-            let task_track_process = syn.new_process((*task_id as i32) + self.task_pid_offset(), process_name.clone(), vec![], None);
+            let task_track_process =
+                syn.new_process((*task_id as i32) + self.task_pid_offset(), process_name.clone(), vec![], None);
             let state_track = syn.new_process_track(format!("{process_name} State"), &task_track_process);
             let priority_track = syn.new_process_counter_track(
                 format!("{process_name} Priority"),
@@ -129,6 +166,46 @@ impl Trace {
             for priority in &task.priority.0 {
                 let ts = self.convert_ts(priority.ts);
                 evts.push(priority_track.int_counter_evt(ts, priority.inner));
+            }
+
+            // Generate "user event marker" tracks:
+            for (marker_id, marker) in &task.user_evt_markers {
+                let marker_name = task.name_user_evtmarker(*marker_id);
+                let track = syn.new_process_track(marker_name, &task_track_process);
+                evts.extend(syn.new_descriptor_trace_evts());
+
+                for evt in &marker.markers.0 {
+                    let ts = self.convert_ts(evt.ts);
+                    match &evt.inner {
+                        crate::UserEvtMarker::Instant { msg } => {
+                            evts.push(track.instant_evt(ts, msg.clone()));
+                        }
+                        crate::UserEvtMarker::SliceBegin { msg } => {
+                            evts.push(track.slice_begin_evt(ts, Some(msg.clone())));
+                        }
+                        crate::UserEvtMarker::SliceEnd => {
+                            evts.push(track.slice_end_evt(ts));
+                        }
+                    }
+                }
+            }
+
+            // Generate "user value marker" tracks:
+            for (marker_id, marker) in &task.user_val_markers {
+                let marker_name = task.name_user_valmarker(*marker_id);
+                let track = syn.new_process_counter_track(
+                    marker_name,
+                    CounterTrackUnit::Unspecified,
+                    1,
+                    false,
+                    &task_track_process,
+                );
+                evts.extend(syn.new_descriptor_trace_evts());
+
+                for evt in &marker.vals.0 {
+                    let ts = self.convert_ts(evt.ts);
+                    evts.push(track.int_counter_evt(ts, evt.inner));
+                }
             }
         }
     }

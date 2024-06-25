@@ -26,6 +26,18 @@
     #define frtrace_configTRACE_DROP_CNT_EVERY (50)
   #endif /* frtrace_configTRACE_DROP_CNT_EVERY */
 
+  #ifndef frtrace_configMAX_STR_LEN
+    #define frtrace_configMAX_STR_LEN (20)
+  #endif /* frtrace_configMAX_STR_LEN */
+
+  #ifndef frtrace_configMARKER_TRACE_ENABLE
+    #define frtrace_configMARKER_TRACE_ENABLE 1
+  #endif /* frtrace_configMARKER_TRACE_ENABLE */
+
+  #ifndef frtrace_configISR_TRACE_ENABLE
+    #define frtrace_configISR_TRACE_ENABLE 1
+  #endif /* frtrace_configISR_TRACE_ENABLE */
+
   #ifndef frtrace_configTASK_TRACE_ENABLE
     #define frtrace_configTASK_TRACE_ENABLE 1
   #endif /* frtrace_configTASK_TRACE_ENABLE */
@@ -38,10 +50,6 @@
     #define frtrace_configSTREAM_BUFFER_TRACE_ENABLE 1
   #endif /* frtrace_configSTREAM_BUFFER_TRACE_ENABLE */
 
-  #ifndef frtrace_configISR_TRACE_ENABLE
-    #define frtrace_configISR_TRACE_ENABLE 1
-  #endif /* frtrace_configISR_TRACE_ENABLE */
-
   #ifndef frtrace_configFREERTOS_TRACE_ENABLE
     // Config not manually set. Enable FreeRTOS tracing if any FreeRTOS resource is being traced.
     #if ((frtrace_configTASK_TRACE_ENABLE == 1) || (frtrace_configQUEUE_TRACE_ENABLE == 1) || (frtrace_configSTREAM_BUFFER_TRACE_ENABLE == 1))
@@ -53,7 +61,7 @@
   #else /* frtrace_configFREERTOS_TRACE_ENABLE */
     // Config manually set. Ensure FreeRTOS tracing is enabled if any FreeRTOS resource is being traced.
     #if ((frtrace_configTASK_TRACE_ENABLE == 1) || (frtrace_configQUEUE_TRACE_ENABLE == 1) || (frtrace_configSTREAM_BUFFER_TRACE_ENABLE == 1))
-      #if (frtrace_configFREERTOS_TRACE_ENABLE != 1) 
+      #if (frtrace_configFREERTOS_TRACE_ENABLE != 1)
         #error "frtrace_configFREERTOS_TRACE_ENABLE must be enabled if any FreeRTOS resource is being traced!"
       #endif
     #endif

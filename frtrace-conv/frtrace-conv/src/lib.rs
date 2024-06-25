@@ -5,6 +5,8 @@ use std::{collections::BTreeMap, fmt::Display, rc::Rc};
 
 use decode::evts::{self, RawEvt, RawInvalidEvt};
 
+// TODO: Refactor BTreeMaps into wrapper with "get_or_create" and "get_or_create_mut".
+
 // == Timestamped Value ========================================================
 
 pub struct Ts<T> {
@@ -62,6 +64,8 @@ impl TraceErrMarker {
         }
     }
 
+    // TODO: Trace evnt that?'
+    // TODO: Refactor this in converter?
     fn no_current_task(core_id: usize) -> Self {
         TraceErrMarker {
             core_id: Some(core_id),
@@ -73,6 +77,46 @@ impl TraceErrMarker {
         TraceErrMarker {
             core_id: Some(core_id),
             kind: ErrMarkerKind::InvalidEvent(e.err.clone()),
+        }
+    }
+}
+
+// == User Markers =============================================================
+
+pub enum UserEvtMarker {
+    Instant { msg: String },
+    SliceBegin { msg: String },
+    SliceEnd,
+}
+
+pub struct UserEvtMarkerTrace {
+    id: usize,
+    name: Option<String>,
+    markers: Timeseries<UserEvtMarker>,
+}
+
+impl UserEvtMarkerTrace {
+    pub fn new(id: usize) -> Self {
+        Self {
+            id,
+            name: None,
+            markers: Timeseries::new(),
+        }
+    }
+}
+
+pub struct UserValMarkerTrace {
+    id: usize,
+    name: Option<String>,
+    vals: Timeseries<i64>,
+}
+
+impl UserValMarkerTrace {
+    pub fn new(id: usize) -> Self {
+        Self {
+            id,
+            name: None,
+            vals: Timeseries::new(),
         }
     }
 }
@@ -152,6 +196,10 @@ pub struct TaskTrace {
     pub state: Timeseries<TaskState>,
     pub priority: Timeseries<u32>,
 
+    // User markers:
+    pub user_evt_markers: BTreeMap<usize, UserEvtMarkerTrace>,
+    pub user_val_markers: BTreeMap<usize, UserValMarkerTrace>,
+
     // Conversion state:
     state_when_switched_out: TaskState,
 }
@@ -164,6 +212,8 @@ impl TaskTrace {
             kind: TaskKind::Normal,
             state: Timeseries::new(),
             priority: Timeseries::new(),
+            user_evt_markers: BTreeMap::new(),
+            user_val_markers: BTreeMap::new(),
             state_when_switched_out: TaskState::Ready,
         }
     }
@@ -174,6 +224,68 @@ impl TaskTrace {
             .last()
             .map(|x| matches!(x.inner, TaskState::Running { .. }))
             .unwrap_or(false)
+    }
+
+    fn ensure_user_evt_marker_exists(&mut self, id: usize) {
+        self.user_evt_markers
+            .entry(id)
+            .or_insert_with(|| UserEvtMarkerTrace::new(id));
+    }
+
+    fn ensure_user_val_marker_exists(&mut self, id: usize) {
+        self.user_val_markers
+            .entry(id)
+            .or_insert_with(|| UserValMarkerTrace::new(id));
+    }
+
+    fn name_user_evtmarker(&self, id: usize) -> String {
+        let task_name = self.name();
+        if let Some(marker) = self.user_evt_markers.get(&id) {
+            if let Some(name) = &marker.name {
+                return format!("{task_name} Marker {name} (#{id})");
+            }
+        }
+        format!("{task_name} Marker #{id}")
+    }
+
+    fn name_user_valmarker(&self, id: usize) -> String {
+        let task_name = self.name();
+        if let Some(marker) = self.user_val_markers.get(&id) {
+            if let Some(name) = &marker.name {
+                return format!("{task_name} Value {name} (#{id})");
+            }
+        }
+        format!("{task_name} Value #{id}")
+    }
+
+    fn name(&self) -> String {
+        let id = self.id;
+        if let Some(name) = &self.name {
+            return format!("Task {name} (#{id})");
+        }
+        format!("Task #{id}")
+    }
+}
+
+impl<'a> TaskTrace {
+    fn user_evt_marker(&'a mut self, marker_id: usize) -> &'a UserEvtMarkerTrace {
+        self.ensure_user_evt_marker_exists(marker_id);
+        self.user_evt_markers.get(&marker_id).unwrap()
+    }
+
+    fn user_evt_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserEvtMarkerTrace {
+        self.ensure_user_evt_marker_exists(marker_id);
+        self.user_evt_markers.get_mut(&marker_id).unwrap()
+    }
+
+    fn user_val_marker(&'a mut self, marker_id: usize) -> &'a UserValMarkerTrace {
+        self.ensure_user_val_marker_exists(marker_id);
+        self.user_val_markers.get(&marker_id).unwrap()
+    }
+
+    fn user_val_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserValMarkerTrace {
+        self.ensure_user_val_marker_exists(marker_id);
+        self.user_val_markers.get_mut(&marker_id).unwrap()
     }
 }
 
@@ -225,7 +337,7 @@ impl CoreTrace {
 
 impl<'a> CoreTrace {
     fn isr(&'a mut self, isr_id: usize) -> &'a ISRTrace {
-        #![allow(unused)];
+        #![allow(unused)]
         self.ensure_isr_exists(isr_id);
         self.isrs.get(&isr_id).unwrap()
     }
@@ -332,6 +444,10 @@ pub struct Trace {
     pub queues: BTreeMap<usize, QueueTrace>,
     // pub stream_buffers: ..
 
+    // Global markers:
+    pub user_evt_markers: BTreeMap<usize, UserEvtMarkerTrace>,
+    pub user_val_markers: BTreeMap<usize, UserValMarkerTrace>,
+
     // Conversion state:
     dropped_evt_cnt: u32,
 }
@@ -345,6 +461,8 @@ impl Trace {
             cores: BTreeMap::new(),
             tasks: BTreeMap::new(),
             queues: BTreeMap::new(),
+            user_evt_markers: BTreeMap::new(),
+            user_val_markers: BTreeMap::new(),
             dropped_evt_cnt: 0,
         };
 
@@ -361,6 +479,18 @@ impl Trace {
 
     fn ensure_queue_exists(&mut self, id: usize) {
         self.queues.entry(id).or_insert_with(|| QueueTrace::new(id));
+    }
+
+    fn ensure_user_evt_marker_exists(&mut self, id: usize) {
+        self.user_evt_markers
+            .entry(id)
+            .or_insert_with(|| UserEvtMarkerTrace::new(id));
+    }
+
+    fn ensure_user_val_marker_exists(&mut self, id: usize) {
+        self.user_val_markers
+            .entry(id)
+            .or_insert_with(|| UserValMarkerTrace::new(id));
     }
 
     fn convert_ts(&self, ts: u64) -> u64 {
@@ -396,11 +526,29 @@ impl Trace {
         }
         format!("Queue #{id}")
     }
+
+    fn name_user_evtmarker(&self, id: usize) -> String {
+        if let Some(marker) = self.user_evt_markers.get(&id) {
+            if let Some(name) = &marker.name {
+                return format!("Marker {name} (#{id})");
+            }
+        }
+        format!("Marker #{id}")
+    }
+
+    fn name_user_valmarker(&self, id: usize) -> String {
+        if let Some(marker) = self.user_val_markers.get(&id) {
+            if let Some(name) = &marker.name {
+                return format!("Value {name} (#{id})");
+            }
+        }
+        format!("Value #{id}")
+    }
 }
 
 impl<'a> Trace {
     fn task(&'a mut self, task_id: usize) -> &'a TaskTrace {
-        #![allow(unused)];
+        #![allow(unused)]
         self.ensure_task_exists(task_id);
         self.tasks.get(&task_id).unwrap()
     }
@@ -419,7 +567,7 @@ impl<'a> Trace {
     }
 
     fn queue(&'a mut self, queue_id: usize) -> &'a QueueTrace {
-        #![allow(unused)];
+        #![allow(unused)]
         self.ensure_queue_exists(queue_id);
         self.queues.get(&queue_id).unwrap()
     }
@@ -427,5 +575,25 @@ impl<'a> Trace {
     fn queue_mut(&'a mut self, queue_id: usize) -> &'a mut QueueTrace {
         self.ensure_queue_exists(queue_id);
         self.queues.get_mut(&queue_id).unwrap()
+    }
+
+    fn user_evt_marker(&'a mut self, marker_id: usize) -> &'a UserEvtMarkerTrace {
+        self.ensure_user_evt_marker_exists(marker_id);
+        self.user_evt_markers.get(&marker_id).unwrap()
+    }
+
+    fn user_evt_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserEvtMarkerTrace {
+        self.ensure_user_evt_marker_exists(marker_id);
+        self.user_evt_markers.get_mut(&marker_id).unwrap()
+    }
+
+    fn user_val_marker(&'a mut self, marker_id: usize) -> &'a UserValMarkerTrace {
+        self.ensure_user_val_marker_exists(marker_id);
+        self.user_val_markers.get(&marker_id).unwrap()
+    }
+
+    fn user_val_marker_mut(&'a mut self, marker_id: usize) -> &'a mut UserValMarkerTrace {
+        self.ensure_user_val_marker_exists(marker_id);
+        self.user_val_markers.get_mut(&marker_id).unwrap()
     }
 }

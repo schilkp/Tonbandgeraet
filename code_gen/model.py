@@ -8,7 +8,7 @@ class U8EnumDefinition:
     entries: List[Tuple[int, str]]
 
 
-type BasicFieldKind = Literal['u8', 'u64', 'u32'] | U8EnumDefinition
+type BasicFieldKind = Literal['u8', 'u64', 'u32', 's64'] | U8EnumDefinition
 
 
 class BasicField:
@@ -34,6 +34,10 @@ def U32(name: str) -> BasicField:
 
 def U64(name: str) -> BasicField:
     return BasicField(name, 'u64')
+
+
+def S64(name: str) -> BasicField:
+    return BasicField(name, 's64')
 
 
 def U8Enum(name: str, enum: U8EnumDefinition) -> BasicField:

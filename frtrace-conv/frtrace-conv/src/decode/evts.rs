@@ -14,7 +14,7 @@ use std::rc::Rc;
 
 use anyhow::{anyhow, Context};
 
-use crate::decode::{bytes_left, decode_string, decode_u32, decode_u64, decode_u8};
+use crate::decode::{bytes_left, decode_s64, decode_string, decode_u32, decode_u64, decode_u8};
 
 #[derive(Debug, Clone)]
 pub enum RawEvt {
@@ -47,7 +47,7 @@ pub struct RawTraceEvt {
 
 // ==== Enums ==================================================================
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum QueueKind {
     QkQueue,
     QkCountingSemphr,
@@ -102,6 +102,10 @@ pub enum RawMetadataEvt {
     IsrName(IsrNameEvt),
     QueueName(QueueNameEvt),
     QueueKind(QueueKindEvt),
+    EvtmarkerName(EvtmarkerNameEvt),
+    ValmarkerName(ValmarkerNameEvt),
+    TaskEvtmarkerName(TaskEvtmarkerNameEvt),
+    TaskValmarkerName(TaskValmarkerNameEvt),
 }
 
 #[derive(Debug, Clone)]
@@ -133,6 +137,14 @@ pub enum RawTraceEvtKind {
     CurtaskBlockOnQueuePeek(CurtaskBlockOnQueuePeekEvt),
     CurtaskBlockOnQueueSend(CurtaskBlockOnQueueSendEvt),
     CurtaskBlockOnQueueReceive(CurtaskBlockOnQueueReceiveEvt),
+    Evtmarker(EvtmarkerEvt),
+    EvtmarkerBegin(EvtmarkerBeginEvt),
+    EvtmarkerEnd(EvtmarkerEndEvt),
+    Valmarker(ValmarkerEvt),
+    TaskEvtmarker(TaskEvtmarkerEvt),
+    TaskEvtmarkerBegin(TaskEvtmarkerBeginEvt),
+    TaskEvtmarkerEnd(TaskEvtmarkerEndEvt),
+    TaskValmarker(TaskValmarkerEvt),
 }
 
 impl RawEvt {
@@ -174,6 +186,18 @@ impl RawEvt {
             31 => CurtaskBlockOnQueuePeekEvt::decode(buf, &mut idx),
             32 => CurtaskBlockOnQueueSendEvt::decode(buf, &mut idx),
             33 => CurtaskBlockOnQueueReceiveEvt::decode(buf, &mut idx),
+            34 => EvtmarkerNameEvt::decode(buf, &mut idx),
+            35 => EvtmarkerEvt::decode(buf, &mut idx),
+            36 => EvtmarkerBeginEvt::decode(buf, &mut idx),
+            37 => EvtmarkerEndEvt::decode(buf, &mut idx),
+            38 => ValmarkerNameEvt::decode(buf, &mut idx),
+            39 => ValmarkerEvt::decode(buf, &mut idx),
+            40 => TaskEvtmarkerNameEvt::decode(buf, &mut idx),
+            41 => TaskEvtmarkerEvt::decode(buf, &mut idx),
+            42 => TaskEvtmarkerBeginEvt::decode(buf, &mut idx),
+            43 => TaskEvtmarkerEndEvt::decode(buf, &mut idx),
+            44 => TaskValmarkerNameEvt::decode(buf, &mut idx),
+            45 => TaskValmarkerEvt::decode(buf, &mut idx),
             _ => Err(anyhow!("Invalid event id {id}"))?,
         }
     }
@@ -839,6 +863,250 @@ impl CurtaskBlockOnQueueReceiveEvt {
                 queue_id,
                 ticks_to_wait,
             }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EvtmarkerNameEvt {
+    pub evtmarker_id: u32,
+    pub name: String,
+}
+
+impl EvtmarkerNameEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        let name = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'EvtmarkerName' event."));
+        }
+        Ok(RawEvt::Metadata(RawMetadataEvt::EvtmarkerName(Self { evtmarker_id, name })))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EvtmarkerEvt {
+    pub evtmarker_id: u32,
+    pub msg: String,
+}
+
+impl EvtmarkerEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        let msg = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'Evtmarker' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::Evtmarker(Self { evtmarker_id, msg }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EvtmarkerBeginEvt {
+    pub evtmarker_id: u32,
+    pub msg: String,
+}
+
+impl EvtmarkerBeginEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        let msg = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'EvtmarkerBegin' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::EvtmarkerBegin(Self { evtmarker_id, msg }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EvtmarkerEndEvt {
+    pub evtmarker_id: u32,
+}
+
+impl EvtmarkerEndEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'EvtmarkerEnd' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::EvtmarkerEnd(Self { evtmarker_id }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ValmarkerNameEvt {
+    pub valmarker_id: u32,
+    pub name: String,
+}
+
+impl ValmarkerNameEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let valmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'valmarker_id' u32 field.")?;
+        let name = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'ValmarkerName' event."));
+        }
+        Ok(RawEvt::Metadata(RawMetadataEvt::ValmarkerName(Self { valmarker_id, name })))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ValmarkerEvt {
+    pub valmarker_id: u32,
+    pub val: i64,
+}
+
+impl ValmarkerEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let valmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'valmarker_id' u32 field.")?;
+        let val = decode_s64(buf, current_idx).context("Failed to decode 'val' s64 field.")?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'Valmarker' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::Valmarker(Self { valmarker_id, val }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskEvtmarkerNameEvt {
+    pub evtmarker_id: u32,
+    pub task_id: u32,
+    pub name: String,
+}
+
+impl TaskEvtmarkerNameEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        let task_id = decode_u32(buf, current_idx).context("Failed to decode 'task_id' u32 field.")?;
+        let name = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'TaskEvtmarkerName' event."));
+        }
+        Ok(RawEvt::Metadata(RawMetadataEvt::TaskEvtmarkerName(Self {
+            evtmarker_id,
+            task_id,
+            name,
+        })))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskEvtmarkerEvt {
+    pub evtmarker_id: u32,
+    pub msg: String,
+}
+
+impl TaskEvtmarkerEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        let msg = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'TaskEvtmarker' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::TaskEvtmarker(Self { evtmarker_id, msg }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskEvtmarkerBeginEvt {
+    pub evtmarker_id: u32,
+    pub msg: String,
+}
+
+impl TaskEvtmarkerBeginEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        let msg = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'TaskEvtmarkerBegin' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::TaskEvtmarkerBegin(Self { evtmarker_id, msg }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskEvtmarkerEndEvt {
+    pub evtmarker_id: u32,
+}
+
+impl TaskEvtmarkerEndEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let evtmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'evtmarker_id' u32 field.")?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'TaskEvtmarkerEnd' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::TaskEvtmarkerEnd(Self { evtmarker_id }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskValmarkerNameEvt {
+    pub valmarker_id: u32,
+    pub task_id: u32,
+    pub name: String,
+}
+
+impl TaskValmarkerNameEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let valmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'valmarker_id' u32 field.")?;
+        let task_id = decode_u32(buf, current_idx).context("Failed to decode 'task_id' u32 field.")?;
+        let name = decode_string(buf, current_idx)?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'TaskValmarkerName' event."));
+        }
+        Ok(RawEvt::Metadata(RawMetadataEvt::TaskValmarkerName(Self {
+            valmarker_id,
+            task_id,
+            name,
+        })))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskValmarkerEvt {
+    pub valmarker_id: u32,
+    pub val: i64,
+}
+
+impl TaskValmarkerEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let valmarker_id = decode_u32(buf, current_idx).context("Failed to decode 'valmarker_id' u32 field.")?;
+        let val = decode_s64(buf, current_idx).context("Failed to decode 'val' s64 field.")?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'TaskValmarker' event."));
+        }
+        Ok(RawEvt::Trace(RawTraceEvt {
+            ts,
+            kind: RawTraceEvtKind::TaskValmarker(Self { valmarker_id, val }),
         }))
     }
 }

@@ -14,7 +14,7 @@ use std::rc::Rc;
 
 use anyhow::{anyhow, Context};
 
-use crate::decode::{bytes_left, decode_string, decode_u32, decode_u64, decode_u8};
+use crate::decode::{bytes_left, decode_s64, decode_string, decode_u32, decode_u64, decode_u8};
 
 #[derive(Debug, Clone)]
 pub enum RawEvt {

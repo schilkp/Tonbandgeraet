@@ -1,7 +1,7 @@
 import os
+import subprocess
 import sys
 from typing import List
-import subprocess
 
 from model import (BasicField, BasicFieldKind, Evt, U8EnumDefinition,
                    VarlenFieldKind)
@@ -58,6 +58,8 @@ def basic_field_type(f: BasicFieldKind) -> str:
             return "u32"
         case "u64":
             return "u64"
+        case "s64":
+            return "i64"
         case u8_enum:
             return u8_enum.name
 
@@ -70,6 +72,8 @@ def basic_field_decode(f: BasicField) -> str:
             return f"decode_u32(buf, current_idx).context(\"Failed to decode '{f.name}' u32 field.\")?"
         case "u64":
             return f"decode_u64(buf, current_idx).context(\"Failed to decode '{f.name}' u64 field.\")?"
+        case "s64":
+            return f"decode_s64(buf, current_idx).context(\"Failed to decode '{f.name}' s64 field.\")?"
         case u8_enum:
             return f"{u8_enum.name}::try_from(decode_u8(buf, current_idx).context(\"Failed to decode '{f.name}' u8 enum field.\")?).context(\"Failed to decode '{f.name}' u8 enum field.\")?"
 
@@ -213,8 +217,8 @@ def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str, crate_
 
     with open(output_file, "w") as outfile:
         outfile.write(result)
-    
+
     print(f"Generated {output_file}.", file=sys.stderr)
-    
+
     subprocess.run(["cargo", "fmt"], cwd=crate_dir, check=True)
     print(f"Formatted frtrace-conv-core.", file=sys.stderr)

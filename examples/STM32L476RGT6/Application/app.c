@@ -38,6 +38,9 @@ static uint8_t q1_storage[Q1_QUEUE_LENGTH * Q1_ITEM_SIZE]; // Storage
 // static uint8_t sb1_storage[STREAM_BUFFER_SIZE_BYTES + 1];
 // StaticStreamBuffer_t sb1_buffer = {0};
 
+#define GLOBAL_EVT_MARKER_ID 1
+#define GLOBAL_VAL_MARKER_ID 1
+
 // ==== Task 1 =================================================================
 
 void task1_entry(void *args) {
@@ -45,16 +48,26 @@ void task1_entry(void *args) {
 
   frtrace_gather_system_metadata();
 
+  frtrace_task_valmarker_name(0, "T1Val");
+  frtrace_task_evtmarker_name(0, "T1Evts");
+
   // trace_task_is_idle_task(xTaskGetIdleTaskHandle());
   // trace_task_is_timer_task(xTimerGetTimerDaemonTaskHandle());
 
   int cnt = 0;
   while (1) {
+
+    frtrace_task_evtmarker(0, "PING");
+
+    frtrace_task_evtmarker_begin(0, "Start 1");
+
     vTaskDelay(10);
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin); //
     xSemaphoreTake(mutex1, portMAX_DELAY);
     vTaskDelay(20);
     xSemaphoreGive(mutex1);
+
+    frtrace_task_evtmarker_begin(0, "Start 2");
 
     xSemaphoreTakeRecursive(mutex2, 0);
     xSemaphoreTakeRecursive(mutex2, 0);
@@ -65,6 +78,8 @@ void task1_entry(void *args) {
     xSemaphoreGiveRecursive(mutex2);
     xSemaphoreGiveRecursive(mutex2);
     xSemaphoreGiveRecursive(mutex2);
+
+    frtrace_task_evtmarker_end(0);
 
     uint64_t val = 0;
     xQueueSend(q1, &val, 0);
@@ -77,6 +92,8 @@ void task1_entry(void *args) {
     xQueueReceive(q1, &val, 0);
     xQueueReset(q1);
 
+    frtrace_task_valmarker(0, cnt);
+
     // if (cnt % 5 == 0) {
     //   for (size_t i = 0; i < 20; i++) {
     //     uint8_t data[] = {0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -88,6 +105,8 @@ void task1_entry(void *args) {
       vTaskResume(task2);
     }
     cnt++;
+
+    frtrace_task_evtmarker_end(0);
   }
 }
 
@@ -101,7 +120,11 @@ void task2_entry(void *args) {
     vTaskDelay(5);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
+    frtrace_evtmarker(GLOBAL_EVT_MARKER_ID, "T2 about to do something");
+
+    frtrace_evtmarker_begin(GLOBAL_EVT_MARKER_ID, "T2 start something");
     xSemaphoreTake(mutex1, portMAX_DELAY);
+    frtrace_evtmarker_end(GLOBAL_EVT_MARKER_ID);
     HAL_Delay(10);
     xSemaphoreGive(mutex1);
   }
@@ -112,10 +135,14 @@ void task2_entry(void *args) {
 void task3_entry(void *args) {
   UNUSED(args);
 
+  uint8_t cnt = 0;
+
   while (1) {
     vTaskDelay(25);
     HAL_Delay(1);
     // xStreamBufferReceive(sb1, rx_buf, 3, portMAX_DELAY);
+    frtrace_valmarker(GLOBAL_VAL_MARKER_ID, cnt);
+    cnt++;
   }
 }
 
@@ -175,6 +202,9 @@ int rtos_init(void) {
   if (frtrace_trigger_snapshot() != 0) {
     Error_Handler();
   }
+
+  frtrace_evtmarker_name(GLOBAL_EVT_MARKER_ID, "MyEvts");
+  frtrace_valmarker_name(GLOBAL_VAL_MARKER_ID, "MyVals");
 
   return 0;
 }
