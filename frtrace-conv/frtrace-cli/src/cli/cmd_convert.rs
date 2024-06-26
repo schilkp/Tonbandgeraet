@@ -1,6 +1,6 @@
 use crate::open::{open_trace, serve_trace};
 use anyhow::anyhow;
-use frtrace_conv_core::convert::TraceConverter;
+use frtrace_conv::convert::TraceConverter;
 use lazy_static::lazy_static;
 use log::info;
 use regex::Regex;

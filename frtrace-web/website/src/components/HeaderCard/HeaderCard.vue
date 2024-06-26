@@ -1,0 +1,21 @@
+<script setup lang="ts">
+import CoreCountInput from "./CoreCountInput.vue";
+</script>
+
+<template>
+  <div
+    class="uk-card uk-card-default uk-card-body uk-margin-left uk-margin-right uk-margin-top uk-margin-bottom"
+  >
+    <div
+      class="uk-child-width-expands@s uk-grid-collapse uk-grid-match"
+      uk-grid
+    >
+      <div class="uk-width-2-3@s">
+        <h1><strong>frtrace</strong> Conversion</h1>
+      </div>
+      <div class="uk-width-1-3@s">
+        <CoreCountInput />
+      </div>
+    </div>
+  </div>
+</template>

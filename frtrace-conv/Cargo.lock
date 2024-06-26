@@ -375,7 +375,7 @@ dependencies = [
  "clap_complete",
  "colored",
  "env_logger",
- "frtrace_conv_core",
+ "frtrace_conv",
  "lazy_static",
  "log",
  "regex",
@@ -384,7 +384,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "frtrace_conv_core"
+name = "frtrace_conv"
 version = "0.1.0"
 dependencies = [
  "anyhow",

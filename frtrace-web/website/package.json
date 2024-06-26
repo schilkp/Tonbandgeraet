@@ -1,0 +1,26 @@
+{
+    "name": "vitesite",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "frtrace_wasm": "file:../frtrace-wasm/pkg",
+        "uikit": "^3.21.5",
+        "vite-plugin-top-level-await": "^1.4.1",
+        "vite-plugin-wasm": "^3.3.0",
+        "vue": "^3.4.30"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.0.5",
+        "@vue/language-server": "^2.0.22",
+        "@vue/typescript-plugin": "^2.0.22",
+        "typescript": "^5.2.2",
+        "vite": "^5.3.1",
+        "vue-tsc": "^2.0.22"
+    }
+}

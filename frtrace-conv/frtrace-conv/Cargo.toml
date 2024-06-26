@@ -1,5 +1,5 @@
 [package]
-name = "frtrace_conv_core"
+name = "frtrace_conv"
 version = "0.1.0"
 edition = "2021"
 
