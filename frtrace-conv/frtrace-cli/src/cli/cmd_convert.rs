@@ -1,14 +1,8 @@
 use crate::open::{open_trace, serve_trace};
 use anyhow::anyhow;
-use frtrace_conv_core::{
-    convert::TraceConverter,
-    decode::{
-        decode_frame,
-        evts::{RawEvt, RawInvalidEvt},
-    },
-};
+use frtrace_conv_core::convert::TraceConverter;
 use lazy_static::lazy_static;
-use log::{info, warn};
+use log::info;
 use regex::Regex;
 use std::{fmt::Display, path::PathBuf, str::FromStr};
 
@@ -115,15 +109,15 @@ impl Cmd {
         let mut tc = TraceConverter::new(self.core_count)?;
 
         for inp in self.input {
+            info!("Opening {} file \"{}\"..", self.format, inp.file.to_string_lossy());
             let data = read_file(&inp.file, self.format)?;
-            let evts = decode_file(&data)?;
-
+            info!("Decoding events..");
             if let Some(core_id) = inp.core_id {
                 info!("Adding events to core {core_id} trace sequence..");
-                tc.add_evts_to_core(&evts, core_id)?;
+                tc.add_binary_to_core(&data, core_id)?;
             } else {
                 info!("Adding events to trace sequence..");
-                tc.add_evts(&evts)?;
+                tc.add_binary(&data)?;
             }
         }
 
@@ -151,8 +145,6 @@ impl Cmd {
 }
 
 fn read_file(f: &PathBuf, format: InputFormat) -> anyhow::Result<Vec<u8>> {
-    info!("Opening {format} file \"{}\"..", f.to_string_lossy());
-
     match format {
         InputFormat::Hex => {
             let mut bytes: Vec<u8> = Vec::with_capacity(2048);
@@ -176,47 +168,6 @@ fn read_file(f: &PathBuf, format: InputFormat) -> anyhow::Result<Vec<u8>> {
         }
         InputFormat::Bin => Ok(std::fs::read(f)?),
     }
-}
-
-fn decode_file(bytes: &[u8]) -> anyhow::Result<Vec<RawEvt>> {
-    info!("Decoding events..");
-
-    let mut evts: Vec<RawEvt> = vec![];
-    let mut frame_start: usize = 0;
-    let mut last_ts: Option<u64> = None;
-
-    for idx in 0..bytes.len() {
-        if bytes[idx] == 0 {
-            if frame_start == idx {
-                info!("Empty frame. Ignoring.");
-                frame_start = idx + 1;
-                continue;
-            }
-            let evt = match decode_frame(&bytes[frame_start..=idx]) {
-                Ok(evt) => {
-                    if let Some(new_ts) = evt.ts() {
-                        last_ts = Some(new_ts);
-                    }
-                    evt
-                }
-                Err(err) => {
-                    warn!("Could not decode event: {err}");
-                    RawEvt::Invalid(RawInvalidEvt {
-                        ts: last_ts,
-                        err: Some(err.into()),
-                    })
-                }
-            };
-            evts.push(evt);
-            frame_start = idx + 1;
-        }
-    }
-
-    if frame_start != bytes.len() {
-        warn!("Trailing bytes! ignoring.");
-    }
-
-    Ok(evts)
 }
 
 #[cfg(test)]

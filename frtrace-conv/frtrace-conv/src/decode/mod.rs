@@ -2,6 +2,9 @@ mod cobs;
 pub mod evts;
 
 use anyhow::anyhow;
+use log::warn;
+
+use crate::decode::evts::RawInvalidEvt;
 
 use self::evts::RawEvt;
 
@@ -117,6 +120,72 @@ fn decode_string(evt_buf: &[u8], current_idx: &mut usize) -> anyhow::Result<Stri
         let result = String::from_utf8(evt_buf[*current_idx..].to_vec())?;
         *current_idx = evt_buf.len();
         Ok(result)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct StreamDecoder {
+    frame_buf: Vec<u8>,
+    last_ts: Option<u64>,
+}
+
+impl Default for StreamDecoder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl StreamDecoder {
+    pub fn new() -> Self {
+        StreamDecoder {
+            frame_buf: vec![],
+            last_ts: None,
+        }
+    }
+
+    pub fn process_binary(&mut self, input: &[u8]) -> Vec<RawEvt> {
+        let mut result = vec![];
+
+        for byte in input {
+            self.frame_buf.push(*byte);
+            if *byte == 0 {
+                if let Some(evt) = self.process_full_frame() {
+                    result.push(evt)
+                }
+                self.frame_buf.clear();
+            }
+        }
+
+        result
+    }
+
+    fn process_full_frame(&mut self) -> Option<RawEvt> {
+        if self.frame_buf.len() == 1 && self.frame_buf[0] == 0 {
+            warn!("Empty COBS frame. Ignoring.");
+            return None;
+        }
+
+        let evt = match decode_frame(&self.frame_buf) {
+            Ok(evt) => {
+                if let Some(new_ts) = evt.ts() {
+                    self.last_ts = Some(new_ts);
+                }
+                evt
+            }
+            Err(err) => {
+                warn!("Could not decode event: {err}");
+                RawEvt::Invalid(RawInvalidEvt {
+                    ts: self.last_ts,
+                    err: Some(err.into()),
+                })
+            }
+        };
+
+        Some(evt)
+    }
+
+    pub fn get_bytes_in_buffer(&self) -> usize {
+        self.frame_buf.len()
     }
 }
 

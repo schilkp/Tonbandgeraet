@@ -1,7 +1,10 @@
 pub mod generate_perfetto;
 
 use crate::{
-    decode::evts::{RawEvt, RawInvalidEvt, RawMetadataEvt, RawTraceEvt, RawTraceEvtKind},
+    decode::{
+        evts::{RawEvt, RawInvalidEvt, RawMetadataEvt, RawTraceEvt, RawTraceEvtKind},
+        StreamDecoder,
+    },
     ISRState, QueueKind, QueueState, TaskBlockingReason, TaskKind, TaskState, Trace, TraceErrMarker, TraceEvtMarker,
     UserEvtMarker,
 };
@@ -20,6 +23,8 @@ struct TraceEvt {
 
 pub struct TraceConverter {
     core_count: usize,
+    common_stream_decoder: StreamDecoder,
+    core_stream_decoder: Vec<StreamDecoder>,
     evts: TraceEvtSequence,
 }
 
@@ -31,8 +36,29 @@ impl TraceConverter {
 
         Ok(TraceConverter {
             core_count,
+            common_stream_decoder: StreamDecoder::new(),
+            core_stream_decoder: Vec::from_iter(repeat(StreamDecoder::new()).take(core_count)),
             evts: TraceEvtSequence::new(core_count),
         })
+    }
+
+    pub fn add_binary(&mut self, data: &[u8]) -> anyhow::Result<()> {
+        let evts = self.common_stream_decoder.process_binary(data);
+        self.add_evts(&evts)
+    }
+
+    pub fn add_binary_to_core(&mut self, data: &[u8], core_id: u32) -> anyhow::Result<()> {
+        if core_id as usize >= self.core_count {
+            return Err(anyhow!(
+                "Attempted to add binary for core {} but trace converter was configure for {} cores!",
+                core_id,
+                self.core_count
+            ));
+        }
+
+        let evts = self.core_stream_decoder[core_id as usize].process_binary(data);
+
+        self.add_evts_to_core(&evts, core_id)
     }
 
     pub fn add_evts(&mut self, evts: &[RawEvt]) -> anyhow::Result<()> {
@@ -45,6 +71,13 @@ impl TraceConverter {
 
     pub fn convert(&mut self) -> anyhow::Result<Trace> {
         info!("Starting initial conversion for {}-core trace. Event count: {}", self.core_count, self.evts.len());
+
+        for (core_id, stream_decoder) in self.core_stream_decoder.iter().enumerate() {
+            let bytes_left = stream_decoder.get_bytes_in_buffer();
+            if bytes_left != 0 {
+                warn!("Unfinished frame of {bytes_left} trailing bytes in input stream for core {core_id}!");
+            }
+        }
 
         let Some(max_idx) = self.evts.convertable_evt_idx() else {
             return Err(anyhow!("Cannot convert with zero results."));

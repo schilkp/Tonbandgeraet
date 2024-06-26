@@ -1,8 +1,8 @@
 use anyhow::anyhow;
 
 pub fn cobs_decode_frame(inp: &[u8]) -> anyhow::Result<Vec<u8>> {
-    if inp.is_empty() {
-        return Err(anyhow!("Invalid COBS frame: Empty!"));
+    if inp.is_empty() || (inp.len() == 1 && inp[0] == 0) {
+        return Err(anyhow!("Empty COBS frame."));
     }
     if inp[0] == 0 {
         return Err(anyhow!("Invalid COBS frame: First byte zero!"));
