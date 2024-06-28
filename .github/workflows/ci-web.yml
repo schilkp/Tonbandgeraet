@@ -1,0 +1,48 @@
+name: ci-web
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: "wasm32-unknown-unknown"
+          components: "clippy, rustfmt"
+      - uses: arduino/setup-protoc@v3
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build wasm bindings
+        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        run: wasm-pack build
+
+      - name: Run rust tests
+        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        run: cargo test --all
+      
+      - name: Run clippy
+        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        run: cargo clippy -- -D warnings
+      
+      - name: Check rust format
+        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        run: cargo fmt -- --check
+
+      - name: Setup node env
+        working-directory: ${{github.workspace}}/frtrace-web/website
+        run: npm install
+
+      - name: Build website
+        working-directory: ${{github.workspace}}/frtrace-web/website
+        run: npm run build

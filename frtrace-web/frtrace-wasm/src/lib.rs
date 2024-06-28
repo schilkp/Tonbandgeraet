@@ -1,6 +1,6 @@
 mod utils;
 
-use log::{error, info, Level, Log};
+use log::{info, Level, Log};
 use serde::Serialize;
 use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;

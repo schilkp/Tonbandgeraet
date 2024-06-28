@@ -33,7 +33,7 @@ function add_trace(
   core_id: number,
 ) {
   try {
-    trace_data.pieces.push(process_input_trace(content, format, core_id))
+    trace_data.pieces.push(process_input_trace(content, format, core_id));
     clear();
     ui_success("Added trace.");
   } catch (e) {
@@ -100,7 +100,7 @@ function is_empty(i: string | undefined): boolean {
 
 <template>
   <div class="uk-grid-small uk-margin" uk-grid>
-    <div class="uk-width-1-2">
+    <div class="uk-width-1-2@s">
       <textarea
         class="uk-textarea uk-height-small"
         rows="5"
@@ -110,11 +110,11 @@ function is_empty(i: string | undefined): boolean {
       ></textarea>
     </div>
 
-    <div class="uk-width-1-2">
+    <div class="uk-width-1-2@s">
       <UploadArea ref="upload_area" />
     </div>
 
-    <div class="uk-width-1-2">
+    <div class="uk-width-1-2@s">
       <label class="uk-form-label">Format</label>
       <select class="uk-select" aria-label="Select" v-model="format">
         <option>hex</option>
@@ -123,7 +123,7 @@ function is_empty(i: string | undefined): boolean {
       </select>
     </div>
 
-    <div class="uk-width-1-2">
+    <div class="uk-width-1-2@s">
       <label class="uk-form-label">Core</label>
       <select class="uk-select" aria-label="Select" v-model="core_id">
         <option v-for="core_id in validCoreIds" :value="core_id">
@@ -132,7 +132,7 @@ function is_empty(i: string | undefined): boolean {
       </select>
     </div>
 
-    <div class="uk-width-1-1">
+    <div class="uk-width-1-1@s">
       <button
         class="uk-button uk-button-default uk-align-right uk-width-small"
         @click="add_trace_btn"

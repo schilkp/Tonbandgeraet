@@ -1,0 +1,5 @@
+# Ignore SDKs/vendored libs in language stats:
+examples/STM32L476RGT6/Drivers/* linguist-vendored
+frtrace-conv/synthetto/src/*.proto linguist-vendored
+frtrace-target/tests/mocks/* linguist-vendored
+frtrace-target/tests/Unity/* linguist-vendored

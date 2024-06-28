@@ -49,25 +49,29 @@ defineExpose({ selected_file });
     :class="dragover_active"
   >
     <div>
-      <span
+      <img
         v-if="selected_file === null"
-        uk-icon="icon: cloud-upload; ratio:1.5"
-      ></span>
-      <span
+        src="../../../assets/upload.svg"
+        alt="Upload"
+        height="35"
+        width="35"
+      />
+      <img
         v-if="selected_file !== null"
-        uk-icon="icon: file-text; ratio:1.5"
-      ></span>
+        src="../../../assets/file.svg"
+        alt="Uploaded File"
+        height="35"
+        width="35"
+      />
     </div>
 
     <p />
 
     <div v-if="selected_file === null">
-      <span class="uk-text-middle">
-        Upload a trace file by dropping it here or
-      </span>
+      <span class="uk-text-middle"> Drop trace file here or </span>
       <div uk-form-custom>
         <input type="file" @change="upload_file_changed" single />
-        <span class="uk-link">selecting it</span>
+        <span class="uk-link">select it</span>.
       </div>
     </div>
     <div v-if="selected_file !== null">

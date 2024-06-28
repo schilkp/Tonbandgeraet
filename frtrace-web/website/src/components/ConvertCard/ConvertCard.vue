@@ -52,7 +52,7 @@ function download() {
     <legend class="uk-legend">Convert</legend>
 
     <div class="uk-grid-small uk-margin" uk-grid>
-      <div class="uk-width-1-4">
+      <div class="uk-width-1-4@s">
         <button
           class="uk-button uk-button-default uk-align-right uk-width-1-1"
           id="btn_conv"
@@ -63,7 +63,7 @@ function download() {
           Convert
         </button>
       </div>
-      <div class="uk-width-1-4">
+      <div class="uk-width-1-4@s">
         <button
           class="uk-button uk-button-default uk-align-right uk-width-1-1"
           :disabled="converted_trace.data === null"
@@ -72,7 +72,7 @@ function download() {
           Download
         </button>
       </div>
-      <div class="uk-width-1-4">
+      <div class="uk-width-1-4@s">
         <button
           class="uk-button uk-button-default uk-align-right uk-width-1-1"
           id="btn_conv_and_open"
@@ -82,7 +82,7 @@ function download() {
           Open
         </button>
       </div>
-      <div class="uk-width-1-4">
+      <div class="uk-width-1-4@s">
         <button
           class="uk-button uk-button-default uk-align-right uk-width-1-1"
           id="btn_reset"
