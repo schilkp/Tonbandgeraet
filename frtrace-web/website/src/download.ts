@@ -1,7 +1,6 @@
 export function download_trace(trace: Uint8Array, file_name: string) {
     var a = document.createElement("a");
     document.body.appendChild(a);
-    // a.style = "display: none";
     a.setAttribute("style", "display: none");
 
     const blob = new Blob([trace]);

@@ -27,7 +27,7 @@ impl FrTraceData {
 pub fn convert(core_count: usize, data: Vec<FrTraceData>) -> Result<Vec<u8>, String> {
     let mut tr = TraceConverter::new(core_count).map_err(|x| x.to_string())?;
     for d in &data {
-        info!("Decoding trace for core {}...", d.core_id);
+        info!("Decoding trace for core #{}...", d.core_id);
         tr.add_binary_to_core(&d.data, d.core_id)
             .map_err(|x| x.to_string())?;
     }
@@ -46,9 +46,9 @@ impl Log for JsLog {
     }
 
     fn log(&self, record: &log::Record) {
-        let msg = format!("[{}] - {}", record.level(), record.args());
         to_log_evt(&record.args().to_string(), record.level());
-        to_console_log(&msg, record.level());
+        let msg_console = format!("FRTRACE: [{}] - {}", record.level(), record.args());
+        to_console_log(&msg_console, record.level());
     }
 
     fn flush(&self) {}
@@ -89,15 +89,15 @@ impl LogMsg {
 
 pub fn to_log_evt(msg: &str, level: Level) {
     let Some(window) = web_sys::window() else {
-        to_console_log("could not get window", Level::Error);
+        to_console_log("FRTRACE LOG ERR: could not get window", Level::Error);
         return;
     };
     let Some(document) = window.document() else {
-        to_console_log("could not get document", Level::Error);
+        to_console_log("FRTRACE LOG ERR: could not get document", Level::Error);
         return;
     };
     let Ok(new_event) = web_sys::CustomEvent::new("frtrace_log") else {
-        to_console_log("could not create event", Level::Error);
+        to_console_log("FRTRACE LOG ERR: not create event", Level::Error);
         return;
     };
     let msg = LogMsg::new(level, msg);
@@ -109,7 +109,10 @@ pub fn to_log_evt(msg: &str, level: Level) {
     );
     match document.dispatch_event(&new_event) {
         Ok(_) => (),
-        Err(e) => to_console_log(&format!("Failed to send log event: {e:?}"), Level::Warn),
+        Err(e) => to_console_log(
+            &format!("FRTRACE LOG ERR: Failed to send log event: {e:?}"),
+            Level::Warn,
+        ),
     }
 }
 

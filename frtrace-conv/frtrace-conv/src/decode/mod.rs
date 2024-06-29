@@ -173,7 +173,7 @@ impl StreamDecoder {
                 evt
             }
             Err(err) => {
-                warn!("Could not decode event: {err}");
+                warn!("Could not decode event: {err}.");
                 RawEvt::Invalid(RawInvalidEvt {
                     ts: self.last_ts,
                     err: Some(err.into()),

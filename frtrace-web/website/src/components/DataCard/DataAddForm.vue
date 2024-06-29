@@ -37,7 +37,7 @@ function add_trace(
     clear();
     ui_success("Added trace.");
   } catch (e) {
-    ui_error("Failed to add trace: " + e);
+    ui_error("Failed to add trace (" + e + ").");
     add_trace_flash.flash("uk-button-danger", 500);
   }
 }
@@ -63,7 +63,7 @@ function add_trace_btn() {
       selected_file.arrayBuffer().then(
         (content) => add_trace(content, "binary", selected_core_id),
         (err) => {
-          ui_error("Failed to open file: " + err);
+          ui_error("Failed to open file (" + err + ").");
           add_trace_flash.flash("uk-button-danger", 500);
         },
       );
@@ -71,7 +71,7 @@ function add_trace_btn() {
       selected_file.text().then(
         (content) => add_trace(content, selected_format, selected_core_id),
         (err) => {
-          ui_error("Failed to open file: " + err);
+          ui_error("Failed to open file (" + err + ").");
           add_trace_flash.flash("uk-button-danger", 500);
         },
       );
@@ -84,7 +84,7 @@ function add_trace_btn() {
       add_trace_flash.flash("uk-button-danger", 500);
     }
   } else {
-    ui_error("invalid trace");
+    ui_error("Invalid trace.");
     add_trace_flash.flash("uk-button-danger", 500);
   }
 }

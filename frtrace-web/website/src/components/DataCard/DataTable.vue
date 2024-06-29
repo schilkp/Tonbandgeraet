@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { ui_info } from "../../log";
 import { trace_data } from "../../state";
 
 function delete_trace(idx: number) {
-  console.log("Delete Trace ", idx);
   trace_data.pieces.splice(idx, 1);
+  ui_info("Deleted trace.");
 }
 </script>
 

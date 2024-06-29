@@ -20,7 +20,7 @@ function reset() {
 const convert_class = ref<string>("");
 const convert_flash = new Flash("", convert_class);
 function convert() {
-  ui_info("Starting Conversion");
+  ui_info("Starting Conversion..");
   try {
     converted_trace.data = convert_trace(core_count.value, trace_data.pieces);
     convert_flash.reset();
@@ -41,6 +41,7 @@ function open() {
 function download() {
   if (converted_trace.data != null) {
     download_trace(converted_trace.data, "trace.proto");
+    ui_success("Downloaded.");
   }
 }
 </script>

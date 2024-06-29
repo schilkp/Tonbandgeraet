@@ -70,7 +70,7 @@ impl TraceConverter {
     }
 
     pub fn convert(&mut self) -> anyhow::Result<Trace> {
-        info!("Starting initial conversion for {}-core trace. Event count: {}", self.core_count, self.evts.len());
+        info!("Starting initial conversion for {}-core trace. Event count: {}.", self.core_count, self.evts.len());
 
         for (core_id, stream_decoder) in self.core_stream_decoder.iter().enumerate() {
             let bytes_left = stream_decoder.get_bytes_in_buffer();
@@ -83,8 +83,8 @@ impl TraceConverter {
             return Err(anyhow!("Cannot convert with zero results."));
         };
 
-        debug!("Number of events that can be processed: {}", max_idx + 1);
-        debug!("Number of events that can not be processed: {}", self.evts.len() - max_idx - 1);
+        debug!("Number of events that can be processed: {}.", max_idx + 1);
+        debug!("Number of events that can not be processed: {}.", self.evts.len() - max_idx - 1);
 
         let mut trace = Trace::new(self.core_count);
 
@@ -102,7 +102,7 @@ impl TraceConverter {
         }
 
         if trace.ts_resolution_ns.is_none() {
-            warn!("Trace did not include timestamp timer resolution - assuming 1ns");
+            warn!("Trace did not include timestamp timer resolution - assuming 1ns.");
         }
 
         Ok(trace)
@@ -122,14 +122,14 @@ impl TraceConverter {
         match e {
             RawMetadataEvt::TsResolutionNs(evt) => {
                 if evt.ns_per_ts == 0 {
-                    warn!("[--METADATA--] Received invalid ts resolution of {}ns - Ignoring!", evt.ns_per_ts);
+                    warn!("[--METADATA--] Received invalid ts resolution of {}ns - Ignoring.", evt.ns_per_ts);
                     return;
                 }
 
                 if let Some(current_val) = t.ts_resolution_ns {
                     if current_val != evt.ns_per_ts {
                         warn!(
-                        "[--METADATA--] Warning: received ts resolution of {}ns, overwritting previous value of {}ns",
+                        "[--METADATA--] Warning: received ts resolution of {}ns, overwritting previous value of {}ns.",
                         evt.ns_per_ts, current_val
                         );
                     }
@@ -143,7 +143,10 @@ impl TraceConverter {
                 let task = t.tasks.get_mut_or_create(task_id);
                 if let Some(previous_name) = &mut task.name {
                     if *previous_name != evt.name {
-                        warn!("[--METADATA--] Overiding task #{task_id} name from '{previous_name}' to '{}'", evt.name);
+                        warn!(
+                            "[--METADATA--] Overiding task #{task_id} name from '{previous_name}' to '{}'.",
+                            evt.name
+                        );
                     }
                 }
                 task.name = Some(evt.name.clone());
@@ -156,7 +159,7 @@ impl TraceConverter {
                     core_id: evt.core_id as usize,
                 };
                 if !matches!(task.kind, TaskKind::Normal) && new_kind != task.kind {
-                    warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'!", task.kind, new_kind);
+                    warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'.", task.kind, new_kind);
                 }
                 task.kind = new_kind;
             }
@@ -166,7 +169,7 @@ impl TraceConverter {
                 let task = t.tasks.get_mut_or_create(task_id);
                 let new_kind = TaskKind::TimerSvc;
                 if !matches!(task.kind, TaskKind::Normal) && new_kind != task.kind {
-                    warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'!", task.kind, new_kind);
+                    warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'.", task.kind, new_kind);
                 }
                 task.kind = new_kind;
             }
@@ -176,7 +179,7 @@ impl TraceConverter {
                 let isr = t.core_mut(core_id).isrs.get_mut_or_create(isr_id);
                 if let Some(previous_name) = &mut isr.name {
                     if *previous_name != evt.name {
-                        warn!("[--METADATA--] Overiding isr #{isr_id} name from '{previous_name}' to '{}'", evt.name);
+                        warn!("[--METADATA--] Overiding isr #{isr_id} name from '{previous_name}' to '{}'.", evt.name);
                     }
                 }
                 isr.name = Some(evt.name.clone());
@@ -188,7 +191,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &mut queue.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding queue #{queue_id} name from '{previous_name}' to '{}'",
+                            "[--METADATA--] Overiding queue #{queue_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
@@ -202,7 +205,7 @@ impl TraceConverter {
                 let new_kind: QueueKind = evt.kind.clone().into();
 
                 if queue.kind == new_kind && !matches!(new_kind, QueueKind::Queue) {
-                    warn!("[--METADATA--] Overriding queue #{queue_id} type from '{}' to '{}'!", queue.kind, new_kind);
+                    warn!("[--METADATA--] Overriding queue #{queue_id} type from '{}' to '{}'.", queue.kind, new_kind);
                 }
                 queue.kind = new_kind;
             }
@@ -213,7 +216,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &evtmarker.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding Event Marker #{evtmarker_id} name from '{previous_name}' to '{}'",
+                            "[--METADATA--] Overiding Event Marker #{evtmarker_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
@@ -227,7 +230,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &valmarker.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'",
+                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
@@ -246,7 +249,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &evtmarker.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding Task #{} Marker #{evtmarker_id} name from '{previous_name}' to '{}'",
+                            "[--METADATA--] Overiding Task #{} Marker #{evtmarker_id} name from '{previous_name}' to '{}'.",
                             task_id,
                             evt.name
                         );
@@ -266,7 +269,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &valmarker.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'",
+                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
@@ -288,7 +291,7 @@ impl TraceConverter {
                     let dropped = u32::wrapping_sub(evt.cnt, t.dropped_evt_cnt);
                     t.dropped_evt_cnt = evt.cnt;
                     warn!(
-                        "[{ts:012}] Detected {} dropped events! Total droppped count: {}",
+                        "[{ts:012}] Detected {} dropped events! Total droppped count: {}.",
                         dropped, t.dropped_evt_cnt
                     );
                     t.error_evts
@@ -360,7 +363,7 @@ impl TraceConverter {
                     t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::Delay { ticks: evt.ticks })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -372,7 +375,7 @@ impl TraceConverter {
                             time_to_wake: evt.time_to_wake,
                         })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -534,7 +537,7 @@ impl TraceConverter {
                     t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueuePeek { queue_id })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -546,7 +549,7 @@ impl TraceConverter {
                     t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueueSend { queue_id })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -559,7 +562,7 @@ impl TraceConverter {
                     t.tasks.get_mut_or_create(current_task_id).state_when_switched_out =
                         TaskState::Blocked(TaskBlockingReason::QueueReceive { queue_id })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -604,7 +607,7 @@ impl TraceConverter {
                         .markers
                         .push(ts, UserEvtMarker::Instant { msg: evt.msg.clone() })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -621,7 +624,7 @@ impl TraceConverter {
                         .markers
                         .push(ts, UserEvtMarker::SliceBegin { msg: evt.msg.clone() })
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -636,7 +639,7 @@ impl TraceConverter {
                         .get_mut_or_create(evtmarker_id);
                     evtmarker.markers.push(ts, UserEvtMarker::SliceEnd)
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -651,7 +654,7 @@ impl TraceConverter {
                         .get_mut_or_create(valmarker_id);
                     valmarker.vals.push(ts, evt.val)
                 } else {
-                    warn!("[{ts:012}] Received current task event while current task is not known ({:?})", evt);
+                    warn!("[{ts:012}] Received current task event while current task is not known ({:?}).", evt);
                     t.error_evts.push(ts, TraceErrMarker::no_current_task(core_id));
                 }
             }
@@ -768,7 +771,7 @@ impl TraceEvtSequence {
         self.evts.sort_unstable_by_key(|x| x.ts.unwrap_or(0));
 
         for (core_id, max_ts) in self.core_max_ts.iter().enumerate() {
-            debug!("Largest timestamp on core {core_id}: {max_ts}");
+            debug!("Largest timestamp on core {core_id}: {max_ts}.");
         }
 
         let conversion_timestamp_limit = self.max_shared_ts();
