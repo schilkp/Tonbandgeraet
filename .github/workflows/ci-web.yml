@@ -18,7 +18,9 @@ jobs:
           toolchain: stable
           targets: "wasm32-unknown-unknown"
           components: "clippy, rustfmt"
-      - uses: arduino/setup-protoc@v3
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh

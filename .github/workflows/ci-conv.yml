@@ -12,7 +12,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-      - uses: arduino/setup-protoc@v3
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+
       - name: Cargo Test
         working-directory: ${{github.workspace}}/frtrace-conv/
         run: cargo test --all
@@ -34,10 +37,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: arduino/setup-protoc@v3
         with:
           toolchain: stable
           components: clippy
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+
       - name: Lint
         working-directory: ${{github.workspace}}/frtrace-conv/
         run: cargo clippy --all-features -- -D warnings
