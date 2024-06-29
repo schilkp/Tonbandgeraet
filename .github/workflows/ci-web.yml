@@ -4,6 +4,9 @@ on:
   push:
     branches: ["main"]
 
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +23,7 @@ jobs:
           components: "clippy, rustfmt"
 
       - name: Install protoc
-        run:  sudo apt-get install protobuf-compiler
+        run: sudo apt-get install protobuf-compiler
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -32,11 +35,11 @@ jobs:
       - name: Run rust tests
         working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
         run: cargo test --all
-      
+
       - name: Run clippy
         working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
         run: cargo clippy -- -D warnings
-      
+
       - name: Check rust format
         working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
         run: cargo fmt -- --check
