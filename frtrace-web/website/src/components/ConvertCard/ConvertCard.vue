@@ -22,23 +22,30 @@ function reset() {
   ui_info("Reset.");
 }
 
+const convert_content = ref<string>("Convert");
 const convert_class = ref<string>("");
 const convert_flash = new Flash("", convert_class);
 function convert() {
   ui_info("Starting Conversion..");
-  try {
-    converted_trace.data = convert_trace(
-      core_count.value,
-      trace_data.pieces,
-      trace_mode.value,
-    );
-    convert_flash.reset();
-    ui_success("Done!");
-  } catch (err) {
-    converted_trace.data = null;
-    convert_flash.flash("uk-button-danger", 500);
-    ui_error("Conversion Failed: " + err);
-  }
+  convert_content.value = '<div uk-spinner="ratio: 0.8"></div>';
+
+  // Short timeout to allow render of spinner:
+  setTimeout(() => {
+    try {
+      converted_trace.data = convert_trace(
+        core_count.value,
+        trace_data.pieces,
+        trace_mode.value,
+      );
+      convert_flash.reset();
+      ui_success("Done!");
+    } catch (err) {
+      converted_trace.data = null;
+      convert_flash.flash("uk-button-danger", 500);
+      ui_error("Conversion Failed: " + err);
+    }
+    convert_content.value = "Convert";
+  }, 100);
 }
 
 function open() {
@@ -70,7 +77,7 @@ function download() {
           :disabled="trace_data.pieces.length === 0"
           @click="convert"
         >
-          Convert
+          <span v-html="convert_content"></span>
         </button>
       </div>
       <div class="uk-width-1-4@s">
