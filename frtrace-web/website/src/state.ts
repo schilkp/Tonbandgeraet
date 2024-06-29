@@ -1,3 +1,4 @@
+import { TraceMode } from 'frtrace_wasm';
 import { reactive } from 'vue'
 
 export class TraceData {
@@ -9,6 +10,10 @@ export class TraceData {
         this.data = data;
     }
 };
+
+export const trace_mode = reactive({
+    value: TraceMode.FreeRTOS,
+});
 
 export const core_count = reactive({
     value: 1,

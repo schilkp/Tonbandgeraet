@@ -6,7 +6,12 @@ import { ui_error, ui_info, ui_success } from "../../log";
 
 import { convert_trace } from "../../convert";
 import { open_trace } from "../../open";
-import { converted_trace, core_count, trace_data } from "../../state";
+import {
+  converted_trace,
+  core_count,
+  trace_data,
+  trace_mode,
+} from "../../state";
 import { download_trace } from "../../download";
 
 function reset() {
@@ -22,7 +27,11 @@ const convert_flash = new Flash("", convert_class);
 function convert() {
   ui_info("Starting Conversion..");
   try {
-    converted_trace.data = convert_trace(core_count.value, trace_data.pieces);
+    converted_trace.data = convert_trace(
+      core_count.value,
+      trace_data.pieces,
+      trace_mode.value,
+    );
     convert_flash.reset();
     ui_success("Done!");
   } catch (err) {

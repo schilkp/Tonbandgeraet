@@ -3,8 +3,15 @@ import subprocess
 import sys
 from typing import List
 
-from model import (BasicField, BasicFieldKind, Evt, U8EnumDefinition,
-                   VarlenFieldKind)
+from model import (
+    BasicField,
+    BasicFieldKind,
+    Evt,
+    EvtGroup,
+    U8EnumDefinition,
+    VarlenFieldKind,
+)
+from utils import pad_to_length
 
 
 def pascal_case(i: str) -> str:
@@ -25,7 +32,7 @@ def gen_u8_enum(e: U8EnumDefinition) -> str:
     result = ""
 
     # Enum:
-    result += f"#[derive(Debug, Clone)]\n"
+    result += f"#[derive(Debug, Clone, Copy)]\n"
     result += f"pub enum {e.name} {{\n"
     for entry_val, entry_name in e.entries:
         result += f"  {pascal_case(entry_name)},\n"
@@ -89,62 +96,113 @@ def varlen_field_decode(f: VarlenFieldKind) -> str:
             return "decode_string(buf, current_idx)?"
 
 
-def gen_evt_types(evts: List[Evt]) -> str:
+def gen_evt_types(groups: List[EvtGroup]) -> str:
     result = ""
+    result += f"{pad_to_length('// ==== Event Groups ', 100, '=')}\n"
+    result += "\n"
+    result += "#[derive(Debug, Clone, Copy)]\n"
+    result += "pub enum TraceMode {\n"
+    for group in groups:
+        result += f"    {group.code_name()},\n"
 
-    # Metadata Events:
-    result += f"#[derive(Debug, Clone)]\n"
-    result += f"pub enum RawMetadataEvt {{\n"
-    for evt in evts:
-        if evt.is_metadata:
-            result += f"  {pascal_case(evt.name)}({pascal_case(evt.name)}Evt),\n"
-    result += f"}}\n"
-    result += f"\n"
+    result += "}\n"
+    result += "\n"
+    result += "#[derive(Debug, Clone)]\n"
+    result += "pub enum RawEvt {\n"
+    result += "    Invalid(InvalidEvt),\n"
+    for group in groups:
+        if group.normal_evt_cnt() > 0:
+            result += f"    {group.code_name()}({group.code_name()}Evt),\n"
+        if group.metadata_evt_cnt() > 0:
+            result += (
+                f"    {group.code_name()}Metadata({group.code_name()}MetadataEvt),\n"
+            )
+    result += "}\n"
+    result += "\n"
 
-    # Normal trace events::
-    result += f"#[derive(Debug, Clone)]\n"
-    result += f"pub enum RawTraceEvtKind {{\n"
-    for evt in evts:
-        if not evt.is_metadata:
-            result += f"  {pascal_case(evt.name)}({pascal_case(evt.name)}Evt),\n"
-    result += f"}}\n"
-    result += f"\n"
+    result += "impl RawEvt {\n"
+    result += "    pub fn ts(&self) -> Option<u64> {\n"
+    result += "        match self {\n"
+    result += "            RawEvt::Invalid(e) => e.ts,\n"
+    for group in groups:
+        if group.normal_evt_cnt() > 0:
+            result += f"            RawEvt::{group.code_name()}(e) => Some(e.ts),\n"
+        if group.metadata_evt_cnt() > 0:
+            result += f"            RawEvt::{group.code_name()}Metadata(_) => None,\n"
+    result += "        }\n"
+    result += "    }\n"
+    result += "}\n"
+    result += "\n"
 
-    # Decode:
-    result += f"impl RawEvt {{\n"
-    result += f"  pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {{\n"
-    result += f"    let mut idx = 0;\n"
-    result += f"    let id = decode_u8(buf, &mut idx)?;\n"
-    result += f"    match id {{\n"
-    for evt in evts:
-        result += (
-            f"      {evt.id} => {pascal_case(evt.name)}Evt::decode(buf, &mut idx),\n"
-        )
-    result += f'      _ => Err(anyhow!("Invalid event id {{id}}"))?\n'
-    result += f"    }}\n"
-    result += f"  }}\n"
-    result += f"}}\n"
-    result += f"\n"
+    result += "#[derive(Debug, Clone)]\n"
+    result += "pub struct InvalidEvt {\n"
+    result += "    pub ts: Option<u64>,\n"
+    result += "    pub err: Option<Rc<anyhow::Error>>,\n"
+    result += "}\n"
+    result += "\n"
 
     return result
 
 
-def gen_evt(e: Evt) -> str:
+def gen_evt_group(group: EvtGroup) -> str:
+    result = ""
+    header_comment = f"// ==== {group.code_name()} Event Group "
+    result += f"{pad_to_length(header_comment, 100, '=')}\n"
+    result += f"\n"
+
+    if group.normal_evt_cnt() > 0:
+        result += f"#[derive(Debug, Clone)]\n"
+        result += f"pub struct {group.code_name()}Evt {{\n"
+        result += f"    pub ts: u64,\n"
+        result += f"    pub kind: {group.code_name()}EvtKind,\n"
+        result += f"}}\n"
+        result += f"\n"
+        result += f"#[derive(Debug, Clone)]\n"
+        result += f"pub enum {group.code_name()}EvtKind {{\n"
+        for evt in group.evts:
+            if evt.is_metadata:
+                continue
+            result += f"    {pascal_case(evt.name)}({group.code_name()}{pascal_case(evt.name)}Evt),\n"
+        result += f"}}\n"
+        result += f"\n"
+    if group.metadata_evt_cnt() > 0:
+        result += f"#[derive(Debug, Clone)]\n"
+        result += f"pub enum {group.code_name()}MetadataEvt {{\n"
+        for evt in group.evts:
+            if not evt.is_metadata:
+                continue
+            result += f"    {pascal_case(evt.name)}({group.code_name()}{pascal_case(evt.name)}Evt),\n"
+        result += f"}}\n"
+        result += f"\n"
+
+    # Enums:
+    for enum in group.enums:
+        result += gen_u8_enum(enum)
+
+    for evt in group.evts:
+        result += gen_evt(evt, group)
+
+    return result
+
+
+def gen_evt(e: Evt, group: EvtGroup) -> str:
     result = ""
 
     # Struct:
     result += f"#[derive(Debug, Clone)]\n"
-    result += f"pub struct {pascal_case(e.name)}Evt {{\n"
+    result += f"pub struct {group.code_name()}{pascal_case(e.name)}Evt {{\n"
     for field in e.fields:
         result += f"  pub {field.name}: {basic_field_type(field.kind)},\n"
     for field in e.optional_fields:
         result += f"  pub {field.name}: Option<{basic_field_type(field.kind)}>,\n"
     if e.varlen_field is not None:
-        result += f"  pub {e.varlen_field.name}: {varlen_field_type(e.varlen_field.kind)},\n"
+        result += (
+            f"  pub {e.varlen_field.name}: {varlen_field_type(e.varlen_field.kind)},\n"
+        )
     result += f"}}\n"
     result += f"\n"
 
-    result += f"impl {pascal_case(e.name)}Evt {{\n"
+    result += f"impl {group.code_name()}{pascal_case(e.name)}Evt {{\n"
     result += f"  fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {{\n"
 
     if not e.is_metadata:
@@ -165,14 +223,14 @@ def gen_evt(e: Evt) -> str:
     result += f"    }}\n"
 
     if e.is_metadata:
-        result += (
-            f"    Ok(RawEvt::Metadata(RawMetadataEvt::{pascal_case(e.name)}( Self {{\n"
-        )
+        result += f"    Ok(RawEvt::{group.code_name()}Metadata({group.code_name()}MetadataEvt::{pascal_case(e.name)}( Self {{\n"
         indent = "      "
     else:
-        result += f"    Ok(RawEvt::Trace(RawTraceEvt {{\n"
+        result += f"    Ok(RawEvt::{group.code_name()}({group.code_name()}Evt {{\n"
         result += f"      ts,\n"
-        result += f"      kind: RawTraceEvtKind::{pascal_case(e.name)} (Self {{\n"
+        result += (
+            f"      kind: {group.code_name()}EvtKind::{pascal_case(e.name)} (Self {{\n"
+        )
         indent = "        "
 
     for field in e.fields:
@@ -194,29 +252,59 @@ def gen_evt(e: Evt) -> str:
     return result
 
 
-def gen(
-    evts: List[Evt], enums: List[U8EnumDefinition], output_file: str, crate_dir: str
-):
+def gen_main_decode_func(groups: List[EvtGroup]) -> str:
+
+    base_group = None
+    for g in groups:
+        if g.name == "":
+            base_group = g
+
+    assert base_group is not None
+
+    result = ""
+    result += f"{pad_to_length('// ==== Main Decode Function ', 100, '=')}\n"
+    result += "\n"
+    result += "impl RawEvt {\n"
+    result += (
+        "    pub fn decode(buf: &[u8], mode: TraceMode) -> anyhow::Result<Self> {\n"
+    )
+    result += "        let mut current_idx: usize = 0;;\n"
+    result += "        let id: u8 = decode_u8(buf, &mut current_idx)?;\n"
+    result += "        match id {\n"
+    for event in base_group.evts:
+        result += f"            0x{event.id:X} => {base_group.code_name()}{pascal_case(event.name)}Evt::decode(buf, &mut current_idx),\n"
+    result += f"            id => match mode {{\n"
+    for group in groups:
+        if group.name == "":
+            result += f'                TraceMode::{group.code_name()} => Err(anyhow!("Invalid event id 0x{{id:X}}!")),\n'
+        else:
+            result += f"                TraceMode::{group.code_name()} => match id {{\n"
+            for event in group.evts:
+                result += f"                0x{event.id:X} => {group.code_name()}{pascal_case(event.name)}Evt::decode(buf, &mut current_idx),\n"
+            result += f'                    id => Err(anyhow!("Invalid event id 0x{{id:X}}!")),\n'
+            result += f"                }}\n"
+
+    result += f"            }},\n"
+    result += "        }\n"
+    result += "    }\n"
+    result += "}\n"
+    result += "\n"
+
+    return result
+
+
+def gen(groups: List[EvtGroup], output_file: str, crate_dir: str):
 
     result = ""
     result += HEADER
     result += "\n"
 
-    # Enums:
-    result += "// ==== Enums ==================================================================\n"
-    result += "\n"
-    for enum in enums:
-        result += gen_u8_enum(enum)
+    result += gen_evt_types(groups)
 
-    # Events:
-    result += "// ==== Event Types ============================================================\n"
-    result += "\n"
-    result += gen_evt_types(evts)
+    for group in groups:
+        result += gen_evt_group(group)
 
-    result += "// ==== Individual Events ======================================================\n"
-    result += "\n"
-    for evt in evts:
-        result += gen_evt(evt)
+    result += gen_main_decode_func(groups)
 
     with open(output_file, "w") as outfile:
         outfile.write(result)

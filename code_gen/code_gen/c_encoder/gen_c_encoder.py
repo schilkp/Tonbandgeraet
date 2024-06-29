@@ -1,15 +1,9 @@
 import os
 import sys
-from typing import List, Optional
+from typing import List
 
-from model import (
-    BasicField,
-    BasicFieldKind,
-    Evt,
-    U8EnumDefinition,
-    VarlenField,
-    VarlenFieldKind,
-)
+from model import BasicFieldKind, Evt, EvtGroup, U8EnumDefinition, VarlenFieldKind
+from utils import pad_to_length
 
 
 def read_file(f: str) -> str:
@@ -73,58 +67,57 @@ def gen_u8_enum(e: U8EnumDefinition) -> str:
     return result
 
 
-def gen_enc_func(
-    name: str,
-    id: int,
-    is_metadata: bool,
-    fields: List[BasicField],
-    varlen_field: Optional[VarlenField],
-) -> str:
+def gen_enc_func(evt: Evt, group: EvtGroup) -> str:
     result = ""
-    macro_name = name.upper()
+    evt_macro_name = evt.name.upper()
+    group_macro_name = group.name.upper() + "_" if group.name != "" else ""
+    group_func_name = group.name.lower() + "_" if group.name != "" else ""
 
     # metadata define:
-    is_metadata_val = 1 if is_metadata else 0
-    result += f"#define EVT_{macro_name}_IS_METADATA ({is_metadata_val})\n"
+    is_metadata_val = 1 if evt.is_metadata else 0
+    result += f"#define EVT_{group_macro_name}{evt_macro_name}_IS_METADATA ({is_metadata_val})\n"
 
     # Max len define:
     maxlen_unframed = 0
     maxlen_unframed += basic_field_maxlen("u8")  # ID
-    if not is_metadata:
+    if not evt.is_metadata:
         maxlen_unframed += basic_field_maxlen("u64")  # TS
-    for field in fields:
+    for field in evt.fields:
         maxlen_unframed += basic_field_maxlen(field.kind)
-    if varlen_field is not None:
+    if evt.varlen_field is not None:
         maxlen_unframed = (
-            f"{maxlen_unframed} + {varlen_field_maxlen(varlen_field.kind)}"
+            f"{maxlen_unframed} + {varlen_field_maxlen(evt.varlen_field.kind)}"
         )
     else:
         maxlen_unframed = f"{maxlen_unframed}"
 
-    result += f"#define EVT_{macro_name}_MAXLEN (COBS_MAXLEN(({maxlen_unframed})))\n"
+    maxlen_macro_name = f"EVT_{group_macro_name}{evt_macro_name}_MAXLEN"
+    result += f"#define {maxlen_macro_name} (COBS_MAXLEN(({maxlen_unframed})))\n"
 
     # function args:
-    args = [f"uint8_t buf[EVT_{macro_name}_MAXLEN]"]
+    args = [f"uint8_t buf[{maxlen_macro_name}]"]
 
-    if not is_metadata:
+    if not evt.is_metadata:
         args.append("uint64_t ts")
 
-    for field in fields:
+    for field in evt.fields:
         args.append(f"{basic_field_type(field.kind)} {field.name}")
 
-    if varlen_field is not None:
-        args.append(f"{varlen_field_type(varlen_field.kind)}{varlen_field.name}")
+    if evt.varlen_field is not None:
+        args.append(
+            f"{varlen_field_type(evt.varlen_field.kind)}{evt.varlen_field.name}"
+        )
 
-    result += f"static inline size_t encode_{name}({', '.join(args)}) {{\n"
+    result += f"static inline size_t encode_{group_func_name}{evt.name}({', '.join(args)}) {{\n"
     result += f"  struct cobs_state cobs = cobs_start(buf);\n"
 
     # Event ID:
-    result += f"  encode_u8(&cobs, 0x{id:X});\n"
+    result += f"  encode_u8(&cobs, 0x{evt.id:X});\n"
 
-    if not is_metadata:
+    if not evt.is_metadata:
         result += f"  encode_u64(&cobs, ts);\n"
 
-    for field in fields:
+    for field in evt.fields:
         match field.kind:
             case "u8":
                 result += f"  encode_u8(&cobs, {field.name});\n"
@@ -137,10 +130,10 @@ def gen_enc_func(
             case _:  # u8_enum
                 result += f"  encode_u8(&cobs, (uint8_t){field.name});\n"
 
-    if varlen_field is not None:
-        match varlen_field.kind:
+    if evt.varlen_field is not None:
+        match evt.varlen_field.kind:
             case "str":
-                result += f"  encode_str(&cobs, {varlen_field.name});\n"
+                result += f"  encode_str(&cobs, {evt.varlen_field.name});\n"
 
     result += f"  return cobs_finish(&cobs);\n"
     result += f"}}\n"
@@ -148,33 +141,28 @@ def gen_enc_func(
     return result
 
 
-def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str):
+def gen(groups: List[EvtGroup], output_file: str):
 
     result = ""
     result += HEADER
     result += "\n"
 
-    result += "// ==== Enums ==================================================================\n"
-    result += "\n"
-    for enum in enums:
-        result += gen_u8_enum(enum)
+    for group in groups:
 
-    result += "// ==== Encoder Functions ======================================================\n"
-    result += "\n"
+        divider_comment = f"// ==== {group.code_name()} Enums "
+        result += f"{pad_to_length(divider_comment, 80, '=')}\n"
+        result += "\n"
 
-    for evt in evts:
-        if len(evt.optional_fields) != 0:
-            name = evt.name + "_opt0"
-            result += gen_enc_func(name, evt.id, evt.is_metadata, evt.fields, None)
+        for enum in group.enums:
+            result += gen_u8_enum(enum)
 
-            for opt_variant in range(len(evt.optional_fields)):
-                name = evt.name + f"_opt{opt_variant+1}"
-                fields = evt.fields + evt.optional_fields[: opt_variant + 1]
-                result += gen_enc_func(name, evt.id, evt.is_metadata, fields, None)
-        else:
-            result += gen_enc_func(
-                evt.name, evt.id, evt.is_metadata, evt.fields, evt.varlen_field
-            )
+        divider_comment = f"// ==== {group.code_name()} Encoder Functions "
+        result += f"{pad_to_length(divider_comment, 80, '=')}\n"
+        result += "\n"
+
+        for evt in group.evts:
+            for variant in evt.get_variants():
+                result += gen_enc_func(variant, group)
 
     result += FOOTER
 

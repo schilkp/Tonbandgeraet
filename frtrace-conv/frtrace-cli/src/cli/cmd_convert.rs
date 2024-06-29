@@ -23,6 +23,21 @@ impl Display for InputFormat {
     }
 }
 
+#[derive(ValueEnum, Clone, Debug, Copy)]
+pub enum TraceMode {
+    BareMetal,
+    FreeRTOS,
+}
+
+impl Display for TraceMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TraceMode::BareMetal => write!(f, "Bare-Metal"),
+            TraceMode::FreeRTOS => write!(f, "FreeRTOS"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct InputFile {
     pub file: PathBuf,
@@ -60,6 +75,10 @@ pub struct Cmd {
     /// Input format
     #[arg(short, long, default_value = "bin")]
     pub format: InputFormat,
+
+    /// TraceMode
+    #[arg(short, long)]
+    pub mode: TraceMode,
 
     /// Number of cores of target
     #[arg(short, long, default_value = "1")]
@@ -106,7 +125,12 @@ impl Cmd {
             }
         }
 
-        let mut tc = TraceConverter::new(self.core_count)?;
+        let mode = match self.mode {
+            TraceMode::BareMetal => frtrace_conv::decode::evts::TraceMode::Base,
+            TraceMode::FreeRTOS => frtrace_conv::decode::evts::TraceMode::FreeRTOS,
+        };
+
+        let mut tc = TraceConverter::new(self.core_count, mode)?;
 
         for inp in self.input {
             info!("Opening {} file \"{}\"..", self.format, inp.file.to_string_lossy());

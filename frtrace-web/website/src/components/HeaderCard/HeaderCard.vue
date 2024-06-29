@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CoreCountInput from "./CoreCountInput.vue";
+import ModeInput from "./ModeInput.vue";
 </script>
 
 <template>
@@ -7,13 +8,16 @@ import CoreCountInput from "./CoreCountInput.vue";
     class="uk-card uk-card-default uk-card-body uk-margin-left uk-margin-right uk-margin-top uk-margin-bottom"
   >
     <div
-      class="uk-child-width-expands@s uk-grid-collapse uk-grid-match"
+      class="uk-child-width-expands@s uk-grid-match"
       uk-grid
     >
-      <div class="uk-width-2-3@s">
+      <div class="uk-width-1-1@s">
         <h1><strong>frtrace</strong> Conversion</h1>
       </div>
-      <div class="uk-width-1-3@s">
+      <div class="uk-width-1-2@s">
+        <ModeInput />
+      </div>
+      <div class="uk-width-1-2@s">
         <CoreCountInput />
       </div>
     </div>

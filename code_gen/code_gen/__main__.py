@@ -3,150 +3,174 @@ from os.path import abspath, dirname, join
 
 from c_encoder import gen_c_encoder
 from c_tests import gen_c_tests
-from model import S64, U32, U64, Evt, Str, U8Enum, U8EnumDefinition
+from model import S64, U32, U64, Evt, EvtGroup, Str, U8Enum, U8EnumDefinition
 from rs_decoder import gen_rs_decoder
 
-# ==== Trace messages definition ===============================================
+# ==== Events: Base ============================================================
 
-QueueKindEnum = U8EnumDefinition(
-    "QueueKind",
-    [
-        (0, "QK_QUEUE"),
-        (1, "QK_COUNTING_SEMPHR"),
-        (2, "QK_BINARY_SEMPHR"),
-        (3, "QK_MUTEX"),
-        (4, "QK_RECURSIVE_MUTEX"),
-        (5, "QK_QUEUE_SET"),
-    ],
-)
-
-StreamBufferKindEnum = U8EnumDefinition(
-    "StreamBufferKind", [(0, "SBK_STREAM_BUFFER"), (1, "SBK_MESSAGE_BUFFER")]
-)
-
-ENUMS = [QueueKindEnum, StreamBufferKindEnum]
+ENUMS = []
 
 # fmt: off
-# Note: Every event starts with a U8 ID. Every non-metadata event then automatically contains a
-#       a U64 timestamp as its next field.
 EVTS = [
     # Tracing events:
     Evt("core_id",           id=0, fields=[U32("core_id")]),
     Evt("dropped_evt_cnt",   id=1, fields=[U32("cnt")]),
     Evt("ts_resolution_ns",  id=2, fields=[U64("ns_per_ts")], is_metadata=True),
 
-    # Task scheduling events:
-    Evt("task_switched_in",      id=3, fields=[U32("task_id")]),
-    Evt("task_to_rdy_state",     id=4, fields=[U32("task_id")]),
-    Evt("task_resumed",          id=5, fields=[U32("task_id")]),
-    Evt("task_resumed_from_isr", id=6, fields=[U32("task_id")]),
-    Evt("task_suspended",        id=7, fields=[U32("task_id")]),
-    Evt("curtask_delay",         id=8, fields=[U32("ticks")]),
-    Evt("curtask_delay_until",   id=9, fields=[U32("time_to_wake")]),
-
-    # Task priority events:
-    Evt("task_priority_set",        id=10, fields=[U32("task_id"), U32("priority")]),
-    Evt("task_priority_inherit",    id=11, fields=[U32("task_id"), U32("priority")]),
-    Evt("task_priority_disinherit", id=12, fields=[U32("task_id"), U32("priority")]),
-
-    # Task management events:
-    Evt("task_created",       id=13, fields=[U32("task_id")]),
-    Evt("task_name",          id=14, fields=[U32("task_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("task_is_idle_task",  id=15, fields=[U32("task_id"), U32("core_id")], is_metadata=True),
-    Evt("task_is_timer_task", id=16, fields=[U32("task_id")], is_metadata=True),
-    Evt("task_deleted",       id=17, fields=[U32("task_id")]),
-
     # ISRs:
-    Evt("isr_name",  id=18, fields=[U32("isr_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("isr_enter", id=19, fields=[U32("isr_id")]),
-    Evt("isr_exit",  id=20, fields=[U32("isr_id")]),
-
-    # Queues:
-    Evt("queue_created",                  id=21, fields=[U32("queue_id")]),
-    Evt("queue_name",                     id=22, fields=[U32("queue_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("queue_kind",                     id=23, fields=[U32("queue_id"), U8Enum("kind", QueueKindEnum)], is_metadata=True),
-    Evt("queue_send",                     id=24, fields=[U32("queue_id"), U32("len_after")]),
-    Evt("queue_send_from_isr",            id=25, fields=[U32("queue_id"), U32("len_after")]),
-    Evt("queue_overwrite",                id=26, fields=[U32("queue_id"), U32("len_after")]),
-    Evt("queue_overwrite_from_isr",       id=27, fields=[U32("queue_id"), U32("len_after")]),
-    Evt("queue_receive",                  id=28, fields=[U32("queue_id"), U32("len_after")]),
-    Evt("queue_receive_from_isr",         id=29, fields=[U32("queue_id"), U32("len_after")]),
-    Evt("queue_reset",                    id=30, fields=[U32("queue_id")]),
-    Evt("curtask_block_on_queue_peek",    id=31, fields=[U32("queue_id"), U32("ticks_to_wait")]),
-    Evt("curtask_block_on_queue_send",    id=32, fields=[U32("queue_id"), U32("ticks_to_wait")]),
-    Evt("curtask_block_on_queue_receive", id=33, fields=[U32("queue_id"), U32("ticks_to_wait")]),
-
-    # # Stream buffers:
-    # Evt("streambuffer_created",                  id=34, fields=[U32("streambuffer_id")]),
-    # Evt("streambuffer_name",                     id=35, fields=[U32("streambuffer_id")], varlen_field=Str("name"), is_metadata=True),
-    # Evt("streambuffer_kind",                     id=36, fields=[U32("streambuffer_id"), U8Enum("kind", StreamBufferKindEnum)], is_metadata=True),
-    # Evt("streambuffer_send",                     id=37, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
-    # Evt("streambuffer_send_from_isr",            id=38, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
-    # Evt("streambuffer_receive",                  id=39, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
-    # Evt("streambuffer_receive_from_usr",         id=40, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
-    # Evt("streambuffer_reset",                    id=41, fields=[U32("streambuffer_id")]),
-    # Evt("curtask_block_on_streambuffer_send",    id=42, fields=[U32("streambuffer_id"), U32("ticks_to_wait")]),
-    # Evt("curtask_block_on_streambuffer_receive", id=43, fields=[U32("streambuffer_id"), U32("ticks_to_wait")]),
+    Evt("isr_name",  id=3, fields=[U32("isr_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("isr_enter", id=4, fields=[U32("isr_id")]),
+    Evt("isr_exit",  id=5, fields=[U32("isr_id")]),
 
     # Event Markers:
-    Evt("evtmarker_name",  id=34, fields=[U32("evtmarker_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("evtmarker",       id=35, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
-    Evt("evtmarker_begin", id=36, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
-    Evt("evtmarker_end",   id=37, fields=[U32("evtmarker_id")]),
+    Evt("evtmarker_name",  id=6, fields=[U32("evtmarker_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("evtmarker",       id=7, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("evtmarker_begin", id=8, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("evtmarker_end",   id=9, fields=[U32("evtmarker_id")]),
 
     # Value Markers:
-    Evt("valmarker_name", id=38, fields=[U32("valmarker_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("valmarker",      id=39, fields=[U32("valmarker_id"), S64("val")]),
-
-    # Task Event Markers:
-    Evt("task_evtmarker_name",  id=40, fields=[U32("evtmarker_id"), U32("task_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("task_evtmarker",       id=41, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
-    Evt("task_evtmarker_begin", id=42, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
-    Evt("task_evtmarker_end",   id=43, fields=[U32("evtmarker_id")]),
-
-    # Task Value Markers:
-    Evt("task_valmarker_name", id=44, fields=[U32("valmarker_id"), U32("task_id")], varlen_field=Str("name"), is_metadata=True),
-    Evt("task_valmarker",      id=45, fields=[U32("valmarker_id"), S64("val")]),
+    Evt("valmarker_name", id=10, fields=[U32("valmarker_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("valmarker",      id=11, fields=[U32("valmarker_id"), S64("val")]),
 ]
 # fmt: on
+
+GROUP_BASE = EvtGroup("", EVTS, ENUMS)
+
+
+# ==== Events: FreeRTOS ========================================================
+
+QueueKindEnum = U8EnumDefinition(
+    "FrQueueKind",
+    [
+        (0, "FRQK_QUEUE"),
+        (1, "FRQK_COUNTING_SEMPHR"),
+        (2, "FRQK_BINARY_SEMPHR"),
+        (3, "FRQK_MUTEX"),
+        (4, "FRQK_RECURSIVE_MUTEX"),
+        (5, "FRQK_QUEUE_SET"),
+    ],
+)
+
+StreamBufferKindEnum = U8EnumDefinition(
+    "FrStreamBufferKind", [(0, "FRSBK_STREAM_BUFFER"), (1, "FRSBK_MESSAGE_BUFFER")]
+)
+
+ENUMS = [QueueKindEnum, StreamBufferKindEnum]
+
+# fmt: off
+EVTS = [
+    # Task scheduling events:
+    Evt("task_switched_in",      id=84, fields=[U32("task_id")]),
+    Evt("task_to_rdy_state",     id=85, fields=[U32("task_id")]),
+    Evt("task_resumed",          id=86, fields=[U32("task_id")]),
+    Evt("task_resumed_from_isr", id=87, fields=[U32("task_id")]),
+    Evt("task_suspended",        id=88, fields=[U32("task_id")]),
+    Evt("curtask_delay",         id=89, fields=[U32("ticks")]),
+    Evt("curtask_delay_until",   id=90, fields=[U32("time_to_wake")]),
+
+    # Task priority events:
+    Evt("task_priority_set",        id=91, fields=[U32("task_id"), U32("priority")]),
+    Evt("task_priority_inherit",    id=92, fields=[U32("task_id"), U32("priority")]),
+    Evt("task_priority_disinherit", id=93, fields=[U32("task_id"), U32("priority")]),
+
+    # Task management events:
+    Evt("task_created",       id=94, fields=[U32("task_id")]),
+    Evt("task_name",          id=95, fields=[U32("task_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("task_is_idle_task",  id=96, fields=[U32("task_id"), U32("core_id")], is_metadata=True),
+    Evt("task_is_timer_task", id=97, fields=[U32("task_id")], is_metadata=True),
+    Evt("task_deleted",       id=98, fields=[U32("task_id")]),
+
+    # Queues:
+    Evt("queue_created",                  id=99, fields=[U32("queue_id")]),
+    Evt("queue_name",                     id=100, fields=[U32("queue_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("queue_kind",                     id=101, fields=[U32("queue_id"), U8Enum("kind", QueueKindEnum)], is_metadata=True),
+    Evt("queue_send",                     id=102, fields=[U32("queue_id"), U32("len_after")]),
+    Evt("queue_send_from_isr",            id=103, fields=[U32("queue_id"), U32("len_after")]),
+    Evt("queue_overwrite",                id=104, fields=[U32("queue_id"), U32("len_after")]),
+    Evt("queue_overwrite_from_isr",       id=105, fields=[U32("queue_id"), U32("len_after")]),
+    Evt("queue_receive",                  id=106, fields=[U32("queue_id"), U32("len_after")]),
+    Evt("queue_receive_from_isr",         id=107, fields=[U32("queue_id"), U32("len_after")]),
+    Evt("queue_reset",                    id=108, fields=[U32("queue_id")]),
+    Evt("curtask_block_on_queue_peek",    id=109, fields=[U32("queue_id"), U32("ticks_to_wait")]),
+    Evt("curtask_block_on_queue_send",    id=110, fields=[U32("queue_id"), U32("ticks_to_wait")]),
+    Evt("curtask_block_on_queue_receive", id=111, fields=[U32("queue_id"), U32("ticks_to_wait")]),
+
+    # # Stream buffers:
+    # Evt("streambuffer_created",                  id=112, fields=[U32("streambuffer_id")]),
+    # Evt("streambuffer_name",                     id=113, fields=[U32("streambuffer_id")], varlen_field=Str("name"), is_metadata=True),
+    # Evt("streambuffer_kind",                     id=114, fields=[U32("streambuffer_id"), U8Enum("kind", StreamBufferKindEnum)], is_metadata=True),
+    # Evt("streambuffer_send",                     id=115, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
+    # Evt("streambuffer_send_from_isr",            id=116, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
+    # Evt("streambuffer_receive",                  id=117, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
+    # Evt("streambuffer_receive_from_usr",         id=118, fields=[U32("streambuffer_id"), U32("amnt"), U32("len_after")]),
+    # Evt("streambuffer_reset",                    id=119, fields=[U32("streambuffer_id")]),
+    # Evt("curtask_block_on_streambuffer_send",    id=120, fields=[U32("streambuffer_id"), U32("ticks_to_wait")]),
+    # Evt("curtask_block_on_streambuffer_receive", id=121, fields=[U32("streambuffer_id"), U32("ticks_to_wait")]),
+
+    # Task Event Markers:
+    Evt("task_evtmarker_name",  id=122, fields=[U32("evtmarker_id"), U32("task_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("task_evtmarker",       id=123, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("task_evtmarker_begin", id=124, fields=[U32("evtmarker_id")], varlen_field=Str("msg")),
+    Evt("task_evtmarker_end",   id=125, fields=[U32("evtmarker_id")]),
+
+    # Task Value Markers:
+    Evt("task_valmarker_name", id=126, fields=[U32("valmarker_id"), U32("task_id")], varlen_field=Str("name"), is_metadata=True),
+    Evt("task_valmarker",      id=127, fields=[U32("valmarker_id"), S64("val")]),
+]
+# fmt: on
+
+GROUP_FREERTOS = EvtGroup("FreeRTOS", EVTS, ENUMS)
 
 # ==== Entry ===================================================================
 
 
 def main():
-    # Check for duplicate IDs:
-    s = set()
-    for e in EVTS:
-        if e.id in s:
+
+    groups = [GROUP_BASE, GROUP_FREERTOS]
+    # Check for overlapping IDs within a group, or between the base and another group:
+    base_ids = set()
+    for e in GROUP_BASE.evts:
+        if e.id in base_ids:
             raise Exception(f"Duplicate id {e.id}/{e.name}")
-        s.add(e.id)
+        base_ids.add(e.id)
+
+    for group in groups[1:]:
+        group_ids = set()
+        for e in group.evts:
+            if e.id in base_ids:
+                raise Exception(f"Duplicate id {e.id}/{e.name}")
+            if e.id in group_ids:
+                raise Exception(f"Duplicate id {e.id}/{e.name}")
+            group_ids.add(e.id)
 
     print("Events ok.", file=sys.stderr)
 
     script_loc = dirname(__file__)
 
     c_encoder_file = abspath(
-        join(script_loc, "../..", "frtrace-target", "core", "frtrace_encode.h")
+        join(script_loc, "..", "..", "frtrace-target", "core", "frtrace_encode.h")
     )
-    gen_c_encoder.gen(EVTS, ENUMS, c_encoder_file)
+    gen_c_encoder.gen(groups, c_encoder_file)
 
     c_test_file = abspath(
         join(
             script_loc,
-            "../..",
+            "..",
+            "..",
             "frtrace-target",
             "tests",
             "test_encoding_funcs",
             "test.c",
         )
     )
-    gen_c_tests.gen(EVTS, ENUMS, c_test_file)
+    gen_c_tests.gen(groups, c_test_file)
 
-    rs_crate_dir = abspath(join(script_loc, "../..", "frtrace-conv", "frtrace-conv"))
+    rs_crate_dir = abspath(join(script_loc, "..", "..", "frtrace-conv", "frtrace-conv"))
     rs_decoder_file = abspath(
         join(
             script_loc,
-            "../..",
+            "..",
+            "..",
             "frtrace-conv",
             "frtrace-conv",
             "src",
@@ -154,7 +178,7 @@ def main():
             "evts.rs",
         )
     )
-    gen_rs_decoder.gen(EVTS, ENUMS, rs_decoder_file, rs_crate_dir)
+    gen_rs_decoder.gen(groups, rs_decoder_file, rs_crate_dir)
 
 
 if __name__ == "__main__":

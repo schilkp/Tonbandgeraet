@@ -36,7 +36,7 @@ function core_count_update(e: any) {
 <template>
   <label class="uk-form-label">Core Count:</label>
   <input
-    class="uk-input"
+    class="uk-input uk-width-1-1"
     :class="core_count_inp_err"
     type="text"
     placeholder="Core Count"

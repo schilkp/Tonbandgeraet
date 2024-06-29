@@ -163,23 +163,9 @@ static inline void encode_str(struct cobs_state *cobs, const char *str) {
   }
 }
 
-// ==== Enums ==================================================================
+// ==== Base Enums =============================================================
 
-enum QueueKind {
-  QK_QUEUE = 0x0,
-  QK_COUNTING_SEMPHR = 0x1,
-  QK_BINARY_SEMPHR = 0x2,
-  QK_MUTEX = 0x3,
-  QK_RECURSIVE_MUTEX = 0x4,
-  QK_QUEUE_SET = 0x5,
-};
-
-enum StreamBufferKind {
-  SBK_STREAM_BUFFER = 0x0,
-  SBK_MESSAGE_BUFFER = 0x1,
-};
-
-// ==== Encoder Functions ======================================================
+// ==== Base Encoder Functions =================================================
 
 #define EVT_CORE_ID_IS_METADATA (0)
 #define EVT_CORE_ID_MAXLEN (COBS_MAXLEN((16)))
@@ -210,163 +196,11 @@ static inline size_t encode_ts_resolution_ns(uint8_t buf[EVT_TS_RESOLUTION_NS_MA
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_SWITCHED_IN_IS_METADATA (0)
-#define EVT_TASK_SWITCHED_IN_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_switched_in(uint8_t buf[EVT_TASK_SWITCHED_IN_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x3);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_TO_RDY_STATE_IS_METADATA (0)
-#define EVT_TASK_TO_RDY_STATE_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_to_rdy_state(uint8_t buf[EVT_TASK_TO_RDY_STATE_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x4);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_RESUMED_IS_METADATA (0)
-#define EVT_TASK_RESUMED_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_resumed(uint8_t buf[EVT_TASK_RESUMED_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x5);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_RESUMED_FROM_ISR_IS_METADATA (0)
-#define EVT_TASK_RESUMED_FROM_ISR_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_resumed_from_isr(uint8_t buf[EVT_TASK_RESUMED_FROM_ISR_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x6);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_SUSPENDED_IS_METADATA (0)
-#define EVT_TASK_SUSPENDED_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_suspended(uint8_t buf[EVT_TASK_SUSPENDED_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x7);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_CURTASK_DELAY_IS_METADATA (0)
-#define EVT_CURTASK_DELAY_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_curtask_delay(uint8_t buf[EVT_CURTASK_DELAY_MAXLEN], uint64_t ts, uint32_t ticks) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x8);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, ticks);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_CURTASK_DELAY_UNTIL_IS_METADATA (0)
-#define EVT_CURTASK_DELAY_UNTIL_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_curtask_delay_until(uint8_t buf[EVT_CURTASK_DELAY_UNTIL_MAXLEN], uint64_t ts, uint32_t time_to_wake) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x9);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, time_to_wake);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_PRIORITY_SET_IS_METADATA (0)
-#define EVT_TASK_PRIORITY_SET_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_task_priority_set(uint8_t buf[EVT_TASK_PRIORITY_SET_MAXLEN], uint64_t ts, uint32_t task_id, uint32_t priority) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0xA);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  encode_u32(&cobs, priority);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_PRIORITY_INHERIT_IS_METADATA (0)
-#define EVT_TASK_PRIORITY_INHERIT_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_task_priority_inherit(uint8_t buf[EVT_TASK_PRIORITY_INHERIT_MAXLEN], uint64_t ts, uint32_t task_id, uint32_t priority) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0xB);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  encode_u32(&cobs, priority);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_PRIORITY_DISINHERIT_IS_METADATA (0)
-#define EVT_TASK_PRIORITY_DISINHERIT_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_task_priority_disinherit(uint8_t buf[EVT_TASK_PRIORITY_DISINHERIT_MAXLEN], uint64_t ts, uint32_t task_id, uint32_t priority) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0xC);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  encode_u32(&cobs, priority);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_CREATED_IS_METADATA (0)
-#define EVT_TASK_CREATED_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_created(uint8_t buf[EVT_TASK_CREATED_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0xD);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_NAME_IS_METADATA (1)
-#define EVT_TASK_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
-static inline size_t encode_task_name(uint8_t buf[EVT_TASK_NAME_MAXLEN], uint32_t task_id, const char *name) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0xE);
-  encode_u32(&cobs, task_id);
-  encode_str(&cobs, name);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_IS_IDLE_TASK_IS_METADATA (1)
-#define EVT_TASK_IS_IDLE_TASK_MAXLEN (COBS_MAXLEN((11)))
-static inline size_t encode_task_is_idle_task(uint8_t buf[EVT_TASK_IS_IDLE_TASK_MAXLEN], uint32_t task_id, uint32_t core_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0xF);
-  encode_u32(&cobs, task_id);
-  encode_u32(&cobs, core_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_IS_TIMER_TASK_IS_METADATA (1)
-#define EVT_TASK_IS_TIMER_TASK_MAXLEN (COBS_MAXLEN((6)))
-static inline size_t encode_task_is_timer_task(uint8_t buf[EVT_TASK_IS_TIMER_TASK_MAXLEN], uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x10);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_TASK_DELETED_IS_METADATA (0)
-#define EVT_TASK_DELETED_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_deleted(uint8_t buf[EVT_TASK_DELETED_MAXLEN], uint64_t ts, uint32_t task_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x11);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, task_id);
-  return cobs_finish(&cobs);
-}
-
 #define EVT_ISR_NAME_IS_METADATA (1)
 #define EVT_ISR_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
 static inline size_t encode_isr_name(uint8_t buf[EVT_ISR_NAME_MAXLEN], uint32_t isr_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x12);
+  encode_u8(&cobs, 0x3);
   encode_u32(&cobs, isr_id);
   encode_str(&cobs, name);
   return cobs_finish(&cobs);
@@ -376,7 +210,7 @@ static inline size_t encode_isr_name(uint8_t buf[EVT_ISR_NAME_MAXLEN], uint32_t 
 #define EVT_ISR_ENTER_MAXLEN (COBS_MAXLEN((16)))
 static inline size_t encode_isr_enter(uint8_t buf[EVT_ISR_ENTER_MAXLEN], uint64_t ts, uint32_t isr_id) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x13);
+  encode_u8(&cobs, 0x4);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, isr_id);
   return cobs_finish(&cobs);
@@ -386,148 +220,9 @@ static inline size_t encode_isr_enter(uint8_t buf[EVT_ISR_ENTER_MAXLEN], uint64_
 #define EVT_ISR_EXIT_MAXLEN (COBS_MAXLEN((16)))
 static inline size_t encode_isr_exit(uint8_t buf[EVT_ISR_EXIT_MAXLEN], uint64_t ts, uint32_t isr_id) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x14);
+  encode_u8(&cobs, 0x5);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, isr_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_CREATED_IS_METADATA (0)
-#define EVT_QUEUE_CREATED_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_queue_created(uint8_t buf[EVT_QUEUE_CREATED_MAXLEN], uint64_t ts, uint32_t queue_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x15);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_NAME_IS_METADATA (1)
-#define EVT_QUEUE_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
-static inline size_t encode_queue_name(uint8_t buf[EVT_QUEUE_NAME_MAXLEN], uint32_t queue_id, const char *name) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x16);
-  encode_u32(&cobs, queue_id);
-  encode_str(&cobs, name);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_KIND_IS_METADATA (1)
-#define EVT_QUEUE_KIND_MAXLEN (COBS_MAXLEN((7)))
-static inline size_t encode_queue_kind(uint8_t buf[EVT_QUEUE_KIND_MAXLEN], uint32_t queue_id, enum QueueKind kind) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x17);
-  encode_u32(&cobs, queue_id);
-  encode_u8(&cobs, (uint8_t)kind);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_SEND_IS_METADATA (0)
-#define EVT_QUEUE_SEND_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_queue_send(uint8_t buf[EVT_QUEUE_SEND_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x18);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, len_after);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_SEND_FROM_ISR_IS_METADATA (0)
-#define EVT_QUEUE_SEND_FROM_ISR_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_queue_send_from_isr(uint8_t buf[EVT_QUEUE_SEND_FROM_ISR_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x19);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, len_after);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_OVERWRITE_IS_METADATA (0)
-#define EVT_QUEUE_OVERWRITE_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_queue_overwrite(uint8_t buf[EVT_QUEUE_OVERWRITE_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x1A);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, len_after);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_OVERWRITE_FROM_ISR_IS_METADATA (0)
-#define EVT_QUEUE_OVERWRITE_FROM_ISR_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_queue_overwrite_from_isr(uint8_t buf[EVT_QUEUE_OVERWRITE_FROM_ISR_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x1B);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, len_after);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_RECEIVE_IS_METADATA (0)
-#define EVT_QUEUE_RECEIVE_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_queue_receive(uint8_t buf[EVT_QUEUE_RECEIVE_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x1C);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, len_after);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_RECEIVE_FROM_ISR_IS_METADATA (0)
-#define EVT_QUEUE_RECEIVE_FROM_ISR_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_queue_receive_from_isr(uint8_t buf[EVT_QUEUE_RECEIVE_FROM_ISR_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x1D);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, len_after);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_QUEUE_RESET_IS_METADATA (0)
-#define EVT_QUEUE_RESET_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_queue_reset(uint8_t buf[EVT_QUEUE_RESET_MAXLEN], uint64_t ts, uint32_t queue_id) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x1E);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_CURTASK_BLOCK_ON_QUEUE_PEEK_IS_METADATA (0)
-#define EVT_CURTASK_BLOCK_ON_QUEUE_PEEK_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_curtask_block_on_queue_peek(uint8_t buf[EVT_CURTASK_BLOCK_ON_QUEUE_PEEK_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t ticks_to_wait) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x1F);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, ticks_to_wait);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_CURTASK_BLOCK_ON_QUEUE_SEND_IS_METADATA (0)
-#define EVT_CURTASK_BLOCK_ON_QUEUE_SEND_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_curtask_block_on_queue_send(uint8_t buf[EVT_CURTASK_BLOCK_ON_QUEUE_SEND_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t ticks_to_wait) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x20);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, ticks_to_wait);
-  return cobs_finish(&cobs);
-}
-
-#define EVT_CURTASK_BLOCK_ON_QUEUE_RECEIVE_IS_METADATA (0)
-#define EVT_CURTASK_BLOCK_ON_QUEUE_RECEIVE_MAXLEN (COBS_MAXLEN((21)))
-static inline size_t encode_curtask_block_on_queue_receive(uint8_t buf[EVT_CURTASK_BLOCK_ON_QUEUE_RECEIVE_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t ticks_to_wait) {
-  struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x21);
-  encode_u64(&cobs, ts);
-  encode_u32(&cobs, queue_id);
-  encode_u32(&cobs, ticks_to_wait);
   return cobs_finish(&cobs);
 }
 
@@ -535,7 +230,7 @@ static inline size_t encode_curtask_block_on_queue_receive(uint8_t buf[EVT_CURTA
 #define EVT_EVTMARKER_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
 static inline size_t encode_evtmarker_name(uint8_t buf[EVT_EVTMARKER_NAME_MAXLEN], uint32_t evtmarker_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x22);
+  encode_u8(&cobs, 0x6);
   encode_u32(&cobs, evtmarker_id);
   encode_str(&cobs, name);
   return cobs_finish(&cobs);
@@ -545,7 +240,7 @@ static inline size_t encode_evtmarker_name(uint8_t buf[EVT_EVTMARKER_NAME_MAXLEN
 #define EVT_EVTMARKER_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
 static inline size_t encode_evtmarker(uint8_t buf[EVT_EVTMARKER_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x23);
+  encode_u8(&cobs, 0x7);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, evtmarker_id);
   encode_str(&cobs, msg);
@@ -556,7 +251,7 @@ static inline size_t encode_evtmarker(uint8_t buf[EVT_EVTMARKER_MAXLEN], uint64_
 #define EVT_EVTMARKER_BEGIN_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
 static inline size_t encode_evtmarker_begin(uint8_t buf[EVT_EVTMARKER_BEGIN_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x24);
+  encode_u8(&cobs, 0x8);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, evtmarker_id);
   encode_str(&cobs, msg);
@@ -567,7 +262,7 @@ static inline size_t encode_evtmarker_begin(uint8_t buf[EVT_EVTMARKER_BEGIN_MAXL
 #define EVT_EVTMARKER_END_MAXLEN (COBS_MAXLEN((16)))
 static inline size_t encode_evtmarker_end(uint8_t buf[EVT_EVTMARKER_END_MAXLEN], uint64_t ts, uint32_t evtmarker_id) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x25);
+  encode_u8(&cobs, 0x9);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, evtmarker_id);
   return cobs_finish(&cobs);
@@ -577,7 +272,7 @@ static inline size_t encode_evtmarker_end(uint8_t buf[EVT_EVTMARKER_END_MAXLEN],
 #define EVT_VALMARKER_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
 static inline size_t encode_valmarker_name(uint8_t buf[EVT_VALMARKER_NAME_MAXLEN], uint32_t valmarker_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x26);
+  encode_u8(&cobs, 0xA);
   encode_u32(&cobs, valmarker_id);
   encode_str(&cobs, name);
   return cobs_finish(&cobs);
@@ -587,72 +282,381 @@ static inline size_t encode_valmarker_name(uint8_t buf[EVT_VALMARKER_NAME_MAXLEN
 #define EVT_VALMARKER_MAXLEN (COBS_MAXLEN((26)))
 static inline size_t encode_valmarker(uint8_t buf[EVT_VALMARKER_MAXLEN], uint64_t ts, uint32_t valmarker_id, int64_t val) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x27);
+  encode_u8(&cobs, 0xB);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, valmarker_id);
   encode_s64(&cobs, val);
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_EVTMARKER_NAME_IS_METADATA (1)
-#define EVT_TASK_EVTMARKER_NAME_MAXLEN (COBS_MAXLEN((11 + frtrace_configMAX_STR_LEN)))
-static inline size_t encode_task_evtmarker_name(uint8_t buf[EVT_TASK_EVTMARKER_NAME_MAXLEN], uint32_t evtmarker_id, uint32_t task_id, const char *name) {
+// ==== FreeRTOS Enums =========================================================
+
+enum FrQueueKind {
+  FRQK_QUEUE = 0x0,
+  FRQK_COUNTING_SEMPHR = 0x1,
+  FRQK_BINARY_SEMPHR = 0x2,
+  FRQK_MUTEX = 0x3,
+  FRQK_RECURSIVE_MUTEX = 0x4,
+  FRQK_QUEUE_SET = 0x5,
+};
+
+enum FrStreamBufferKind {
+  FRSBK_STREAM_BUFFER = 0x0,
+  FRSBK_MESSAGE_BUFFER = 0x1,
+};
+
+// ==== FreeRTOS Encoder Functions =============================================
+
+#define EVT_FREERTOS_TASK_SWITCHED_IN_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_SWITCHED_IN_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_switched_in(uint8_t buf[EVT_FREERTOS_TASK_SWITCHED_IN_MAXLEN], uint64_t ts, uint32_t task_id) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x28);
+  encode_u8(&cobs, 0x54);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_TO_RDY_STATE_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_TO_RDY_STATE_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_to_rdy_state(uint8_t buf[EVT_FREERTOS_TASK_TO_RDY_STATE_MAXLEN], uint64_t ts, uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x55);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_RESUMED_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_RESUMED_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_resumed(uint8_t buf[EVT_FREERTOS_TASK_RESUMED_MAXLEN], uint64_t ts, uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x56);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_RESUMED_FROM_ISR_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_RESUMED_FROM_ISR_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_resumed_from_isr(uint8_t buf[EVT_FREERTOS_TASK_RESUMED_FROM_ISR_MAXLEN], uint64_t ts, uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x57);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_SUSPENDED_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_SUSPENDED_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_suspended(uint8_t buf[EVT_FREERTOS_TASK_SUSPENDED_MAXLEN], uint64_t ts, uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x58);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_CURTASK_DELAY_IS_METADATA (0)
+#define EVT_FREERTOS_CURTASK_DELAY_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_curtask_delay(uint8_t buf[EVT_FREERTOS_CURTASK_DELAY_MAXLEN], uint64_t ts, uint32_t ticks) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x59);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, ticks);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_CURTASK_DELAY_UNTIL_IS_METADATA (0)
+#define EVT_FREERTOS_CURTASK_DELAY_UNTIL_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_curtask_delay_until(uint8_t buf[EVT_FREERTOS_CURTASK_DELAY_UNTIL_MAXLEN], uint64_t ts, uint32_t time_to_wake) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x5A);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, time_to_wake);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_PRIORITY_SET_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_PRIORITY_SET_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_task_priority_set(uint8_t buf[EVT_FREERTOS_TASK_PRIORITY_SET_MAXLEN], uint64_t ts, uint32_t task_id, uint32_t priority) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x5B);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  encode_u32(&cobs, priority);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_PRIORITY_INHERIT_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_PRIORITY_INHERIT_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_task_priority_inherit(uint8_t buf[EVT_FREERTOS_TASK_PRIORITY_INHERIT_MAXLEN], uint64_t ts, uint32_t task_id, uint32_t priority) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x5C);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  encode_u32(&cobs, priority);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_PRIORITY_DISINHERIT_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_PRIORITY_DISINHERIT_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_task_priority_disinherit(uint8_t buf[EVT_FREERTOS_TASK_PRIORITY_DISINHERIT_MAXLEN], uint64_t ts, uint32_t task_id, uint32_t priority) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x5D);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  encode_u32(&cobs, priority);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_CREATED_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_CREATED_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_created(uint8_t buf[EVT_FREERTOS_TASK_CREATED_MAXLEN], uint64_t ts, uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x5E);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_NAME_IS_METADATA (1)
+#define EVT_FREERTOS_TASK_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_freertos_task_name(uint8_t buf[EVT_FREERTOS_TASK_NAME_MAXLEN], uint32_t task_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x5F);
+  encode_u32(&cobs, task_id);
+  encode_str(&cobs, name);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_IS_IDLE_TASK_IS_METADATA (1)
+#define EVT_FREERTOS_TASK_IS_IDLE_TASK_MAXLEN (COBS_MAXLEN((11)))
+static inline size_t encode_freertos_task_is_idle_task(uint8_t buf[EVT_FREERTOS_TASK_IS_IDLE_TASK_MAXLEN], uint32_t task_id, uint32_t core_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x60);
+  encode_u32(&cobs, task_id);
+  encode_u32(&cobs, core_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_IS_TIMER_TASK_IS_METADATA (1)
+#define EVT_FREERTOS_TASK_IS_TIMER_TASK_MAXLEN (COBS_MAXLEN((6)))
+static inline size_t encode_freertos_task_is_timer_task(uint8_t buf[EVT_FREERTOS_TASK_IS_TIMER_TASK_MAXLEN], uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x61);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_DELETED_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_DELETED_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_deleted(uint8_t buf[EVT_FREERTOS_TASK_DELETED_MAXLEN], uint64_t ts, uint32_t task_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x62);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, task_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_CREATED_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_CREATED_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_queue_created(uint8_t buf[EVT_FREERTOS_QUEUE_CREATED_MAXLEN], uint64_t ts, uint32_t queue_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x63);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_NAME_IS_METADATA (1)
+#define EVT_FREERTOS_QUEUE_NAME_MAXLEN (COBS_MAXLEN((6 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_freertos_queue_name(uint8_t buf[EVT_FREERTOS_QUEUE_NAME_MAXLEN], uint32_t queue_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x64);
+  encode_u32(&cobs, queue_id);
+  encode_str(&cobs, name);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_KIND_IS_METADATA (1)
+#define EVT_FREERTOS_QUEUE_KIND_MAXLEN (COBS_MAXLEN((7)))
+static inline size_t encode_freertos_queue_kind(uint8_t buf[EVT_FREERTOS_QUEUE_KIND_MAXLEN], uint32_t queue_id, enum FrQueueKind kind) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x65);
+  encode_u32(&cobs, queue_id);
+  encode_u8(&cobs, (uint8_t)kind);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_SEND_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_SEND_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_send(uint8_t buf[EVT_FREERTOS_QUEUE_SEND_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x66);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, len_after);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_SEND_FROM_ISR_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_SEND_FROM_ISR_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_send_from_isr(uint8_t buf[EVT_FREERTOS_QUEUE_SEND_FROM_ISR_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x67);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, len_after);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_OVERWRITE_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_OVERWRITE_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_overwrite(uint8_t buf[EVT_FREERTOS_QUEUE_OVERWRITE_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x68);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, len_after);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_OVERWRITE_FROM_ISR_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_OVERWRITE_FROM_ISR_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_overwrite_from_isr(uint8_t buf[EVT_FREERTOS_QUEUE_OVERWRITE_FROM_ISR_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x69);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, len_after);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_RECEIVE_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_RECEIVE_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_receive(uint8_t buf[EVT_FREERTOS_QUEUE_RECEIVE_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x6A);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, len_after);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_RECEIVE_FROM_ISR_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_RECEIVE_FROM_ISR_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_receive_from_isr(uint8_t buf[EVT_FREERTOS_QUEUE_RECEIVE_FROM_ISR_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t len_after) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x6B);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, len_after);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_QUEUE_RESET_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_RESET_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_queue_reset(uint8_t buf[EVT_FREERTOS_QUEUE_RESET_MAXLEN], uint64_t ts, uint32_t queue_id) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x6C);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_PEEK_IS_METADATA (0)
+#define EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_PEEK_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_curtask_block_on_queue_peek(uint8_t buf[EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_PEEK_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t ticks_to_wait) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x6D);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, ticks_to_wait);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_SEND_IS_METADATA (0)
+#define EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_SEND_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_curtask_block_on_queue_send(uint8_t buf[EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_SEND_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t ticks_to_wait) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x6E);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, ticks_to_wait);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_RECEIVE_IS_METADATA (0)
+#define EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_RECEIVE_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_curtask_block_on_queue_receive(uint8_t buf[EVT_FREERTOS_CURTASK_BLOCK_ON_QUEUE_RECEIVE_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t ticks_to_wait) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x6F);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, ticks_to_wait);
+  return cobs_finish(&cobs);
+}
+
+#define EVT_FREERTOS_TASK_EVTMARKER_NAME_IS_METADATA (1)
+#define EVT_FREERTOS_TASK_EVTMARKER_NAME_MAXLEN (COBS_MAXLEN((11 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_freertos_task_evtmarker_name(uint8_t buf[EVT_FREERTOS_TASK_EVTMARKER_NAME_MAXLEN], uint32_t evtmarker_id, uint32_t task_id, const char *name) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x7A);
   encode_u32(&cobs, evtmarker_id);
   encode_u32(&cobs, task_id);
   encode_str(&cobs, name);
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_EVTMARKER_IS_METADATA (0)
-#define EVT_TASK_EVTMARKER_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
-static inline size_t encode_task_evtmarker(uint8_t buf[EVT_TASK_EVTMARKER_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
+#define EVT_FREERTOS_TASK_EVTMARKER_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_EVTMARKER_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_freertos_task_evtmarker(uint8_t buf[EVT_FREERTOS_TASK_EVTMARKER_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x29);
+  encode_u8(&cobs, 0x7B);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, evtmarker_id);
   encode_str(&cobs, msg);
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_EVTMARKER_BEGIN_IS_METADATA (0)
-#define EVT_TASK_EVTMARKER_BEGIN_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
-static inline size_t encode_task_evtmarker_begin(uint8_t buf[EVT_TASK_EVTMARKER_BEGIN_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
+#define EVT_FREERTOS_TASK_EVTMARKER_BEGIN_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_EVTMARKER_BEGIN_MAXLEN (COBS_MAXLEN((16 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_freertos_task_evtmarker_begin(uint8_t buf[EVT_FREERTOS_TASK_EVTMARKER_BEGIN_MAXLEN], uint64_t ts, uint32_t evtmarker_id, const char *msg) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x2A);
+  encode_u8(&cobs, 0x7C);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, evtmarker_id);
   encode_str(&cobs, msg);
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_EVTMARKER_END_IS_METADATA (0)
-#define EVT_TASK_EVTMARKER_END_MAXLEN (COBS_MAXLEN((16)))
-static inline size_t encode_task_evtmarker_end(uint8_t buf[EVT_TASK_EVTMARKER_END_MAXLEN], uint64_t ts, uint32_t evtmarker_id) {
+#define EVT_FREERTOS_TASK_EVTMARKER_END_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_EVTMARKER_END_MAXLEN (COBS_MAXLEN((16)))
+static inline size_t encode_freertos_task_evtmarker_end(uint8_t buf[EVT_FREERTOS_TASK_EVTMARKER_END_MAXLEN], uint64_t ts, uint32_t evtmarker_id) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x2B);
+  encode_u8(&cobs, 0x7D);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, evtmarker_id);
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_VALMARKER_NAME_IS_METADATA (1)
-#define EVT_TASK_VALMARKER_NAME_MAXLEN (COBS_MAXLEN((11 + frtrace_configMAX_STR_LEN)))
-static inline size_t encode_task_valmarker_name(uint8_t buf[EVT_TASK_VALMARKER_NAME_MAXLEN], uint32_t valmarker_id, uint32_t task_id, const char *name) {
+#define EVT_FREERTOS_TASK_VALMARKER_NAME_IS_METADATA (1)
+#define EVT_FREERTOS_TASK_VALMARKER_NAME_MAXLEN (COBS_MAXLEN((11 + frtrace_configMAX_STR_LEN)))
+static inline size_t encode_freertos_task_valmarker_name(uint8_t buf[EVT_FREERTOS_TASK_VALMARKER_NAME_MAXLEN], uint32_t valmarker_id, uint32_t task_id, const char *name) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x2C);
+  encode_u8(&cobs, 0x7E);
   encode_u32(&cobs, valmarker_id);
   encode_u32(&cobs, task_id);
   encode_str(&cobs, name);
   return cobs_finish(&cobs);
 }
 
-#define EVT_TASK_VALMARKER_IS_METADATA (0)
-#define EVT_TASK_VALMARKER_MAXLEN (COBS_MAXLEN((26)))
-static inline size_t encode_task_valmarker(uint8_t buf[EVT_TASK_VALMARKER_MAXLEN], uint64_t ts, uint32_t valmarker_id, int64_t val) {
+#define EVT_FREERTOS_TASK_VALMARKER_IS_METADATA (0)
+#define EVT_FREERTOS_TASK_VALMARKER_MAXLEN (COBS_MAXLEN((26)))
+static inline size_t encode_freertos_task_valmarker(uint8_t buf[EVT_FREERTOS_TASK_VALMARKER_MAXLEN], uint64_t ts, uint32_t valmarker_id, int64_t val) {
   struct cobs_state cobs = cobs_start(buf);
-  encode_u8(&cobs, 0x2D);
+  encode_u8(&cobs, 0x7F);
   encode_u64(&cobs, ts);
   encode_u32(&cobs, valmarker_id);
   encode_s64(&cobs, val);

@@ -4,12 +4,12 @@ pub mod evts;
 use anyhow::anyhow;
 use log::warn;
 
-use crate::decode::evts::RawInvalidEvt;
+use crate::decode::evts::InvalidEvt;
 
-use self::evts::RawEvt;
+use self::evts::{RawEvt, TraceMode};
 
-pub fn decode_frame(input: &[u8]) -> anyhow::Result<RawEvt> {
-    RawEvt::decode(&cobs::cobs_decode_frame(input)?)
+pub fn decode_frame(input: &[u8], mode: TraceMode) -> anyhow::Result<RawEvt> {
+    RawEvt::decode(&cobs::cobs_decode_frame(input)?, mode)
 }
 
 fn bytes_left(evt_buf: &[u8], current_idx: usize) -> bool {
@@ -125,19 +125,15 @@ fn decode_string(evt_buf: &[u8], current_idx: &mut usize) -> anyhow::Result<Stri
 
 #[derive(Debug, Clone)]
 pub struct StreamDecoder {
+    mode: TraceMode,
     frame_buf: Vec<u8>,
     last_ts: Option<u64>,
 }
 
-impl Default for StreamDecoder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl StreamDecoder {
-    pub fn new() -> Self {
+    pub fn new(mode: TraceMode) -> Self {
         StreamDecoder {
+            mode,
             frame_buf: vec![],
             last_ts: None,
         }
@@ -165,7 +161,7 @@ impl StreamDecoder {
             return None;
         }
 
-        let evt = match decode_frame(&self.frame_buf) {
+        let evt = match decode_frame(&self.frame_buf, self.mode) {
             Ok(evt) => {
                 if let Some(new_ts) = evt.ts() {
                     self.last_ts = Some(new_ts);
@@ -174,7 +170,7 @@ impl StreamDecoder {
             }
             Err(err) => {
                 warn!("Could not decode event: {err}.");
-                RawEvt::Invalid(RawInvalidEvt {
+                RawEvt::Invalid(InvalidEvt {
                     ts: self.last_ts,
                     err: Some(err.into()),
                 })
@@ -287,34 +283,34 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_task_to_ready() {
+    fn test_decode_freertos_task_to_ready() {
         use crate::decode::evts::*;
 
-        let buf = [0x04, 0xa3, 0x8d, 0xe3, 0x04, 0xab, 0x04];
-        let evt = RawEvt::decode(&buf).unwrap();
+        let buf = [0x55, 0xa3, 0x8d, 0xe3, 0x04, 0xab, 0x04];
+        let evt = RawEvt::decode(&buf, TraceMode::FreeRTOS).unwrap();
 
-        let RawEvt::Trace(evt) = evt else {
+        let RawEvt::FreeRTOS(evt) = evt else {
             panic!("Wrong event class.");
         };
         assert_eq!(evt.ts, 10012323);
-        let RawTraceEvtKind::TaskToRdyState(evt) = evt.kind else {
+        let FreeRTOSEvtKind::TaskToRdyState(evt) = evt.kind else {
             panic!("Wrong event.");
         };
         assert_eq!(evt.task_id, 555);
     }
 
     #[test]
-    fn test_decode_priority_disinherit() {
+    fn test_decode_freertos_priority_disinherit() {
         use crate::decode::evts::*;
 
-        let buf = [0x0c, 0xfc, 0x80, 0xfe, 0xc1, 0x04, 0x65, 0x2a];
-        let evt = RawEvt::decode(&buf).unwrap();
+        let buf = [0x5d, 0xfc, 0x80, 0xfe, 0xc1, 0x04, 0x65, 0x2a];
+        let evt = RawEvt::decode(&buf, TraceMode::FreeRTOS).unwrap();
 
-        let RawEvt::Trace(evt) = evt else {
+        let RawEvt::FreeRTOS(evt) = evt else {
             panic!("Wrong event class.");
         };
         assert_eq!(evt.ts, 1212121212);
-        let RawTraceEvtKind::TaskPriorityDisinherit(evt) = evt.kind else {
+        let FreeRTOSEvtKind::TaskPriorityDisinherit(evt) = evt.kind else {
             panic!("Wrong event.");
         };
         assert_eq!(evt.task_id, 101);
@@ -322,16 +318,16 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_queue_name() {
+    fn test_decode_freertos_queue_name() {
         use crate::decode::evts::*;
 
-        let buf = [0x16, 0x65, 0x74, 0x65, 0x73, 0x74, 0x31, 0x32, 0x31, 0x32];
-        let evt = RawEvt::decode(&buf).unwrap();
+        let buf = [0x64, 0x65, 0x74, 0x65, 0x73, 0x74, 0x31, 0x32, 0x31, 0x32];
+        let evt = RawEvt::decode(&buf, TraceMode::FreeRTOS).unwrap();
 
-        let RawEvt::Metadata(evt) = evt else {
+        let RawEvt::FreeRTOSMetadata(evt) = evt else {
             panic!("Wrong event class.");
         };
-        let RawMetadataEvt::QueueName(evt) = evt else {
+        let FreeRTOSMetadataEvt::QueueName(evt) = evt else {
             panic!("Wrong event.");
         };
         assert_eq!(evt.queue_id, 101);

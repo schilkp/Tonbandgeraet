@@ -83,3 +83,55 @@ class Evt:
 
         if len(optional_fields) > 0 and varlen_field is not None:
             raise Exception("Event cannot have optional fields and varlen fields.")
+
+    def get_variants(self) -> List:
+        if len(self.optional_fields) != 0:
+            variants = [
+                Evt(
+                    self.name + "0",
+                    self.id,
+                    self.fields,
+                    [],
+                    self.varlen_field,
+                    self.is_metadata,
+                )
+            ]
+
+            for opt_variant in range(len(self.optional_fields)):
+                variants.append(
+                    Evt(
+                        self.name + str(opt_variant),
+                        self.id,
+                        self.fields + self.optional_fields[: opt_variant + 1],
+                        [],
+                        self.varlen_field,
+                        self.is_metadata,
+                    )
+                )
+
+            return variants
+        else:
+            return [self]
+
+
+@dataclass
+class EvtGroup:
+    name: str
+    evts: List[Evt]
+    enums: List[U8EnumDefinition]
+
+    def normal_evt_cnt(self) -> int:
+        cnt = 0
+        for evt in self.evts:
+            if not evt.is_metadata:
+                cnt += 1
+        return cnt
+
+    def metadata_evt_cnt(self) -> int:
+        return len(self.evts) - self.normal_evt_cnt()
+
+    def code_name(self) -> str:
+        if len(self.name) > 0:
+            return self.name
+        else:
+            return "Base"

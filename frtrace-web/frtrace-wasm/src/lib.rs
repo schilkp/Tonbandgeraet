@@ -5,7 +5,7 @@ use serde::Serialize;
 use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 
-use frtrace_conv::convert::TraceConverter;
+use frtrace_conv::{convert::TraceConverter, decode::evts};
 use web_sys::console;
 
 #[wasm_bindgen]
@@ -24,8 +24,23 @@ impl FrTraceData {
 }
 
 #[wasm_bindgen]
-pub fn convert(core_count: usize, data: Vec<FrTraceData>) -> Result<Vec<u8>, String> {
-    let mut tr = TraceConverter::new(core_count).map_err(|x| x.to_string())?;
+pub enum TraceMode {
+    BareMetal,
+    FreeRTOS,
+}
+
+#[wasm_bindgen]
+pub fn convert(
+    core_count: usize,
+    data: Vec<FrTraceData>,
+    mode: TraceMode,
+) -> Result<Vec<u8>, String> {
+    let mode = match mode {
+        TraceMode::BareMetal => evts::TraceMode::Base,
+        TraceMode::FreeRTOS => evts::TraceMode::FreeRTOS,
+    };
+
+    let mut tr = TraceConverter::new(core_count, mode).map_err(|x| x.to_string())?;
     for d in &data {
         info!("Decoding trace for core #{}...", d.core_id);
         tr.add_binary_to_core(&d.data, d.core_id)

@@ -1,17 +1,16 @@
 import os
 import sys
 from copy import copy
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from model import (
     U64,
-    BasicField,
     BasicFieldKind,
     Evt,
-    U8EnumDefinition,
-    VarlenField,
+    EvtGroup,
     VarlenFieldKind,
 )
+from utils import pad_to_length
 
 
 def read_file(f: str) -> str:
@@ -71,98 +70,85 @@ def varlen_field_test(f: VarlenFieldKind) -> Tuple[str, List[int]]:
             return ('"test"', [ord("t"), ord("e"), ord("s"), ord("t")])
 
 
-def gen_test_func(
-    name: str,
-    id: int,
-    is_metadata: bool,
-    fields: List[BasicField],
-    varlen_field: Optional[VarlenField],
-) -> str:
+def gen_test_func(evt: Evt, group: EvtGroup) -> Tuple[str, str]:
     result = ""
-    macro_name = name.upper()
-    maxlen_name = f"EVT_{macro_name}_MAXLEN"
+    evt_macro_name = evt.name.upper()
+    group_macro_name = group.name.upper() + "_" if group.name != "" else ""
+    group_func_name = group.name.lower() + "_" if group.name != "" else ""
 
-    fields = copy(fields)
-    if not is_metadata:
+    maxlen_macro_name = f"EVT_{group_macro_name}{evt_macro_name}_MAXLEN"
+
+    fields = copy(evt.fields)
+    if not evt.is_metadata:
         fields.insert(0, U64("ts"))
 
-    result += f"void test_{name}(void){{\n"
+    test_name = f"test_{group_func_name}{evt.name}"
+    result += f"void {test_name}(void){{\n"
 
     inputs = []
-    output_bytes = [hex(id)]
+    output_bytes = [hex(evt.id)]
     for field in fields:
         (inp, out) = basic_field_test_zero(field.kind)
         inputs.append(inp)
         output_bytes.extend(map(hex, out))
 
-    if varlen_field is not None:
-        (inp, out) = varlen_field_test(varlen_field.kind)
+    if evt.varlen_field is not None:
+        (inp, out) = varlen_field_test(evt.varlen_field.kind)
         inputs.append(inp)
         output_bytes.extend(map(hex, out))
 
     result += f"  {{\n"
     result += f"    // Min\n"
-    result += f"    uint8_t buf[{maxlen_name}] = {{0}};\n"
-    result += f"    size_t len = encode_{name}(buf, {', '.join(inputs)});\n"
+    result += f"    uint8_t buf[{maxlen_macro_name}] = {{0}};\n"
+    result += f"    size_t len = encode_{group_func_name}{evt.name}(buf, {', '.join(inputs)});\n"
     result += f"    uint8_t expected[] = {{{', '.join(output_bytes)}}};\n"
     result += f'    compare_arrays(buf, len, expected, sizeof(expected), "MIN");\n'
     result += f"  }}\n"
 
     inputs = []
-    output_bytes = [hex(id)]
+    output_bytes = [hex(evt.id)]
     for field in fields:
         (inp, out) = basic_field_test_max(field.kind)
         inputs.append(inp)
         output_bytes.extend(map(hex, out))
 
-    if varlen_field is not None:
-        (inp, out) = varlen_field_test(varlen_field.kind)
+    if evt.varlen_field is not None:
+        (inp, out) = varlen_field_test(evt.varlen_field.kind)
         inputs.append(inp)
         output_bytes.extend(map(hex, out))
 
     result += f"  {{\n"
     result += f"    // Max\n"
-    result += f"    uint8_t buf[{maxlen_name}] = {{0}};\n"
-    result += f"    size_t len = encode_{name}(buf, {', '.join(inputs)});\n"
+    result += f"    uint8_t buf[{maxlen_macro_name}] = {{0}};\n"
+    result += f"    size_t len = encode_{group_func_name}{evt.name}(buf, {', '.join(inputs)});\n"
     result += f"    uint8_t expected[] = {{{', '.join(output_bytes)}}};\n"
     result += f'    compare_arrays(buf, len, expected, sizeof(expected), "MAX");\n'
     result += f"  }}\n"
 
     result += f"}}\n"
     result += f"\n"
-    return result
+    return (result, test_name)
 
 
-#
-
-
-def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str):
+def gen(groups: List[EvtGroup], output_file: str):
 
     result = ""
     result += HEADER
     result += "\n"
 
-    result += "// ==== Tests ======================================================================================\n"
-    result += "\n"
+    test_names = []
 
-    func_names = []
+    for group in groups:
 
-    for evt in evts:
-        if len(evt.optional_fields) != 0:
-            name = evt.name + "_opt0"
-            func_names.append(name)
-            result += gen_test_func(name, evt.id, evt.is_metadata, evt.fields, None)
+        divider_comment = f"// ==== {group.code_name()} Encoder Tests "
+        result += f"{pad_to_length(divider_comment, 120, '=')}\n"
+        result += "\n"
 
-            for opt_variant in range(len(evt.optional_fields)):
-                name = evt.name + f"_opt{opt_variant+1}"
-                fields = evt.fields + evt.optional_fields[: opt_variant + 1]
-                func_names.append(name)
-                result += gen_test_func(name, evt.id, evt.is_metadata, fields, None)
-        else:
-            func_names.append(evt.name)
-            result += gen_test_func(
-                evt.name, evt.id, evt.is_metadata, evt.fields, evt.varlen_field
-            )
+        for evt in group.evts:
+            for variant in evt.get_variants():
+                (lines, test_name) = gen_test_func(variant, group)
+                result += lines
+                test_names.append(test_name)
 
     result += "// ==== Main =======================================================================================\n"
     result += "\n"
@@ -173,13 +159,11 @@ def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str):
     result += "int main(void) {\n"
     result += "  UNITY_BEGIN();\n"
 
-    for func_name in func_names:
-        result += f"  RUN_TEST(test_{func_name});\n"
+    for test_name in test_names:
+        result += f"  RUN_TEST({test_name});\n"
 
     result += "  return UNITY_END();\n"
     result += "}\n"
-
-    # result += FOOTER
 
     with open(output_file, "w") as outfile:
         outfile.write(result)
