@@ -39,6 +39,7 @@ function convert() {
       );
       convert_flash.reset();
       ui_success("Done!");
+      trace_data.pieces = [];
     } catch (err) {
       converted_trace.data = null;
       convert_flash.flash("uk-button-danger", 500);
