@@ -21,12 +21,16 @@ Tonbandgerät is based on a simple custom binary trace format designed to be fai
 traces can be viewed in Google's in-browser perfetto after conversion with the provided CLI tool
 or in-browser converter.
 
+## Documentation
+The documentation for Tonbandgerät can be found in the `docs/` folder and compiled for viewing with [mdbook](https://github.com/rust-lang/mdBook)
+by running `mdbook build` in `docs/`. The latest version of the documentation can also be viewed online [here](https://schilk.co/Tonbandgeraet/docs/index.html).
+
 ## Status
 
-> [!NOTE]  
+> [!NOTE]
 > Tonbandgerät is in early development and by no means considered stable. Everything - including the
 > binary trace format - is subject to change.
-> 
+>
 > Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues).
 
 ### Completed:
@@ -84,4 +88,3 @@ or in-browser converter.
   could also handle trace recording (building on [probe.rs](https://probe.rs/) for RTT communication). A gui
   built on [tauri](https://tauri.app/) and/or [egui](https://github.com/emilk/egui) could continue to enable
   the current in-browser experience.
-
