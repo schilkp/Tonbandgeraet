@@ -1,3 +1,3 @@
-# Multicore Support
+# Multi-core Support
 
 > TODO
