@@ -5,6 +5,9 @@
  */
 #ifndef TBAND_PORT_H_
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #define tband_portKERNEL_ENTER_CRITICAL_FROM_ANY()                                                 \
   bool tband_port_in_irq = xPortIsInsideInterrupt();                                               \
   BaseType_t tband_port_key = 0;                                                                   \

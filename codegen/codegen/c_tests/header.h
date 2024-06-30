@@ -15,8 +15,7 @@
 #include "unity.h"
 #include "unity_internals.h"
 
-#include "FreeRTOS.h"
-
+#include "tband.h"
 #define tbandPROPER_INTERNAL_INCLUDE
 #include "tband_encode.h"
 #undef tbandPROPER_INTERNAL_INCLUDE

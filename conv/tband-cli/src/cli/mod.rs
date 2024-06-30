@@ -1,5 +1,6 @@
 mod cmd_completion;
 mod cmd_convert;
+mod cmd_dump;
 mod cmd_serve;
 
 use clap::Parser;
@@ -20,4 +21,5 @@ pub enum CliCmd {
     Conv(cmd_convert::Cmd),
     Serve(cmd_serve::Cmd),
     Completion(cmd_completion::Cmd),
+    Dump(cmd_dump::Cmd),
 }

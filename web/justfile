@@ -1,11 +1,3 @@
 _default:
     just --list
 
-build_wasm:
-    cd tband-wasm && wasm-pack build
-
-setup_website:
-    cd website && npm install
-
-serve_website:
-    cd website && npm run dev

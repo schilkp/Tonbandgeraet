@@ -3,7 +3,7 @@ pub mod convert;
 pub mod freertos;
 pub mod generate_perfetto;
 
-use std::{collections::BTreeMap, rc::Rc};
+use std::collections::BTreeMap;
 
 use crate::{
     decode::evts::{InvalidEvt, RawEvt, TraceMode},
@@ -21,7 +21,7 @@ pub struct TraceEvtMarker(pub RawEvt);
 pub enum ErrMarkerKind {
     DroppedEvts { dropped: u32, total: u32 },
     NoCurrentTask,
-    InvalidEvent(Option<Rc<anyhow::Error>>),
+    InvalidEvent(Option<String>),
 }
 
 #[derive(Debug)]

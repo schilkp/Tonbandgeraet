@@ -1,5 +1,5 @@
 /**
- * @file trace_encoder.h
+ * @file tband_encode.h
  * @brief FreeRTOS tracing event encoder
  * @warning This file is generated. Do not edit. See `code_gen` folder in repo.
  *

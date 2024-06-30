@@ -200,7 +200,7 @@ struct metadata_buf {
 static volatile struct metadata_buf metadata_bufs[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
   .spinlock = tband_spinlock_INIT,
   .buf = {0},
-  .idx = 1,
+  .idx = 0,
   .did_ovf = false
 });
 // clang-format on
@@ -383,7 +383,7 @@ struct tband_snapshot_backend {
 // clang-format off
 static volatile struct tband_snapshot_backend snapshot_backends[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
   .buf = {0},
-  .idx = 1,
+  .idx = 0,
 });
 // clang-format on
 
@@ -509,7 +509,7 @@ int tband_reset_snapshot() {
     // Dont need to clear whole buffer - it won't get read if the idx is reset.
     // The first element is reset to zero, but this is technically unecessary:
     // it should never be written to!
-    snapshot_backends[core_id].idx = 1;
+    snapshot_backends[core_id].idx = 0;
     snapshot_backends[core_id].buf[0] = 0;
 
     tband_spinlock_release(&backend_spinlocks[core_id]);

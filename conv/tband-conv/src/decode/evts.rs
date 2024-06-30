@@ -10,21 +10,20 @@
 //! ```
 //!
 //! This file is generated automatically. See `code_gen` folder in repo.
-use std::rc::Rc;
-
 use anyhow::{anyhow, Context};
+use serde::Serialize;
 
 use crate::decode::{bytes_left, decode_s64, decode_string, decode_u32, decode_u64, decode_u8};
 
 // ==== Event Groups ===============================================================================
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum TraceMode {
     Base,
     FreeRTOS,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum RawEvt {
     Invalid(InvalidEvt),
     Base(BaseEvt),
@@ -45,21 +44,21 @@ impl RawEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct InvalidEvt {
     pub ts: Option<u64>,
-    pub err: Option<Rc<anyhow::Error>>,
+    pub err: Option<String>,
 }
 
 // ==== Base Event Group ===========================================================================
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseEvt {
     pub ts: u64,
     pub kind: BaseEvtKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum BaseEvtKind {
     CoreId(BaseCoreIdEvt),
     DroppedEvtCnt(BaseDroppedEvtCntEvt),
@@ -71,7 +70,7 @@ pub enum BaseEvtKind {
     Valmarker(BaseValmarkerEvt),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum BaseMetadataEvt {
     TsResolutionNs(BaseTsResolutionNsEvt),
     IsrName(BaseIsrNameEvt),
@@ -79,7 +78,7 @@ pub enum BaseMetadataEvt {
     ValmarkerName(BaseValmarkerNameEvt),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseCoreIdEvt {
     pub core_id: u32,
 }
@@ -98,7 +97,7 @@ impl BaseCoreIdEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseDroppedEvtCntEvt {
     pub cnt: u32,
 }
@@ -117,7 +116,7 @@ impl BaseDroppedEvtCntEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseTsResolutionNsEvt {
     pub ns_per_ts: u64,
 }
@@ -132,7 +131,7 @@ impl BaseTsResolutionNsEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseIsrNameEvt {
     pub isr_id: u32,
     pub name: String,
@@ -149,7 +148,7 @@ impl BaseIsrNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseIsrEnterEvt {
     pub isr_id: u32,
 }
@@ -168,7 +167,7 @@ impl BaseIsrEnterEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseIsrExitEvt {
     pub isr_id: u32,
 }
@@ -187,7 +186,7 @@ impl BaseIsrExitEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseEvtmarkerNameEvt {
     pub evtmarker_id: u32,
     pub name: String,
@@ -204,7 +203,7 @@ impl BaseEvtmarkerNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseEvtmarkerEvt {
     pub evtmarker_id: u32,
     pub msg: String,
@@ -225,7 +224,7 @@ impl BaseEvtmarkerEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseEvtmarkerBeginEvt {
     pub evtmarker_id: u32,
     pub msg: String,
@@ -246,7 +245,7 @@ impl BaseEvtmarkerBeginEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseEvtmarkerEndEvt {
     pub evtmarker_id: u32,
 }
@@ -265,7 +264,7 @@ impl BaseEvtmarkerEndEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseValmarkerNameEvt {
     pub valmarker_id: u32,
     pub name: String,
@@ -282,7 +281,7 @@ impl BaseValmarkerNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct BaseValmarkerEvt {
     pub valmarker_id: u32,
     pub val: i64,
@@ -305,13 +304,13 @@ impl BaseValmarkerEvt {
 
 // ==== FreeRTOS Event Group =======================================================================
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSEvt {
     pub ts: u64,
     pub kind: FreeRTOSEvtKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum FreeRTOSEvtKind {
     TaskSwitchedIn(FreeRTOSTaskSwitchedInEvt),
     TaskToRdyState(FreeRTOSTaskToRdyStateEvt),
@@ -342,7 +341,7 @@ pub enum FreeRTOSEvtKind {
     TaskValmarker(FreeRTOSTaskValmarkerEvt),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum FreeRTOSMetadataEvt {
     TaskName(FreeRTOSTaskNameEvt),
     TaskIsIdleTask(FreeRTOSTaskIsIdleTaskEvt),
@@ -353,7 +352,7 @@ pub enum FreeRTOSMetadataEvt {
     TaskValmarkerName(FreeRTOSTaskValmarkerNameEvt),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum FrQueueKind {
     FrqkQueue,
     FrqkCountingSemphr,
@@ -379,7 +378,7 @@ impl TryFrom<u8> for FrQueueKind {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum FrStreamBufferKind {
     FrsbkStreamBuffer,
     FrsbkMessageBuffer,
@@ -397,7 +396,7 @@ impl TryFrom<u8> for FrStreamBufferKind {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskSwitchedInEvt {
     pub task_id: u32,
 }
@@ -416,7 +415,7 @@ impl FreeRTOSTaskSwitchedInEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskToRdyStateEvt {
     pub task_id: u32,
 }
@@ -435,7 +434,7 @@ impl FreeRTOSTaskToRdyStateEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskResumedEvt {
     pub task_id: u32,
 }
@@ -454,7 +453,7 @@ impl FreeRTOSTaskResumedEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskResumedFromIsrEvt {
     pub task_id: u32,
 }
@@ -473,7 +472,7 @@ impl FreeRTOSTaskResumedFromIsrEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskSuspendedEvt {
     pub task_id: u32,
 }
@@ -492,7 +491,7 @@ impl FreeRTOSTaskSuspendedEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSCurtaskDelayEvt {
     pub ticks: u32,
 }
@@ -511,7 +510,7 @@ impl FreeRTOSCurtaskDelayEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSCurtaskDelayUntilEvt {
     pub time_to_wake: u32,
 }
@@ -530,7 +529,7 @@ impl FreeRTOSCurtaskDelayUntilEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskPrioritySetEvt {
     pub task_id: u32,
     pub priority: u32,
@@ -551,7 +550,7 @@ impl FreeRTOSTaskPrioritySetEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskPriorityInheritEvt {
     pub task_id: u32,
     pub priority: u32,
@@ -572,7 +571,7 @@ impl FreeRTOSTaskPriorityInheritEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskPriorityDisinheritEvt {
     pub task_id: u32,
     pub priority: u32,
@@ -593,7 +592,7 @@ impl FreeRTOSTaskPriorityDisinheritEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskCreatedEvt {
     pub task_id: u32,
 }
@@ -612,7 +611,7 @@ impl FreeRTOSTaskCreatedEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskNameEvt {
     pub task_id: u32,
     pub name: String,
@@ -629,7 +628,7 @@ impl FreeRTOSTaskNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskIsIdleTaskEvt {
     pub task_id: u32,
     pub core_id: u32,
@@ -646,7 +645,7 @@ impl FreeRTOSTaskIsIdleTaskEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskIsTimerTaskEvt {
     pub task_id: u32,
 }
@@ -661,7 +660,7 @@ impl FreeRTOSTaskIsTimerTaskEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskDeletedEvt {
     pub task_id: u32,
 }
@@ -680,7 +679,7 @@ impl FreeRTOSTaskDeletedEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueCreatedEvt {
     pub queue_id: u32,
 }
@@ -699,7 +698,7 @@ impl FreeRTOSQueueCreatedEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueNameEvt {
     pub queue_id: u32,
     pub name: String,
@@ -716,7 +715,7 @@ impl FreeRTOSQueueNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueKindEvt {
     pub queue_id: u32,
     pub kind: FrQueueKind,
@@ -735,7 +734,7 @@ impl FreeRTOSQueueKindEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueSendEvt {
     pub queue_id: u32,
     pub len_after: u32,
@@ -756,7 +755,7 @@ impl FreeRTOSQueueSendEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueSendFromIsrEvt {
     pub queue_id: u32,
     pub len_after: u32,
@@ -777,7 +776,7 @@ impl FreeRTOSQueueSendFromIsrEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueOverwriteEvt {
     pub queue_id: u32,
     pub len_after: u32,
@@ -798,7 +797,7 @@ impl FreeRTOSQueueOverwriteEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueOverwriteFromIsrEvt {
     pub queue_id: u32,
     pub len_after: u32,
@@ -819,7 +818,7 @@ impl FreeRTOSQueueOverwriteFromIsrEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueReceiveEvt {
     pub queue_id: u32,
     pub len_after: u32,
@@ -840,7 +839,7 @@ impl FreeRTOSQueueReceiveEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueReceiveFromIsrEvt {
     pub queue_id: u32,
     pub len_after: u32,
@@ -861,7 +860,7 @@ impl FreeRTOSQueueReceiveFromIsrEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSQueueResetEvt {
     pub queue_id: u32,
 }
@@ -880,7 +879,7 @@ impl FreeRTOSQueueResetEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSCurtaskBlockOnQueuePeekEvt {
     pub queue_id: u32,
     pub ticks_to_wait: u32,
@@ -904,7 +903,7 @@ impl FreeRTOSCurtaskBlockOnQueuePeekEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSCurtaskBlockOnQueueSendEvt {
     pub queue_id: u32,
     pub ticks_to_wait: u32,
@@ -928,7 +927,7 @@ impl FreeRTOSCurtaskBlockOnQueueSendEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSCurtaskBlockOnQueueReceiveEvt {
     pub queue_id: u32,
     pub ticks_to_wait: u32,
@@ -952,7 +951,7 @@ impl FreeRTOSCurtaskBlockOnQueueReceiveEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskEvtmarkerNameEvt {
     pub evtmarker_id: u32,
     pub task_id: u32,
@@ -975,7 +974,7 @@ impl FreeRTOSTaskEvtmarkerNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskEvtmarkerEvt {
     pub evtmarker_id: u32,
     pub msg: String,
@@ -996,7 +995,7 @@ impl FreeRTOSTaskEvtmarkerEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskEvtmarkerBeginEvt {
     pub evtmarker_id: u32,
     pub msg: String,
@@ -1017,7 +1016,7 @@ impl FreeRTOSTaskEvtmarkerBeginEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskEvtmarkerEndEvt {
     pub evtmarker_id: u32,
 }
@@ -1036,7 +1035,7 @@ impl FreeRTOSTaskEvtmarkerEndEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskValmarkerNameEvt {
     pub valmarker_id: u32,
     pub task_id: u32,
@@ -1059,7 +1058,7 @@ impl FreeRTOSTaskValmarkerNameEvt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskValmarkerEvt {
     pub valmarker_id: u32,
     pub val: i64,

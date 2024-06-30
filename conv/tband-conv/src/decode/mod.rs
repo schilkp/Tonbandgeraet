@@ -145,9 +145,7 @@ impl StreamDecoder {
         for byte in input {
             self.frame_buf.push(*byte);
             if *byte == 0 {
-                if let Some(evt) = self.process_full_frame() {
-                    result.push(evt)
-                }
+                result.push(self.process_full_frame());
                 self.frame_buf.clear();
             }
         }
@@ -155,13 +153,16 @@ impl StreamDecoder {
         result
     }
 
-    fn process_full_frame(&mut self) -> Option<RawEvt> {
+    fn process_full_frame(&mut self) -> RawEvt {
         if self.frame_buf.len() == 1 && self.frame_buf[0] == 0 {
             warn!("Empty COBS frame. Ignoring.");
-            return None;
+            return RawEvt::Invalid(InvalidEvt {
+                ts: self.last_ts,
+                err: Some("Empty COBS frame".to_string()),
+            });
         }
 
-        let evt = match decode_frame(&self.frame_buf, self.mode) {
+        match decode_frame(&self.frame_buf, self.mode) {
             Ok(evt) => {
                 if let Some(new_ts) = evt.ts() {
                     self.last_ts = Some(new_ts);
@@ -172,12 +173,10 @@ impl StreamDecoder {
                 warn!("Could not decode event: {err}.");
                 RawEvt::Invalid(InvalidEvt {
                     ts: self.last_ts,
-                    err: Some(err.into()),
+                    err: Some(err.to_string()),
                 })
             }
-        };
-
-        Some(evt)
+        }
     }
 
     pub fn get_bytes_in_buffer(&self) -> usize {

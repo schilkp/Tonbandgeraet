@@ -37,6 +37,7 @@ fn main() -> ExitCode {
 
     let rst = match cli.cmd {
         CliCmd::Conv(cmd) => cmd.run(),
+        CliCmd::Dump(cmd) => cmd.run(),
         CliCmd::Serve(cmd) => cmd.run(),
         CliCmd::Completion(cmd) => cmd.run(),
     };

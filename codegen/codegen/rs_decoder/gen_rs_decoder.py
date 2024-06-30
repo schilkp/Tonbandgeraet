@@ -32,7 +32,7 @@ def gen_u8_enum(e: U8EnumDefinition) -> str:
     result = ""
 
     # Enum:
-    result += f"#[derive(Debug, Clone, Copy)]\n"
+    result += f"#[derive(Debug, Clone, Copy, Serialize)]\n"
     result += f"pub enum {e.name} {{\n"
     for entry_val, entry_name in e.entries:
         result += f"  {pascal_case(entry_name)},\n"
@@ -100,14 +100,14 @@ def gen_evt_types(groups: List[EvtGroup]) -> str:
     result = ""
     result += f"{pad_to_length('// ==== Event Groups ', 100, '=')}\n"
     result += "\n"
-    result += "#[derive(Debug, Clone, Copy)]\n"
+    result += "#[derive(Debug, Clone, Copy, Serialize)]\n"
     result += "pub enum TraceMode {\n"
     for group in groups:
         result += f"    {group.code_name()},\n"
 
     result += "}\n"
     result += "\n"
-    result += "#[derive(Debug, Clone)]\n"
+    result += "#[derive(Debug, Clone, Serialize)]\n"
     result += "pub enum RawEvt {\n"
     result += "    Invalid(InvalidEvt),\n"
     for group in groups:
@@ -134,10 +134,10 @@ def gen_evt_types(groups: List[EvtGroup]) -> str:
     result += "}\n"
     result += "\n"
 
-    result += "#[derive(Debug, Clone)]\n"
+    result += "#[derive(Debug, Clone, Serialize)]\n"
     result += "pub struct InvalidEvt {\n"
     result += "    pub ts: Option<u64>,\n"
-    result += "    pub err: Option<Rc<anyhow::Error>>,\n"
+    result += "    pub err: Option<String>,\n"
     result += "}\n"
     result += "\n"
 
@@ -151,13 +151,13 @@ def gen_evt_group(group: EvtGroup) -> str:
     result += f"\n"
 
     if group.normal_evt_cnt() > 0:
-        result += f"#[derive(Debug, Clone)]\n"
+        result += f"#[derive(Debug, Clone, Serialize)]\n"
         result += f"pub struct {group.code_name()}Evt {{\n"
         result += f"    pub ts: u64,\n"
         result += f"    pub kind: {group.code_name()}EvtKind,\n"
         result += f"}}\n"
         result += f"\n"
-        result += f"#[derive(Debug, Clone)]\n"
+        result += f"#[derive(Debug, Clone, Serialize)]\n"
         result += f"pub enum {group.code_name()}EvtKind {{\n"
         for evt in group.evts:
             if evt.is_metadata:
@@ -166,7 +166,7 @@ def gen_evt_group(group: EvtGroup) -> str:
         result += f"}}\n"
         result += f"\n"
     if group.metadata_evt_cnt() > 0:
-        result += f"#[derive(Debug, Clone)]\n"
+        result += f"#[derive(Debug, Clone, Serialize)]\n"
         result += f"pub enum {group.code_name()}MetadataEvt {{\n"
         for evt in group.evts:
             if not evt.is_metadata:
@@ -189,7 +189,7 @@ def gen_evt(e: Evt, group: EvtGroup) -> str:
     result = ""
 
     # Struct:
-    result += f"#[derive(Debug, Clone)]\n"
+    result += f"#[derive(Debug, Clone, Serialize)]\n"
     result += f"pub struct {group.code_name()}{pascal_case(e.name)}Evt {{\n"
     for field in e.fields:
         result += f"  pub {field.name}: {basic_field_type(field.kind)},\n"

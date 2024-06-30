@@ -10,9 +10,8 @@
 //! ```
 //!
 //! This file is generated automatically. See `code_gen` folder in repo.
-use std::rc::Rc;
-
 use anyhow::{anyhow, Context};
+use serde::{Serialize};
 
 use crate::decode::{bytes_left, decode_s64, decode_string, decode_u32, decode_u64, decode_u8};
 

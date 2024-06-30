@@ -157,8 +157,8 @@ def main():
             script_loc,
             "..",
             "..",
-            "tband",
             "tests",
+            "unit_test",
             "test_encoding_funcs",
             "test.c",
         )

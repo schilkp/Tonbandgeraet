@@ -168,7 +168,7 @@ impl Cmd {
     }
 }
 
-fn read_file(f: &PathBuf, format: InputFormat) -> anyhow::Result<Vec<u8>> {
+pub fn read_file(f: &PathBuf, format: InputFormat) -> anyhow::Result<Vec<u8>> {
     match format {
         InputFormat::Hex => {
             let mut bytes: Vec<u8> = Vec::with_capacity(2048);
