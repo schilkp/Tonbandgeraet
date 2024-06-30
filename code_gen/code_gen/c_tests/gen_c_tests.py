@@ -3,14 +3,21 @@ import sys
 from copy import copy
 from typing import List, Optional, Tuple
 
-from model import (U64, BasicField, BasicFieldKind, Evt, U8EnumDefinition,
-                   VarlenField, VarlenFieldKind)
+from model import (
+    U64,
+    BasicField,
+    BasicFieldKind,
+    Evt,
+    U8EnumDefinition,
+    VarlenField,
+    VarlenFieldKind,
+)
 
 
 def read_file(f: str) -> str:
     script_loc = os.path.dirname(__file__)
     file_path = os.path.join(script_loc, f)
-    with open(file_path, 'r') as infile:
+    with open(file_path, "r") as infile:
         return infile.read()
 
 
@@ -61,10 +68,16 @@ def basic_field_test_max(f: BasicFieldKind) -> Tuple[str, List[int]]:
 def varlen_field_test(f: VarlenFieldKind) -> Tuple[str, List[int]]:
     match f:
         case "str":
-            return ('"test"', [ord('t'), ord('e'), ord('s'), ord('t')])
+            return ('"test"', [ord("t"), ord("e"), ord("s"), ord("t")])
 
 
-def gen_test_func(name: str, id: int, is_metadata: bool, fields: List[BasicField], varlen_field: Optional[VarlenField]) -> str:
+def gen_test_func(
+    name: str,
+    id: int,
+    is_metadata: bool,
+    fields: List[BasicField],
+    varlen_field: Optional[VarlenField],
+) -> str:
     result = ""
     macro_name = name.upper()
     maxlen_name = f"EVT_{macro_name}_MAXLEN"
@@ -90,9 +103,9 @@ def gen_test_func(name: str, id: int, is_metadata: bool, fields: List[BasicField
     result += f"  {{\n"
     result += f"    // Min\n"
     result += f"    uint8_t buf[{maxlen_name}] = {{0}};\n"
-    result += f"    size_t len = encode_{name}(buf, {", ".join(inputs)});\n"
-    result += f"    uint8_t expected[] = {{{", ".join(output_bytes)}}};\n"
-    result += f"    compare_arrays(buf, len, expected, sizeof(expected), \"MIN\");\n"
+    result += f"    size_t len = encode_{name}(buf, {', '.join(inputs)});\n"
+    result += f"    uint8_t expected[] = {{{', '.join(output_bytes)}}};\n"
+    result += f'    compare_arrays(buf, len, expected, sizeof(expected), "MIN");\n'
     result += f"  }}\n"
 
     inputs = []
@@ -110,14 +123,16 @@ def gen_test_func(name: str, id: int, is_metadata: bool, fields: List[BasicField
     result += f"  {{\n"
     result += f"    // Max\n"
     result += f"    uint8_t buf[{maxlen_name}] = {{0}};\n"
-    result += f"    size_t len = encode_{name}(buf, {", ".join(inputs)});\n"
-    result += f"    uint8_t expected[] = {{{", ".join(output_bytes)}}};\n"
-    result += f"    compare_arrays(buf, len, expected, sizeof(expected), \"MAX\");\n"
+    result += f"    size_t len = encode_{name}(buf, {', '.join(inputs)});\n"
+    result += f"    uint8_t expected[] = {{{', '.join(output_bytes)}}};\n"
+    result += f'    compare_arrays(buf, len, expected, sizeof(expected), "MAX");\n'
     result += f"  }}\n"
 
     result += f"}}\n"
     result += f"\n"
     return result
+
+
 #
 
 
@@ -140,12 +155,14 @@ def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str):
 
             for opt_variant in range(len(evt.optional_fields)):
                 name = evt.name + f"_opt{opt_variant+1}"
-                fields = evt.fields + evt.optional_fields[:opt_variant+1]
+                fields = evt.fields + evt.optional_fields[: opt_variant + 1]
                 func_names.append(name)
                 result += gen_test_func(name, evt.id, evt.is_metadata, fields, None)
         else:
             func_names.append(evt.name)
-            result += gen_test_func(evt.name, evt.id, evt.is_metadata, evt.fields, evt.varlen_field)
+            result += gen_test_func(
+                evt.name, evt.id, evt.is_metadata, evt.fields, evt.varlen_field
+            )
 
     result += "// ==== Main =======================================================================================\n"
     result += "\n"

@@ -1,0 +1,71 @@
+name: ci-codegen
+
+on:
+  push:
+    branches: ["main"]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt
+
+      - name: Install
+        working-directory: ${{github.workspace}}/code_gen
+        run: |
+          set -e
+          poetry install
+      
+      - name: Run
+        working-directory: ${{github.workspace}}/code_gen
+        run: poetry run python code_gen
+
+      - name: Check for diff
+        id: check-codegen-diff
+        working-directory: ${{github.workspace}}
+        run: |
+          set +e
+          git diff --exit-code >> ~/code_gen_changes.patch
+          exitCode=$?
+          set -e
+
+          if [ $exitCode -eq 0 ]; then
+              echo -e "OK"
+          else
+              # Run a git diff to print the differences
+              echo -e "::group::Format Difference"
+              git diff --color=always
+              echo -e "::endgroup::"
+              echo -e "List of files with differences:"
+              echo -e $(git diff --name-only)
+              echo -e ""
+          fi
+          exit $exitCode
+
+      - name: Upload Diff
+        if: failure() && ( steps.check-codegen-diff.outcome == 'failure' )
+        id: upload-codegen-patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: code
+          path: ~/code_gen_changes.patch
+          retention-days: 2

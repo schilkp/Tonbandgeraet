@@ -2,14 +2,20 @@ import os
 import sys
 from typing import List, Optional
 
-from model import (BasicField, BasicFieldKind, Evt, U8EnumDefinition,
-                   VarlenField, VarlenFieldKind)
+from model import (
+    BasicField,
+    BasicFieldKind,
+    Evt,
+    U8EnumDefinition,
+    VarlenField,
+    VarlenFieldKind,
+)
 
 
 def read_file(f: str) -> str:
     script_loc = os.path.dirname(__file__)
     file_path = os.path.join(script_loc, f)
-    with open(file_path, 'r') as infile:
+    with open(file_path, "r") as infile:
         return infile.read()
 
 
@@ -67,7 +73,13 @@ def gen_u8_enum(e: U8EnumDefinition) -> str:
     return result
 
 
-def gen_enc_func(name: str, id: int, is_metadata: bool, fields: List[BasicField], varlen_field: Optional[VarlenField]) -> str:
+def gen_enc_func(
+    name: str,
+    id: int,
+    is_metadata: bool,
+    fields: List[BasicField],
+    varlen_field: Optional[VarlenField],
+) -> str:
     result = ""
     macro_name = name.upper()
 
@@ -77,23 +89,25 @@ def gen_enc_func(name: str, id: int, is_metadata: bool, fields: List[BasicField]
 
     # Max len define:
     maxlen_unframed = 0
-    maxlen_unframed += basic_field_maxlen('u8')  # ID
+    maxlen_unframed += basic_field_maxlen("u8")  # ID
     if not is_metadata:
-        maxlen_unframed += basic_field_maxlen('u64')  # TS
+        maxlen_unframed += basic_field_maxlen("u64")  # TS
     for field in fields:
         maxlen_unframed += basic_field_maxlen(field.kind)
     if varlen_field is not None:
-        maxlen_unframed = f"{maxlen_unframed} + {varlen_field_maxlen(varlen_field.kind)}"
+        maxlen_unframed = (
+            f"{maxlen_unframed} + {varlen_field_maxlen(varlen_field.kind)}"
+        )
     else:
         maxlen_unframed = f"{maxlen_unframed}"
 
     result += f"#define EVT_{macro_name}_MAXLEN (COBS_MAXLEN(({maxlen_unframed})))\n"
 
     # function args:
-    args = [f'uint8_t buf[EVT_{macro_name}_MAXLEN]']
+    args = [f"uint8_t buf[EVT_{macro_name}_MAXLEN]"]
 
     if not is_metadata:
-        args.append('uint64_t ts')
+        args.append("uint64_t ts")
 
     for field in fields:
         args.append(f"{basic_field_type(field.kind)} {field.name}")
@@ -155,10 +169,12 @@ def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str):
 
             for opt_variant in range(len(evt.optional_fields)):
                 name = evt.name + f"_opt{opt_variant+1}"
-                fields = evt.fields + evt.optional_fields[:opt_variant+1]
+                fields = evt.fields + evt.optional_fields[: opt_variant + 1]
                 result += gen_enc_func(name, evt.id, evt.is_metadata, fields, None)
         else:
-            result += gen_enc_func(evt.name, evt.id, evt.is_metadata, evt.fields, evt.varlen_field)
+            result += gen_enc_func(
+                evt.name, evt.id, evt.is_metadata, evt.fields, evt.varlen_field
+            )
 
     result += FOOTER
 

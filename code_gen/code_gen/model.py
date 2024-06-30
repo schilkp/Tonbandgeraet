@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Literal, Optional, OrderedDict, Tuple
+from typing import List, Literal, Optional, OrderedDict, Tuple, TypeAlias
 
 
 @dataclass
@@ -8,7 +8,7 @@ class U8EnumDefinition:
     entries: List[Tuple[int, str]]
 
 
-type BasicFieldKind = Literal['u8', 'u64', 'u32', 's64'] | U8EnumDefinition
+BasicFieldKind: TypeAlias = Literal["u8", "u64", "u32", "s64"] | U8EnumDefinition
 
 
 class BasicField:
@@ -25,26 +25,26 @@ class BasicField:
 
 
 def U8(name: str) -> BasicField:
-    return BasicField(name, 'u8')
+    return BasicField(name, "u8")
 
 
 def U32(name: str) -> BasicField:
-    return BasicField(name, 'u32')
+    return BasicField(name, "u32")
 
 
 def U64(name: str) -> BasicField:
-    return BasicField(name, 'u64')
+    return BasicField(name, "u64")
 
 
 def S64(name: str) -> BasicField:
-    return BasicField(name, 's64')
+    return BasicField(name, "s64")
 
 
 def U8Enum(name: str, enum: U8EnumDefinition) -> BasicField:
     return BasicField(name, enum)
 
 
-type VarlenFieldKind = Literal['str']
+VarlenFieldKind: TypeAlias = Literal["str"]
 
 
 @dataclass
@@ -54,7 +54,7 @@ class VarlenField:
 
 
 def Str(name: str) -> VarlenField:
-    return VarlenField(name, 'str')
+    return VarlenField(name, "str")
 
 
 class Evt:
@@ -65,7 +65,15 @@ class Evt:
     varlen_field: Optional[VarlenField]
     is_metadata: bool
 
-    def __init__(self, name: str, id: int, fields=list(), optional_fields=list(), varlen_field=None, is_metadata=False):
+    def __init__(
+        self,
+        name: str,
+        id: int,
+        fields=list(),
+        optional_fields=list(),
+        varlen_field=None,
+        is_metadata=False,
+    ):
         self.name = name
         self.id = id
         self.fields = fields
@@ -74,5 +82,4 @@ class Evt:
         self.is_metadata = is_metadata
 
         if len(optional_fields) > 0 and varlen_field is not None:
-            raise Exception(
-                "Event cannot have optional fields and varlen fields.")
+            raise Exception("Event cannot have optional fields and varlen fields.")

@@ -8,13 +8,13 @@ from model import (BasicField, BasicFieldKind, Evt, U8EnumDefinition,
 
 
 def pascal_case(i: str) -> str:
-    return ''.join(x for x in i.title() if not x == '_')
+    return "".join(x for x in i.title() if not x == "_")
 
 
 def read_file(f: str) -> str:
     script_loc = os.path.dirname(__file__)
     file_path = os.path.join(script_loc, f)
-    with open(file_path, 'r') as infile:
+    with open(file_path, "r") as infile:
         return infile.read()
 
 
@@ -39,9 +39,8 @@ def gen_u8_enum(e: U8EnumDefinition) -> str:
     result += f"  fn try_from(value: u8) -> Result<Self, Self::Error> {{\n"
     result += f"    match value {{\n"
     for entry_val, entry_name in e.entries:
-        result += f"      {
-            entry_val} => Ok(Self::{pascal_case(entry_name)}),\n"
-    result += f"      _ => Err(anyhow!(\"Invalid {e.name}\"))\n"
+        result += f"      {entry_val} => Ok(Self::{pascal_case(entry_name)}),\n"
+    result += f'      _ => Err(anyhow!("Invalid {e.name}"))\n'
     result += f"    }}\n"
     result += f"  }}\n"
     result += f"}}\n"
@@ -118,8 +117,10 @@ def gen_evt_types(evts: List[Evt]) -> str:
     result += f"    let id = decode_u8(buf, &mut idx)?;\n"
     result += f"    match id {{\n"
     for evt in evts:
-        result += f"      {evt.id} => {pascal_case(evt.name)}Evt::decode(buf, &mut idx),\n"
-    result += f"      _ => Err(anyhow!(\"Invalid event id {{id}}\"))?\n"
+        result += (
+            f"      {evt.id} => {pascal_case(evt.name)}Evt::decode(buf, &mut idx),\n"
+        )
+    result += f'      _ => Err(anyhow!("Invalid event id {{id}}"))?\n'
     result += f"    }}\n"
     result += f"  }}\n"
     result += f"}}\n"
@@ -137,11 +138,9 @@ def gen_evt(e: Evt) -> str:
     for field in e.fields:
         result += f"  pub {field.name}: {basic_field_type(field.kind)},\n"
     for field in e.optional_fields:
-        result += f"  pub {field.name}: Option<{
-            basic_field_type(field.kind)}>,\n"
+        result += f"  pub {field.name}: Option<{basic_field_type(field.kind)}>,\n"
     if e.varlen_field is not None:
-        result += f"  pub {e.varlen_field.name}: {
-            varlen_field_type(e.varlen_field.kind)},\n"
+        result += f"  pub {e.varlen_field.name}: {varlen_field_type(e.varlen_field.kind)},\n"
     result += f"}}\n"
     result += f"\n"
 
@@ -166,7 +165,9 @@ def gen_evt(e: Evt) -> str:
     result += f"    }}\n"
 
     if e.is_metadata:
-        result += f"    Ok(RawEvt::Metadata(RawMetadataEvt::{pascal_case(e.name)}( Self {{\n"
+        result += (
+            f"    Ok(RawEvt::Metadata(RawMetadataEvt::{pascal_case(e.name)}( Self {{\n"
+        )
         indent = "      "
     else:
         result += f"    Ok(RawEvt::Trace(RawTraceEvt {{\n"
@@ -193,7 +194,9 @@ def gen_evt(e: Evt) -> str:
     return result
 
 
-def gen(evts: List[Evt], enums: List[U8EnumDefinition], output_file: str, crate_dir: str):
+def gen(
+    evts: List[Evt], enums: List[U8EnumDefinition], output_file: str, crate_dir: str
+):
 
     result = ""
     result += HEADER
