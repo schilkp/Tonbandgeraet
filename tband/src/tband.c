@@ -19,110 +19,110 @@
 // ===== TRACE HOOKS ===========================================================
 
 void impl_tband_gather_system_metadata(void) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_TS_RESOLUTION_NS_MAXLEN];
   size_t len = encode_ts_resolution_ns(buf, tband_portTIMESTAMP_RESOLUTION_NS);
   handle_trace_evt(buf, len, EVT_TS_RESOLUTION_NS_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 
 #if (tband_configISR_TRACE_ENABLE == 1)
 void impl_tband_isr_name(uint32_t isr_id, char *name) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_ISR_NAME_MAXLEN];
   size_t len = encode_isr_name(buf, isr_id, name);
   handle_trace_evt(buf, len, EVT_ISR_NAME_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* *tband_configISR_TRACE_ENABLE == 1) */
 
 #if (tband_configISR_TRACE_ENABLE == 1)
 void impl_tband_isr_enter(uint32_t isr_id) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_ISR_ENTER_MAXLEN];
   size_t len = encode_isr_enter(buf, ts, isr_id);
   handle_trace_evt(buf, len, EVT_ISR_ENTER_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* *tband_configISR_TRACE_ENABLE == 1) */
 
 #if (tband_configISR_TRACE_ENABLE == 1)
 void impl_tband_isr_exit(uint32_t isr_id) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_ISR_EXIT_MAXLEN];
   size_t len = encode_isr_exit(buf, ts, isr_id);
   handle_trace_evt(buf, len, EVT_ISR_EXIT_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* tband_configISR_TRACE_ENABLE == 1 */
 
 #if (tband_configMARKER_TRACE_ENABLE == 1)
 void impl_tband_evtmarker_name(uint32_t id, const char *name) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_EVTMARKER_NAME_MAXLEN];
   size_t len = encode_evtmarker_name(buf, id, name);
   handle_trace_evt(buf, len, EVT_EVTMARKER_NAME_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 
 #if (tband_configMARKER_TRACE_ENABLE == 1)
 void impl_tband_evtmarker(uint32_t id, const char *msg) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_EVTMARKER_MAXLEN];
   size_t len = encode_evtmarker(buf, ts, id, msg);
   handle_trace_evt(buf, len, EVT_EVTMARKER_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 
 #if (tband_configMARKER_TRACE_ENABLE == 1)
 void impl_tband_evtmarker_begin(uint32_t id, const char *msg) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_EVTMARKER_BEGIN_MAXLEN];
   size_t len = encode_evtmarker_begin(buf, ts, id, msg);
   handle_trace_evt(buf, len, EVT_EVTMARKER_BEGIN_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 
 #if (tband_configMARKER_TRACE_ENABLE == 1)
 void impl_tband_evtmarker_end(uint32_t id) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_EVTMARKER_END_MAXLEN];
   size_t len = encode_evtmarker_end(buf, ts, id);
   handle_trace_evt(buf, len, EVT_EVTMARKER_END_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 
 #if (tband_configMARKER_TRACE_ENABLE == 1)
 void impl_tband_valmarker_name(uint32_t id, const char *name) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_VALMARKER_NAME_MAXLEN];
   size_t len = encode_valmarker_name(buf, id, name);
   handle_trace_evt(buf, len, EVT_VALMARKER_NAME_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 
 #if (tband_configMARKER_TRACE_ENABLE == 1)
 void impl_tband_valmarker(uint32_t id, int64_t val) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_VALMARKER_MAXLEN];
   size_t len = encode_valmarker(buf, ts, id, val);
   handle_trace_evt(buf, len, EVT_VALMARKER_IS_METADATA, ts);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 

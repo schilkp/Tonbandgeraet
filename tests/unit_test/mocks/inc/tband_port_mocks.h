@@ -15,12 +15,12 @@ DECLARE_FAKE_VALUE_FUNC(uint64_t, mock_port_timestamp)
 
 // tband_port.h:
 // void mock_port_enter_critical_from_any(void);
-// #define tband_portKERNEL_ENTER_CRITICAL_FROM_ANY() mock_port_enter_critical_from_any()
+// #define tband_portENTER_CRITICAL_FROM_ANY() mock_port_enter_critical_from_any()
 DECLARE_FAKE_VOID_FUNC(mock_port_enter_critical_from_any)
 
 // tband_port.h:
 // void mock_port_exit_critical_from_any(void);
-// #define tband_portKERNEL_EXIT_CRITICAL_FROM_ANY() mock_port_exit_critical_from_any()
+// #define tband_portEXIT_CRITICAL_FROM_ANY() mock_port_exit_critical_from_any()
 DECLARE_FAKE_VOID_FUNC(mock_port_exit_critical_from_any)
 
 // tband_port.h:

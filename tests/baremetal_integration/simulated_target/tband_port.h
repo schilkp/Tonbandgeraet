@@ -3,8 +3,8 @@
 
 #include "mocks.h"
 
-#define tband_portKERNEL_ENTER_CRITICAL_FROM_ANY()
-#define tband_portKERNEL_EXIT_CRITICAL_FROM_ANY()
+#define tband_portENTER_CRITICAL_FROM_ANY()
+#define tband_portEXIT_CRITICAL_FROM_ANY()
 
 #define tband_portTIMESTAMP_RESOLUTION_NS 1
 

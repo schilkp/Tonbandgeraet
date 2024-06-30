@@ -8,7 +8,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define tband_portKERNEL_ENTER_CRITICAL_FROM_ANY()                                                 \
+#define tband_portENTER_CRITICAL_FROM_ANY()                                                        \
   bool tband_port_in_irq = xPortIsInsideInterrupt();                                               \
   BaseType_t tband_port_key = 0;                                                                   \
   if (tband_port_in_irq) {                                                                         \
@@ -18,7 +18,7 @@
     (void)tband_port_key;                                                                          \
   }
 
-#define tband_portKERNEL_EXIT_CRITICAL_FROM_ANY()                                                  \
+#define tband_portEXIT_CRITICAL_FROM_ANY()                                                         \
   if (tband_port_in_irq) {                                                                         \
     taskEXIT_CRITICAL_FROM_ISR(tband_port_key);                                                    \
   } else {                                                                                         \

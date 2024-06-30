@@ -24,13 +24,13 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts);
   #error "tband_portTIMESTAMP is not defined!"
 #endif /* tband_portTIMESTAMP */
 
-#ifndef tband_portKERNEL_ENTER_CRITICAL_FROM_ANY
-  #error "tband_portKERNEL_ENTER_CRITICAL_FROM_ANY is not defined!"
-#endif /* tband_portKERNEL_ENTER_CRITICAL_FROM_ANY */
+#ifndef tband_portENTER_CRITICAL_FROM_ANY
+  #error "tband_portENTER_CRITICAL_FROM_ANY is not defined!"
+#endif /* tband_portENTER_CRITICAL_FROM_ANY */
 
-#ifndef tband_portKERNEL_EXIT_CRITICAL_FROM_ANY
-  #error "tband_portKERNEL_EXIT_CRITICAL_FROM_ANY is not defined!"
-#endif /* tband_portKERNEL_EXIT_CRITICAL_FROM_ANY */
+#ifndef tband_portEXIT_CRITICAL_FROM_ANY
+  #error "tband_portEXIT_CRITICAL_FROM_ANY is not defined!"
+#endif /* tband_portEXIT_CRITICAL_FROM_ANY */
 
 #ifndef tband_portNUMBER_OF_CORES
   #define tband_portNUMBER_OF_CORES (1)

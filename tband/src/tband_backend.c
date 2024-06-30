@@ -162,25 +162,25 @@ static bool impl_backend_finished(unsigned int core_id) {
 bool tband_tracing_enabled() { return atomic_load(&tracing_enabled); }
 
 bool tband_tracing_finished() {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   bool is_completed = impl_tracing_finished();
 
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return is_completed;
 }
 
 bool tband_tracing_backend_finished(unsigned int core_id) {
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   bool is_completed = impl_backend_finished(core_id);
 
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return is_completed;
 }
@@ -235,13 +235,13 @@ const volatile uint8_t *tband_get_metadata_buf(unsigned int core_id) {
 // Public API to get current metadata buffer fill level.
 size_t tband_get_metadata_buf_amnt(unsigned int core_id) {
 
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&metadata_bufs[core_id].spinlock);
 
   size_t metadata_buf_amnt = metadata_bufs[core_id].idx;
 
   tband_spinlock_release(&metadata_bufs[core_id].spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return metadata_buf_amnt;
 }
@@ -292,7 +292,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
 
 int tband_start_streaming() {
   int err = 0;
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   // Check if tracing is already active:
@@ -339,14 +339,14 @@ int tband_start_streaming() {
 
 end:
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return err;
 }
 
 int tband_stop_streaming() {
   int err = 0;
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   bool was_enabled = atomic_exchange(&tracing_enabled, false);
@@ -355,7 +355,7 @@ int tband_stop_streaming() {
   }
 
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return err;
 }
@@ -451,7 +451,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
 int tband_trigger_snapshot() {
   int err = 0;
 
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   // Check if tracing is already active:
@@ -466,14 +466,14 @@ int tband_trigger_snapshot() {
 
 end:
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return err;
 }
 
 int tband_stop_snapshot() {
   int err = 0;
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   bool was_enabled = atomic_exchange(&tracing_enabled, false);
@@ -482,7 +482,7 @@ int tband_stop_snapshot() {
   }
 
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return err;
 }
@@ -493,7 +493,7 @@ int tband_stop_snapshot() {
 int tband_reset_snapshot() {
   int err = 0;
 
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   // Check if tracing is already active:
@@ -517,7 +517,7 @@ int tband_reset_snapshot() {
 
 end:
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
 
   return err;
 }
@@ -528,7 +528,7 @@ const volatile uint8_t *tband_get_core_snapshot_buf(unsigned int core_id) {
 
 size_t tband_get_core_snapshot_buf_amnt(unsigned int core_id) {
   size_t amnt = 0;
-  tband_portKERNEL_ENTER_CRITICAL_FROM_ANY();
+  tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   if (impl_backend_finished(core_id)) {
@@ -538,7 +538,7 @@ size_t tband_get_core_snapshot_buf_amnt(unsigned int core_id) {
   }
 
   tband_spinlock_release(&tracing_enabled_spinlock);
-  tband_portKERNEL_EXIT_CRITICAL_FROM_ANY();
+  tband_portEXIT_CRITICAL_FROM_ANY();
   return amnt;
 }
 
