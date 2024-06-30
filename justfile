@@ -45,6 +45,14 @@ freertos_checkout_v11_1_0:
 
 # === Website ===
 
+# Serve documentation from dev server.
+serve_docs:
+    cd docs && mdbook serve
+
+# Build documentation
+build_docs:
+    cd docs && mdbook build
+
 # Build WASM bindings.
 build_wasm:
     cd web/tband-wasm && wasm-pack build

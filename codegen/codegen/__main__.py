@@ -1,10 +1,13 @@
 import sys
 from os.path import abspath, dirname, join
 
+from model import S64, U32, U64, Evt, EvtGroup, Str, U8Enum, U8EnumDefinition
+
 from c_encoder import gen_c_encoder
 from c_tests import gen_c_tests
-from model import S64, U32, U64, Evt, EvtGroup, Str, U8Enum, U8EnumDefinition
 from rs_decoder import gen_rs_decoder
+from md_docs import gen_md_docs
+
 
 # ==== Events: Base ============================================================
 
@@ -179,6 +182,18 @@ def main():
         )
     )
     gen_rs_decoder.gen(groups, rs_decoder_file, rs_crate_dir)
+
+    md_doc_file = abspath(
+        join(
+            script_loc,
+            "..",
+            "..",
+            "doc",
+            "tech_details",
+            "bin_events.md",
+        )
+    )
+    gen_md_docs.gen(groups, md_doc_file)
 
 
 if __name__ == "__main__":

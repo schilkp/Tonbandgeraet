@@ -1,0 +1,22 @@
+[book]
+title = "Tonbandgerät Documentation"
+authors = ["Philipp Schilk"]
+language = "en"
+multilingual = false
+src = "."
+
+[output.html]
+smart-punctuation = true
+mathjax-support = true
+site-url = "https://schilk.co/Tonbandgeraet/docs/"
+git-repository-url = "https://github.com/schilkp/Tonbandgeraet"
+edit-url-template = "https://github.com/schilkp/Tonbandgeraet/blob/main/docs/{path}"
+
+[output.html.search]
+limit-results = 20
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 2
+boost-paragraph = 1
+expand = true
+heading-split-level = 2

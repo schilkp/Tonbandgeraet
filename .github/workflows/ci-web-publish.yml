@@ -48,6 +48,15 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
+      - name: Install mdbook
+        run: |
+          mkdir ~/bin
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
+
+      - name: Build documentation
+        working-directory: ${{github.workspace}}/docs
+        run: ~/bin/mdbook build
+
       - name: Build wasm bindings
         working-directory: ${{github.workspace}}/web/tband-wasm
         run: wasm-pack build

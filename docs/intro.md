@@ -11,23 +11,24 @@ Philipp Schilk, 2024 - GNU GPL3 License
 
 ## Overview
 Tonbandgerät's [core](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) is a small, portable, trace event generator
-and handler written in C and designed for embedded systems. It requires minimal porting and configuration,
-nd features multiple [backends for gathering and transmitting traces.
+and handler written in C and designed for embedded systems. It requires minimal [porting](./porting.md) and [configuration](./config.md),
+and features multiple [backends](./handling.md) for gathering and transmitting traces.
 
-It can be used both with an RTOS or in bare-metal environments to instrument user code and track hardware events by tracing interrupts.
-Full tracing of FreeRTOS tasks and resources is also supported out-of-the box.
+It can be used both with an RTOS or in bare-metal environments to [instrument user code](./evtmarkers.md) and track hardware events by tracing [interrupts](./interrupts.md).
+Full tracing of [FreeRTOS](https://www.freertos.org/index.html) tasks and resources is also supported out-of-the box.
 
-Tonbandgerät is based on a simple custom binary trace format designed to be fairly fast to encode and keep traces as small as possible. Recorded
-traces can be viewed in Google's in-browser perfetto after conversion with the provided CLI tool
-or in-browser converter.
+Tonbandgerät is based on a simple custom [binary trace format](./bin_format.md) designed to be fairly fast to encode and keep traces as small as possible. Recorded
+traces can be viewed in Google's in-browser [perfetto](https://perfetto.dev) after conversion with the provided [CLI](./tband_cli.md) tool
+or in-browser [converter](./web.md).
 
 ## Status
 
-> [!NOTE]  
-> Tonbandgerät is in early development and by no means considered stable. Everything - including the
-> binary trace format - is subject to change.
-> 
-> Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues).
+<div class="warning">
+Tonbandgerät is in early development and by no means considered stable. Everything - including the
+binary trace format - is subject to change.
+
+Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues).
+</div>
 
 ### Completed:
 
@@ -84,4 +85,3 @@ or in-browser converter.
   could also handle trace recording (building on [probe.rs](https://probe.rs/) for RTT communication). A gui
   built on [tauri](https://tauri.app/) and/or [egui](https://github.com/emilk/egui) could continue to enable
   the current in-browser experience.
-
