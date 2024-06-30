@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  cargo-test:
+  conv-cargo-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         working-directory: ${{github.workspace}}/frtrace-conv/
         run: cargo test --all
 
-  fmt-check:
+  conv-fmt-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         working-directory: ${{github.workspace}}/frtrace-conv/
         run: cargo fmt -- --check
 
-  clippy-check:
+  conv-clippy-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

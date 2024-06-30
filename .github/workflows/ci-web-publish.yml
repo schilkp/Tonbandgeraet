@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  web-publish-build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -77,13 +77,12 @@ jobs:
         with:
           path: ${{github.workspace}}/frtrace-web/website/dist
 
-  # Deployment job
-  deploy:
+  web-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: web-publish-build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

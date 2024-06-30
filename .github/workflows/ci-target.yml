@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  target-test:
     strategy:
       matrix:
         freertos_version: ["v10_3_1", "v11_1_0"]
