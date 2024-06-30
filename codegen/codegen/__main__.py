@@ -188,7 +188,7 @@ def main():
             script_loc,
             "..",
             "..",
-            "doc",
+            "docs",
             "tech_details",
             "bin_events.md",
         )
