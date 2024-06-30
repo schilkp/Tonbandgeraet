@@ -54,7 +54,7 @@ def varlen_field_type(f: VarlenFieldKind) -> str:
 def varlen_field_maxlen(f: VarlenFieldKind) -> str:
     match f:
         case "str":
-            return "frtrace_configMAX_STR_LEN"
+            return "tband_configMAX_STR_LEN"
 
 
 def gen_u8_enum(e: U8EnumDefinition) -> str:

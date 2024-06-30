@@ -1,9 +1,0 @@
-[workspace]
-
-resolver = "2"
-
-members = [ 
-    "frtrace-conv",
-    "frtrace-cli",
-    "synthetto"
-]

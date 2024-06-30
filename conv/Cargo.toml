@@ -1,0 +1,9 @@
+[workspace]
+
+resolver = "2"
+
+members = [ 
+    "tband-conv",
+    "tband-cli",
+    "synthetto"
+]

@@ -18,9 +18,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef frtrace_configENABLE
+#ifndef tband_configENABLE
   #error This file should not be included if tracing is not enabled.
-#endif /* frtrace_configENABLE */
+#endif /* tband_configENABLE */
 
 // ==== COBS Framing ===========================================================
 
@@ -154,7 +154,7 @@ static inline void encode_s64(struct cobs_state *cobs, int64_t v) {
 
 static inline void encode_str(struct cobs_state *cobs, const char *str) {
   if (str == 0) return;
-  for (size_t i = 0; i < frtrace_configMAX_STR_LEN; i++) {
+  for (size_t i = 0; i < tband_configMAX_STR_LEN; i++) {
     if (*str == 0) {
       break;
     }

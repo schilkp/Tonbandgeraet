@@ -312,4 +312,4 @@ def gen(groups: List[EvtGroup], output_file: str, crate_dir: str):
     print(f"Generated {output_file}.", file=sys.stderr)
 
     subprocess.run(["cargo", "fmt"], cwd=crate_dir, check=True)
-    print(f"Formatted frtrace-conv-core.", file=sys.stderr)
+    print(f"Formatted tband-conv.", file=sys.stderr)

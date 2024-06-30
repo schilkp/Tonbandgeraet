@@ -148,7 +148,7 @@ def main():
     script_loc = dirname(__file__)
 
     c_encoder_file = abspath(
-        join(script_loc, "..", "..", "frtrace-target", "core", "frtrace_encode.h")
+        join(script_loc, "..", "..", "tband", "inc", "tband_encode.h")
     )
     gen_c_encoder.gen(groups, c_encoder_file)
 
@@ -157,7 +157,7 @@ def main():
             script_loc,
             "..",
             "..",
-            "frtrace-target",
+            "tband",
             "tests",
             "test_encoding_funcs",
             "test.c",
@@ -165,14 +165,14 @@ def main():
     )
     gen_c_tests.gen(groups, c_test_file)
 
-    rs_crate_dir = abspath(join(script_loc, "..", "..", "frtrace-conv", "frtrace-conv"))
+    rs_crate_dir = abspath(join(script_loc, "..", "..", "conv", "tband-conv"))
     rs_decoder_file = abspath(
         join(
             script_loc,
             "..",
             "..",
-            "frtrace-conv",
-            "frtrace-conv",
+            "conv",
+            "tband-conv",
             "src",
             "decode",
             "evts.rs",

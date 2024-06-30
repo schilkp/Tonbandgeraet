@@ -1,0 +1,13 @@
+[package]
+name = "tband_conv"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+anyhow = "1.0.86"
+log = "0.4.21"
+synthetto = { path = "../synthetto" }
+
+[build-dependencies]
+prost-build = "0.12.6"

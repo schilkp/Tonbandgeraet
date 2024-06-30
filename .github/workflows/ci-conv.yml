@@ -20,7 +20,7 @@ jobs:
         run:  sudo apt-get install protobuf-compiler
 
       - name: Cargo Test
-        working-directory: ${{github.workspace}}/frtrace-conv/
+        working-directory: ${{github.workspace}}/conv/
         run: cargo test --all
 
   conv-fmt-check:
@@ -32,7 +32,7 @@ jobs:
           toolchain: stable
           components: rustfmt
       - name: Format Check
-        working-directory: ${{github.workspace}}/frtrace-conv/
+        working-directory: ${{github.workspace}}/conv/
         run: cargo fmt -- --check
 
   conv-clippy-check:
@@ -48,5 +48,5 @@ jobs:
         run:  sudo apt-get install protobuf-compiler
 
       - name: Lint
-        working-directory: ${{github.workspace}}/frtrace-conv/
+        working-directory: ${{github.workspace}}/conv/
         run: cargo clippy --all-features -- -D warnings

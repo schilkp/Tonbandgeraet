@@ -29,25 +29,25 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build wasm bindings
-        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        working-directory: ${{github.workspace}}/web/tband-wasm
         run: wasm-pack build
 
       - name: Run rust tests
-        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        working-directory: ${{github.workspace}}/web/tband-wasm
         run: cargo test --all
 
       - name: Run clippy
-        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        working-directory: ${{github.workspace}}/web/tband-wasm
         run: cargo clippy -- -D warnings
 
       - name: Check rust format
-        working-directory: ${{github.workspace}}/frtrace-web/frtrace-wasm
+        working-directory: ${{github.workspace}}/web/tband-wasm
         run: cargo fmt -- --check
 
       - name: Setup node env
-        working-directory: ${{github.workspace}}/frtrace-web/website
+        working-directory: ${{github.workspace}}/web/website
         run: npm install
 
       - name: Build website
-        working-directory: ${{github.workspace}}/frtrace-web/website
+        working-directory: ${{github.workspace}}/web/website
         run: npm run build

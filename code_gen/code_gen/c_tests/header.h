@@ -17,7 +17,7 @@
 
 #include "FreeRTOS.h"
 
-#include "frtrace_encode.h"
+#include "tband_encode.h"
 
 void util_print_array(uint8_t *in, size_t in_len, char *name) {
   printf("  %s: ", name);
