@@ -4,7 +4,7 @@
  * @author Philipp Schilk, 2024
  */
 
-#include "FreeRTOS.h"
+#include "tband.h"
 
 #if (tband_configENABLE == 1)
 
@@ -12,38 +12,28 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "task.h"
+#define tbandPROPER_INTERNAL_INCLUDE
+#include "tband_internal.h"
+#undef tbandPROPER_INTERNAL_INCLUDE
 
-#include "tband_encode.h"
-
-// ===== BACKWARDS-COMPATABILITY ===============================================
-
-// FIXME add versionc check
-
-#ifndef configNUMBER_OF_CORES
-#define configNUMBER_OF_CORES 1
-#endif /* configNUMBER_OF_CORES */
-
-#ifndef portGET_CORE_ID
-#define portGET_CORE_ID() 0
-#endif /* portGET_CORE_ID */
 
 // ===== MACRO MAGIC ===========================================================
 
-// The tracer stores all per-core information in static arrays of structs of length portGET_CORE_ID.
-// These often contain spinlocks, which are just a wrapper around atomic_flag, which needs
-// to be initialised using ATOMIC_FLAG_INIT (tband_spinlock_INIT). Since C has no mechanism
-// for initialising an array of some length N to a non-zero value with a static initialiser, this
-// macro hack repeats the desired initialiser once for every core. Not pretty, but it works.
+// The tracer stores all per-core information in static arrays of structs of length
+// tband_portGET_CORE_ID. These often contain spinlocks, which are just a wrapper around
+// atomic_flag, which needs to be initialised using ATOMIC_FLAG_INIT (tband_spinlock_INIT). Since C
+// has no mechanism for initialising an array of some length N to a non-zero value with a static
+// initialiser, this macro hack repeats the desired initialiser once for every core. Not pretty, but
+// it works.
 
 // clang-format off
-#if (configNUMBER_OF_CORES == 1)
+#if (tband_portNUMBER_OF_CORES == 1)
   #define CORE_ARRAY_INIT(...) { __VA_ARGS__  }
-#elif (configNUMBER_OF_CORES == 2)
+#elif (tband_portNUMBER_OF_CORES == 2)
   #define CORE_ARRAY_INIT(...) { __VA_ARGS__ , __VA_ARGS__  }
-#elif (configNUMBER_OF_CORES == 3)
+#elif (tband_portNUMBER_OF_CORES == 3)
   #define CORE_ARRAY_INIT(...) { __VA_ARGS__ , __VA_ARGS__ , __VA_ARGS__  }
-#elif (configNUMBER_OF_CORES == 4)
+#elif (tband_portNUMBER_OF_CORES == 4)
   #define CORE_ARRAY_INIT(...) { __VA_ARGS__ , __VA_ARGS__ , __VA_ARGS__ , __VA_ARGS__  }
 #else
   #error Are you seriously using FreeRTOS SMP with more than 4 cores?! Wow..
@@ -57,30 +47,30 @@ typedef atomic_flag tband_spinlock;
 
 // Must be called from a (per-core) critical section!
 static inline bool tband_spinlock_try_acquire(volatile tband_spinlock *lock) {
-#if (configNUMBER_OF_CORES > 1)
+#if (tband_portNUMBER_OF_CORES > 1)
   return atomic_flag_test_and_set_explicit(lock, memory_order_acquire);
-#else  /* configNUMBER_OF_CORES > 1 */
+#else  /* tband_portNUMBER_OF_CORES > 1 */
   (void)lock;
   return true;
-#endif /* configNUMBER_OF_CORES > 1 */
+#endif /* tband_portNUMBER_OF_CORES > 1 */
 }
 
 // Must be called from a (per-core) critical section!
 static inline void tband_spinlock_acquire(volatile tband_spinlock *lock) {
-#if (configNUMBER_OF_CORES > 1)
+#if (tband_portNUMBER_OF_CORES > 1)
   while(!atomic_flag_test_and_set_explicit(lock, memory_order_acquire){}
-#else  /* configNUMBER_OF_CORES > 1 */
+#else  /* tband_portNUMBER_OF_CORES > 1 */
   (void)lock;
-#endif /* configNUMBER_OF_CORES > 1 */
+#endif /* tband_portNUMBER_OF_CORES > 1 */
 }
 
 // Must be called from a (per-core) critical section!
 static inline void tband_spinlock_release(volatile tband_spinlock *lock) {
-#if (configNUMBER_OF_CORES > 1)
+#if (tband_portNUMBER_OF_CORES > 1)
   atomic_flag_clear_explicit(lock, memory_order_release);
-#else  /* configNUMBER_OF_CORES > 1 */
+#else  /* tband_portNUMBER_OF_CORES > 1 */
   (void)lock;
-#endif /* configNUMBER_OF_CORES > 1 */
+#endif /* tband_portNUMBER_OF_CORES > 1 */
 }
 
 //                      ____ ___  __  __ __  __  ___  _   _
@@ -103,7 +93,7 @@ static volatile tband_spinlock tracing_enabled_spinlock = tband_spinlock_INIT;
 //   - Check that tracing_enabled is set again, and only handle the evnt if so.
 //   - Release its backend spinlock.
 // clang-format off
-static volatile tband_spinlock backend_spinlocks[configNUMBER_OF_CORES] = CORE_ARRAY_INIT(
+static volatile tband_spinlock backend_spinlocks[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT(
   tband_spinlock_INIT
 );
 // clang-format on
@@ -136,7 +126,7 @@ static bool impl_tracing_finished() {
     return false;
   }
 
-  for (unsigned int core_id = 0; core_id < configNUMBER_OF_CORES; core_id++) {
+  for (unsigned int core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
     if (tband_spinlock_try_acquire(&backend_spinlocks[core_id])) {
       // Backend not busy.
       tband_spinlock_release(&backend_spinlocks[core_id]);
@@ -207,7 +197,7 @@ struct metadata_buf {
 };
 
 // clang-format off
-static volatile struct metadata_buf metadata_bufs[configNUMBER_OF_CORES] = CORE_ARRAY_INIT({
+static volatile struct metadata_buf metadata_bufs[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
   .spinlock = tband_spinlock_INIT,
   .buf = {0},
   .idx = 1,
@@ -217,7 +207,7 @@ static volatile struct metadata_buf metadata_bufs[configNUMBER_OF_CORES] = CORE_
 
 // Append data to the metadata buffer. Must be called from a (per-core) critical section!
 static void append_to_metadata_buf(uint8_t *buf, size_t len) {
-  unsigned int core_id = portGET_CORE_ID();
+  unsigned int core_id = tband_portGET_CORE_ID();
 
   tband_spinlock_acquire(&metadata_bufs[core_id].spinlock);
 
@@ -285,7 +275,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
 #endif /* tband_configUSE_METADATA_BUF == 1 */
 
   bool did_drop = false;
-  unsigned int core_id = portGET_CORE_ID();
+  unsigned int core_id = tband_portGET_CORE_ID();
 
   // Global flag is checked before and after backend spinlock is acquired.
   // This is required for impl_tracing_finished to work correctly! See function for more details.
@@ -317,7 +307,7 @@ int tband_start_streaming() {
 
   bool did_drop = false;
 
-  for (unsigned int core_id = 0; core_id < configNUMBER_OF_CORES; core_id++) {
+  for (unsigned int core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
 
     tband_spinlock_acquire(&metadata_bufs[core_id].spinlock);
     size_t metadata_amnt = metadata_bufs[core_id].idx;
@@ -335,7 +325,7 @@ int tband_start_streaming() {
 
   // Reset to current core:
   uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
-  size_t core_id_msg_len = encode_core_id(core_id_msg, 0, portGET_CORE_ID());
+  size_t core_id_msg_len = encode_core_id(core_id_msg, 0, tband_portGET_CORE_ID());
   did_drop |= tband_portBACKEND_STREAM_DATA(core_id_msg, core_id_msg_len);
 
   if (did_drop) {
@@ -391,7 +381,7 @@ struct tband_snapshot_backend {
 };
 
 // clang-format off
-static volatile struct tband_snapshot_backend snapshot_backends[configNUMBER_OF_CORES] = CORE_ARRAY_INIT({
+static volatile struct tband_snapshot_backend snapshot_backends[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
   .buf = {0},
   .idx = 1,
 });
@@ -412,7 +402,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
 #endif /* tband_configUSE_METADATA_BUF == 1 */
 
   bool buffer_full = false;
-  unsigned int core_id = portGET_CORE_ID();
+  unsigned int core_id = tband_portGET_CORE_ID();
 
   // Global flag is checked before and after backend spinlock is acquired.
   // This is required for impl_tracing_finished to work correctly! See function for more details.
@@ -513,7 +503,7 @@ int tband_reset_snapshot() {
     goto end;
   }
 
-  for (unsigned int core_id = 0; core_id < configNUMBER_OF_CORES; core_id++) {
+  for (unsigned int core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
     tband_spinlock_acquire(&backend_spinlocks[core_id]);
 
     // Dont need to clear whole buffer - it won't get read if the idx is reset.

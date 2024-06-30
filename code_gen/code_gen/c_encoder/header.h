@@ -18,9 +18,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef tband_configENABLE
-  #error This file should not be included if tracing is not enabled.
-#endif /* tband_configENABLE */
+#ifndef tbandPROPER_INTERNAL_INCLUDE
+  #error "This internal header file is not a public API and should be be included. Include tband.h instead."
+#endif /* tbandPROPER_INTERNAL_INCLUDE */
 
 // ==== COBS Framing ===========================================================
 

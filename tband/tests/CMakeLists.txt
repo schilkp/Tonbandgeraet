@@ -15,17 +15,18 @@ add_library(TestFramework STATIC Unity/unity.c)
 target_include_directories(TestFramework PUBLIC Unity)
 
 # Util function to add a new test file.
-function(add_unit_test TEST_FOLDER)
+function(add_unit_test TEST_FOLDER ADDITIONAL_HEADERS)
     # New test executable:
     add_executable(${TEST_FOLDER})
-    target_sources(${TEST_FOLDER} PRIVATE ${TEST_FOLDER}/test.c)
+    FILE(GLOB TEST_SOURCES ${TEST_FOLDER}/*.c)
+    target_sources(${TEST_FOLDER} PRIVATE ${TEST_SOURCES})
     target_include_directories(${TEST_FOLDER} PUBLIC ${TEST_FOLDER})
 
     # Unity test framework:
     target_link_libraries(${TEST_FOLDER} PUBLIC TestFramework)
 
-    # FreeRTOS headers:
-    target_include_directories(${TEST_FOLDER} PUBLIC ../../FreeRTOS-Kernel/include)
+    # Additional headers:
+    target_include_directories(${TEST_FOLDER} PUBLIC ${ADDITIONAL_HEADERS})
 
     # tband:
     target_include_directories(${TEST_FOLDER} PUBLIC ../inc/)
@@ -34,10 +35,9 @@ function(add_unit_test TEST_FOLDER)
 
     # Testing stubs/mocks:
     target_include_directories(${TEST_FOLDER} PUBLIC mocks/inc/)
-    target_sources(${TEST_FOLDER} PRIVATE mocks/src/function_mocks.c)
-
+    target_sources(${TEST_FOLDER} PRIVATE mocks/src/tband_port_mocks.c)
 endfunction()
 
-add_unit_test(test_cobs_framing)
-add_unit_test(test_varint_enc)
-add_unit_test(test_encoding_funcs)
+add_unit_test(test_cobs_framing "")
+add_unit_test(test_varint_enc "")
+add_unit_test(test_encoding_funcs "")

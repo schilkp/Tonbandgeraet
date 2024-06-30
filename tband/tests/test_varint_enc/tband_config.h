@@ -6,6 +6,7 @@
 #ifndef TBAND_TEST_CONFIG_H_
 #define TBAND_TEST_CONFIG_H_
 
+#define tband_configENABLE                (1)
 #define tband_configUSE_BACKEND_STREAMING (1)
 
 #endif /* TBAND_TEST_CONFIG_H_ */

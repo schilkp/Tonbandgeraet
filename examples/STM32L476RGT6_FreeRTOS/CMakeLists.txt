@@ -53,6 +53,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 
     # tband:
     ../../tband/src/tband.c
+    ../../tband/src/tband_freertos.c
     ../../tband/src/tband_backend.c
 
     # Application:

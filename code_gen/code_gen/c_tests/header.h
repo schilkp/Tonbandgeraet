@@ -17,7 +17,9 @@
 
 #include "FreeRTOS.h"
 
+#define tbandPROPER_INTERNAL_INCLUDE
 #include "tband_encode.h"
+#undef tbandPROPER_INTERNAL_INCLUDE
 
 void util_print_array(uint8_t *in, size_t in_len, char *name) {
   printf("  %s: ", name);
