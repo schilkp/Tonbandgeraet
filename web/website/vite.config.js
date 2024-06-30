@@ -6,5 +6,5 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [vue(), wasm(), topLevelAwait()],
-    base: "https://schilk.co/tonbandgeraet/"
+    base: "https://schilk.co/Tonbandgeraet/"
 })
