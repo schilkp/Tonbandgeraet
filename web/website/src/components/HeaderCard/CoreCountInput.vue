@@ -17,9 +17,9 @@ function core_count_update(e: any) {
 
   core_count_inp_flash.reset();
 
-  if (isNaN(val_int) || val_int === 0 || val_int > 32) {
+  if (isNaN(val_int) || val_int <= 0 || val_int > 32) {
     console.warn("Invalid core num");
-    if (val_int === 0) {
+    if (val_int <= 0) {
       core_count.value = 1;
     } else if (val_int > 32) {
       core_count.value = 32;
