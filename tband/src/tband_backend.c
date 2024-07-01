@@ -16,7 +16,6 @@
 #include "tband_internal.h"
 #undef tbandPROPER_INTERNAL_INCLUDE
 
-
 // ===== MACRO MAGIC ===========================================================
 
 // The tracer stores all per-core information in static arrays of structs of length
@@ -282,7 +281,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
   if (atomic_load(&tracing_enabled)) {
     tband_spinlock_acquire(&backend_spinlocks[core_id]);
     if (atomic_load(&tracing_enabled)) {
-      did_drop = tband_portBACKEND_STREAM_DATA(buf, len);
+      did_drop = tband_portBACKEND_STREAM_DATA(((const uint8_t *)buf), ((size_t)len));
     }
     tband_spinlock_release(&backend_spinlocks[core_id]);
   }
@@ -317,8 +316,9 @@ int tband_start_streaming() {
     if (metadata_amnt > 0) {
       uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
       size_t core_id_msg_len = encode_core_id(core_id_msg, 0, core_id);
-      did_drop |= tband_portBACKEND_STREAM_DATA(core_id_msg, core_id_msg_len);
-      did_drop |= tband_portBACKEND_STREAM_DATA(buf, metadata_amnt);
+      did_drop |=
+        tband_portBACKEND_STREAM_DATA(((const uint8_t *)core_id_msg), ((size_t)core_id_msg_len));
+      did_drop |= tband_portBACKEND_STREAM_DATA(((const uint8_t *)buf), ((size_t)metadata_amnt));
     }
     if (did_drop) break;
   }
@@ -326,7 +326,8 @@ int tband_start_streaming() {
   // Reset to current core:
   uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
   size_t core_id_msg_len = encode_core_id(core_id_msg, 0, tband_portGET_CORE_ID());
-  did_drop |= tband_portBACKEND_STREAM_DATA(core_id_msg, core_id_msg_len);
+  did_drop |=
+    tband_portBACKEND_STREAM_DATA(((const uint8_t *)core_id_msg), ((size_t)core_id_msg_len));
 
   if (did_drop) {
     err = -2;
@@ -370,9 +371,9 @@ int tband_stop_streaming() {
 
 #if (tband_configUSE_BACKEND_SNAPSHOT == 1)
 
-#ifndef tband_portBACKEND_SNAPSHOT_DONE_CALLBACK
-#define tband_portBACKEND_SNAPSHOT_DONE_CALLBACK()
-#endif /* tband_portBACKEND_SNAPSHOT_DONE_CALLBACK */
+#ifndef tband_portBACKEND_SNAPSHOT_BUF_FULL_CALLBACK
+#define tband_portBACKEND_SNAPSHOT_BUF_FULL_CALLBACK()
+#endif /* tband_portBACKEND_SNAPSHOT_BUF_FULL_CALLBACK */
 
 // Per-core snapshot backend state:
 struct tband_snapshot_backend {
@@ -437,7 +438,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
     // Only call callback if we were the ones to actually disable snapshot acquisition,
     // preventing the callback being called multiple times:
     if (was_enabled) {
-      tband_portBACKEND_SNAPSHOT_DONE_CALLBACK();
+      tband_portBACKEND_SNAPSHOT_BUF_FULL_CALLBACK();
     }
 
     tband_spinlock_release(&tracing_enabled_spinlock);

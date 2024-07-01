@@ -21,8 +21,8 @@ uint64_t traceport_timestamp(void);
 // #define tband_portBACKEND_STREAM_DATA(_buf_, _len_) traceport_handle_raw_evt((_buf_), (_len_))
 
 #define tband_configUSE_BACKEND_SNAPSHOT 1
-extern volatile bool TRACING_SNAPSHOT_DONE;
+extern volatile bool TRACING_SNAPSHOT_BUF_FULL;
 void traceport_snapshot_done(void);
-#define tband_portBACKEND_SNAPSHOT_DONE_CALLBACK() traceport_snapshot_done()
+#define tband_portBACKEND_SNAPSHOT_BUF_FULL_CALLBACK() traceport_snapshot_done()
 
 #endif /* TBAND_CONFIG_H_ */
