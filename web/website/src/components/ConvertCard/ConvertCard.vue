@@ -111,5 +111,22 @@ function download() {
       </div>
     </div>
     <LogViewer />
+    <div class="uk-width-1-1 uk-margin"></div>
+    <div class="uk-grid-small uk-margin" uk-grid>
+      <div class="uk-width-1-4@s uk-text-center">
+        <a href="https://github.com/schilkp/Tonbandgeraet">📦 Source</a>
+      </div>
+      <div class="uk-width-1-4@s uk-text-center">
+        <a href="https://schilk.co/Tonbandgeraet/docs/index.html"
+          >📚 Documentation</a
+        >
+      </div>
+      <div class="uk-width-1-4@s uk-text-center">
+        <a href="https://schilk.co/">🌍 schilk.co</a>
+      </div>
+      <div class="uk-width-1-4@s uk-text-center">
+        Philipp Schilk '24, GNU GPL3
+      </div>
+    </div>
   </div>
 </template>

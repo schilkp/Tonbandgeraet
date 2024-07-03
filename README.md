@@ -27,7 +27,7 @@ by running `mdbook build` in `docs/`. The latest version of the documentation ca
 
 ## Trace Converter + Viewing
 The trace converter is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience there is
-also a WASM version with web frontend, which can be found [here](https://schilk.co/Tonbandgeraet/).
+also a WASM version with web frontend, which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
 
 ---
 ## Status
