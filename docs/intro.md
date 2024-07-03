@@ -9,7 +9,12 @@ A small embedded systems tracer with support for bare-metal and FreeRTOS-based t
 
 Philipp Schilk, 2024 - GNU GPL3 License
 
+---
+
 ## Overview
+
+![A sample trace](./imgs/banner.png)
+
 Tonbandgerät's [core](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) is a small, portable, trace event generator
 and handler written in C and designed for embedded systems. It requires minimal [porting](./porting.md) and [configuration](./config.md),
 and features multiple [backends](./handling.md) for gathering and transmitting traces.
