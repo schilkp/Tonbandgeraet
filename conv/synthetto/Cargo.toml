@@ -1,6 +1,8 @@
 [package]
 name = "synthetto"
-version = "0.1.0"
+version = "0.0.1"
+license = "MIT OR Apache-2.0"
+description = "Generate synthetic traces for Google's Perfetto trace viewer."
 edition = "2021"
 
 [dependencies]

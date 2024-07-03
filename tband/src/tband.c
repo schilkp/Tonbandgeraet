@@ -15,7 +15,6 @@
 #include "tband_internal.h"
 #undef tbandPROPER_INTERNAL_INCLUDE
 
-
 // ===== TRACE HOOKS ===========================================================
 
 void impl_tband_gather_system_metadata(void) {
@@ -28,7 +27,7 @@ void impl_tband_gather_system_metadata(void) {
 }
 
 #if (tband_configISR_TRACE_ENABLE == 1)
-void impl_tband_isr_name(uint32_t isr_id, char *name) {
+void impl_tband_isr_name(uint32_t isr_id, const char *name) {
   tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_ISR_NAME_MAXLEN];

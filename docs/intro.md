@@ -51,7 +51,8 @@ Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues)
 #### Tonbandgerät:
 
 - Support for multicore tracing, including FreeRTOS SMP:
-  Implemented and theoretically (almost?) done, but completely untested.
+  Implemented and theoretically (almost?) done, but completely untested. Currently this
+  is limited to cores that share a single, monotonic, time stamp timer.
 
 - Full FreeRTOS support, including some PRs: PRs are in a draft state/being
   reviewd. Certain FreeRTOS (rare) are not yet traced correctly due to insufficient
@@ -66,6 +67,8 @@ Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues)
 
 #### Tonbandgerät:
 - Post-mortem backend.
+- Task stack utilization tracing.
+- Multi-core for cores without common timebase.
 
 #### Other:
 - More examples, including a bare-metal project, RTT-backed project, and
@@ -73,6 +76,10 @@ Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues)
 - More example ports.
 
 ## Ideas:
+
+#### Support Other RTOSes:
+- All FreeRTOS-specific functionality has already been seperated into its own "module", and more RTOSes
+  could be added as separate modules.
 
 #### Custom UI:
 - Perfetto, while incredibly powerful and simple to target, is not a perfect match for Tonbandgerät.
@@ -85,3 +92,5 @@ Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues)
   could also handle trace recording (building on [probe.rs](https://probe.rs/) for RTT communication). A gui
   built on [tauri](https://tauri.app/) and/or [egui](https://github.com/emilk/egui) could continue to enable
   the current in-browser experience.
+
+- This would require a better in-memory model of trace data. Likely something like an in-memory DB? Apache Arrow?

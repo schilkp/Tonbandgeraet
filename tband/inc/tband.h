@@ -153,34 +153,93 @@
 
   // ISRs:
   #if (tband_configISR_TRACE_ENABLE == 1)
-    void impl_tband_isr_name(uint32_t isr_id, char *name);
+    void impl_tband_isr_name(uint32_t isr_id, const char *name);
+    void impl_tband_isr_enter(uint32_t isr_id);
+    void impl_tband_isr_exit(uint32_t isr_id);
+
+    /**
+     * @brief Name an interrupt.
+     * @note This is a metadata event that is added to the metadata buffer, if
+     *       it is enabled.
+     *
+     * @param id interrupt id.
+     * @param name name to be given.
+     */
     #define tband_isr_name(isr_id, name) impl_tband_isr_name(isr_id, name)
 
-    void impl_tband_isr_enter(uint32_t isr_id);
+    /**
+     * @brief Trace that an interrupt handler has started executing.
+     *
+     * @param id interrupt id.
+     */
     #define tband_isr_enter(isr_id) impl_tband_isr_enter(isr_id)
 
-    void impl_tband_isr_exit(uint32_t isr_id);
+    /**
+     * @brief Trace that an interrupt handler has finished executing.
+     *
+     * @param id interrupt id.
+     */
     #define tband_isr_exit(isr_id) impl_tband_isr_exit(isr_id)
   #endif /* (tband_configISR_TRACE_ENABLE == 1) */
 
   // Markers:
   #if (tband_configMARKER_TRACE_ENABLE == 1)
     void impl_tband_evtmarker_name(uint32_t id, const char* name);
+    void impl_tband_evtmarker(uint32_t id, const char* msg);
+    void impl_tband_evtmarker_begin(uint32_t id, const char* msg);
+    void impl_tband_evtmarker_end(uint32_t id);
+    void impl_tband_valmarker_name(uint32_t id, const char* name);
+    void impl_tband_valmarker(uint32_t id, int64_t val);
+
+    /**
+     * @brief Name an event marker.
+     * @note This is a metadata event that is added to the metadata buffer, if
+     *       it is enabled.
+     *
+     * @param id event marker id.
+     * @param name name to be given.
+     */
     #define tband_evtmarker_name(id, name) impl_tband_evtmarker_name(id, name)
 
-    void impl_tband_evtmarker(uint32_t id, const char* msg);
+    /**
+     * @brief Trace an instant event.
+     *
+     * @param id event marker id.
+     * @param msg trace event message (optional).
+     */
     #define tband_evtmarker(id, msg) impl_tband_evtmarker(id, msg)
 
-    void impl_tband_evtmarker_begin(uint32_t id, const char* msg);
+    /**
+     * @brief Trace beginning of a slice event marker.
+     *
+     * @param id event marker id.
+     * @param msg trace event message (optional).
+     */
     #define tband_evtmarker_begin(id, msg) impl_tband_evtmarker_begin(id, msg)
 
-    void impl_tband_evtmarker_end(uint32_t id);
+    /**
+     * @brief Trace end of a slice event marker.
+     *
+     * @param msg trace event message (optional).
+     */
     #define tband_evtmarker_end(id) impl_tband_evtmarker_end(id)
 
-    void impl_tband_valmarker_name(uint32_t id, const char* name);
+    /**
+     * @brief Name a value marker.
+     * @note This is a metadata event that is added to the metadata buffer, if
+     *       it is enabled.
+     *
+     * @param id value marker id.
+     * @param name name to be given.
+     */
     #define tband_valmarker_name(id, name) impl_tband_valmarker_name(id, name)
 
-    void impl_tband_valmarker(uint32_t id, int64_t val);
+    /**
+     * @brief Trace a numeric value.
+     *
+     * @param id value marker id.
+     * @param val value to be traced.
+     */
     #define tband_valmarker(id, val) impl_tband_valmarker(id, val)
   #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 

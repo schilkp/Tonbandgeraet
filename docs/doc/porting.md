@@ -51,7 +51,6 @@ a critical section must have, see [here](./porting_critical_sections.md).
   }
 ```
 
-
 ## `tband_portEXIT_CRITICAL_FROM_ANY()`
 - Required: `YES`
 
@@ -93,7 +92,6 @@ details. This macro **must** return a value between 0 and `tband_portNUMBER_OF_C
 // Single core, always running on core 0:
 #define tband_portGET_CORE_ID (0)
 ```
-
 ---
 # Streaming Backend Porting
 
