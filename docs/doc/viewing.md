@@ -6,7 +6,7 @@ made for traces much bigger and denser than what this tool will ever generate.
 
 To use this converter, two UIs are provided:
 
-- [tband-cli](./tband_cli.md) command-line tool, and
+- The [tband-cli](./tband_cli.md) command-line tool, and
 - the [web converter](./web.md), an in-browser converter which embeds the converter cross-compiled to WASM.
 
 ![A screenshot of perfetto, with a Tonbandgerät trace loaded](./imgs/trace_example.png)
