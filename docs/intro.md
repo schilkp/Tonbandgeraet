@@ -61,7 +61,7 @@ or in-browser [converter](./web.md).
 
 
 #### Other:
-    - This documentation.
+- This documentation.
 
 ### Planned:
 
