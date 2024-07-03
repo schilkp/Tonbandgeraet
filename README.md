@@ -25,6 +25,11 @@ or in-browser converter.
 The documentation for Tonbandgerät can be found in the `docs/` folder and compiled for viewing with [mdbook](https://github.com/rust-lang/mdBook)
 by running `mdbook build` in `docs/`. The latest version of the documentation can also be viewed online [here](https://schilk.co/Tonbandgeraet/docs/index.html).
 
+## Trace Converter + Viewing
+The trace converter is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience there is
+also a WASM version with web frontend, which can be found [here](https://schilk.co/Tonbandgeraet/).
+
+---
 ## Status
 
 > [!NOTE]
