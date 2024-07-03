@@ -21,13 +21,17 @@ Tonbandgerät is based on a simple custom [binary trace format](./bin_format.md)
 traces can be viewed in Google's in-browser [perfetto](https://perfetto.dev) after conversion with the provided [CLI](./tband_cli.md) tool
 or in-browser [converter](./web.md).
 
+## Trace Converter + Viewing
+The [trace converter](./doc/tband_cli.md) is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience there is
+also a [WASM version with web frontend](./doc/web.md), which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
+
 ## Status
 
 > 🚧 Note
-> 
+>
 > Tonbandgerät is in early development and by no means considered stable. Everything - including the
 > binary trace format - is subject to change.
-> 
+>
 > Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues).
 
 ### Completed:

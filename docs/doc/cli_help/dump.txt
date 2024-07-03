@@ -1,0 +1,24 @@
+> tband-cli dump --help
+Dump trace recording
+
+Usage: tband-cli dump [OPTIONS] --mode <MODE> --input <INPUT>
+
+Options:
+  -f, --format <FORMAT>
+          Input format
+          
+          [default: bin]
+          [possible values: hex, bin]
+
+  -m, --mode <MODE>
+          TraceMode
+          
+          [possible values: bare-metal, free-rtos]
+
+  -i, --input <INPUT>
+          Input files with optional core id.
+          
+          For split multi-core recording, append core id to file name as such: filename@core_id
+
+  -h, --help
+          Print help (see a summary with '-h')

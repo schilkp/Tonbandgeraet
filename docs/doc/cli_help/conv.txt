@@ -1,0 +1,40 @@
+> tband-cli conv --help
+Convert trace recording
+
+Usage: tband-cli conv [OPTIONS] [INPUT]...
+
+Arguments:
+  [INPUT]...
+          Input files with optional core id.
+          
+          For split multi-core recording, append core id to file name as such: filename@core_id
+
+Options:
+  -f, --format <FORMAT>
+          Input format
+          
+          [default: bin]
+          [possible values: hex, bin]
+
+  -m, --mode <MODE>
+          TraceMode
+          
+          [default: free-rtos]
+          [possible values: bare-metal, free-rtos]
+
+  -c, --core-count <CORE_COUNT>
+          Number of cores of target
+          
+          [default: 1]
+
+  -o, --output <OUTPUT>
+          Location to store converted trace
+
+      --open
+          Open converted trace in perfetto
+
+      --serve
+          Serve converted trace for perfetto
+
+  -h, --help
+          Print help (see a summary with '-h')

@@ -1,0 +1,10 @@
+> tband-cli completion --help
+Print completion script for specified shell
+
+Usage: tband-cli completion <SHELL>
+
+Arguments:
+  <SHELL>  Style of completion script to generate [possible values: bash, elvish, fish, powershell, zsh]
+
+Options:
+  -h, --help  Print help

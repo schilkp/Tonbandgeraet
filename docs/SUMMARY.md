@@ -21,9 +21,9 @@
     - [🚧 Post-Mortem Backend](./doc/postmortem.md)
     - [🚧 Dropped Events](./doc/dropped_evts.md)
 - [🚧 Multi-core Support](./doc/multicore_support.md)
-- [🚧 Viewing your traces](./doc/viewing.md)
-    - [🚧 CLI Trace Converter](./doc/tband_cli.md)
-    - [🚧 Web Trace Converter](./doc/web.md)
+- [Viewing your traces](./doc/viewing.md)
+    - [CLI Trace Converter](./doc/tband_cli.md)
+    - [Web Trace Converter](./doc/web.md)
 # Technical Details
 - [Trace Format](./tech_details/trace_format.md)
     - [COBS Framing](./tech_details/cobs.md)
