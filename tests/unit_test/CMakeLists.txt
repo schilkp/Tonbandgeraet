@@ -37,5 +37,5 @@ function(add_unit_test TEST_FOLDER)
 endfunction()
 
 add_unit_test(test_cobs_framing)
-add_unit_test(test_varint_enc)
+add_unit_test(test_varlen_enc)
 add_unit_test(test_encoding_funcs)
