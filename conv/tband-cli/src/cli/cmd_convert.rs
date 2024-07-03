@@ -77,7 +77,7 @@ pub struct Cmd {
     pub format: InputFormat,
 
     /// TraceMode
-    #[arg(short, long)]
+    #[arg(short, long, default_value = "free-rtos")]
     pub mode: TraceMode,
 
     /// Number of cores of target
