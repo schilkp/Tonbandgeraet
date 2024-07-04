@@ -18,12 +18,12 @@ Philipp Schilk, 2024 - GNU GPL3 License
 
 Tonbandgerät's [core](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) is a small, portable, trace event generator
 and handler written in C and designed for embedded systems. It requires minimal porting and configuration,
-nd features multiple [backends for gathering and transmitting traces.
+and features multiple backends for gathering and transmitting traces.
 
 It can be used both with an RTOS or in bare-metal environments to instrument user code and track hardware events by tracing interrupts.
 Full tracing of FreeRTOS tasks and resources is also supported out-of-the box.
 
-Tonbandgerät is based on a simple custom binary trace format designed to be fairly fast to encode and keep traces as small as possible. Recorded
+Tonbandgerät is based on a simple custom binary trace format designed to be both compact and fairly fast to encode. Recorded
 traces can be viewed in Google's in-browser perfetto after conversion with the provided CLI tool
 or in-browser converter.
 
