@@ -7,10 +7,9 @@
 
 A small embedded systems tracer with support for bare-metal and FreeRTOS-based targets.
 
-Philipp Schilk, 2024 - GNU GPL3 License
+Philipp Schilk, 2024
 
 ---
-
 
 ## Overview
 
@@ -34,6 +33,13 @@ by running `mdbook build` in `docs/`. The latest version of the documentation ca
 ## Trace Converter + Viewing
 The trace converter is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience there is
 also a WASM version with web frontend, which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
+
+## Licensing
+The [target tracer sources](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) and [documentation](https://github.com/schilkp/Tonbandgeraet/tree/main/docs) are
+released under the [MIT License](https://github.com/schilkp/Tonbandgeraet/blob/main/tband/LICENSE). All conversion and
+analysis tools, such as the [decoder and converter](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-conv),
+the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-cli), and the
+[web converter](https://github.com/schilkp/Tonbandgeraet/tree/main/web) are released under the [GNU GPL3 License](https://github.com/schilkp/Tonbandgeraet/blob/main/conv/tband-cli/LICENSE).
 
 ---
 ## Status
@@ -68,13 +74,13 @@ also a WASM version with web frontend, which runs in the browser and can be foun
   Implemented and theoretically (almost?) done, but completely untested.
 
 - Full FreeRTOS support, including some PRs: PRs are in a draft state/being
-  reviewd. Certain FreeRTOS (rare) are not yet traced correctly due to insufficient
+  reviewed. Certain FreeRTOS (rare) are not yet traced correctly due to insufficient
   tracing hooks. Tracing of streambuffers, direct-to-task notification, timers, and
   event groups are not yet Implemented.
 
 
 #### Other:
-    - This documentation.
+- This documentation.
 
 ### Planned:
 

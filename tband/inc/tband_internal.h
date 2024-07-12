@@ -1,3 +1,9 @@
+/**
+ * @file tband_internal.h
+ * @brief Internal APIs.
+ * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
+ * @author Philipp Schilk, 2024
+ */
 #ifndef TBAND_INTERNAL_H_
 #define TBAND_INTERNAL_H_
 // clang-format off

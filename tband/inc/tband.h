@@ -2,6 +2,7 @@
  * @file tband.h
  * @brief Tonbandgeraet embedded tracer.
  * @author Philipp Schilk, 2024
+ * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
  */
 // clang-format off
 

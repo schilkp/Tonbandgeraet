@@ -2,6 +2,7 @@
  * @file tband_backend.c
  * @brief FreeRTOS Tracer Backends
  * @author Philipp Schilk, 2024
+ * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
  */
 
 #include "tband.h"

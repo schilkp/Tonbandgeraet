@@ -26,9 +26,20 @@ Tonbandgerät is based on a simple custom [binary trace format](./bin_format.md)
 traces can be viewed in Google's in-browser [perfetto](https://perfetto.dev) after conversion with the provided [CLI](./tband_cli.md) tool
 or in-browser [converter](./web.md).
 
+## Documentation
+The documentation for Tonbandgerät can be found in the `docs/` folder and compiled for viewing with [mdbook](https://github.com/rust-lang/mdBook)
+by running `mdbook build` in `docs/`. The latest version of the documentation can also be viewed online [here](https://schilk.co/Tonbandgeraet/docs/index.html).
+
 ## Trace Converter + Viewing
 The [trace converter](./doc/tband_cli.md) is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience there is
 also a [WASM version with web frontend](./doc/web.md), which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
+
+## Licensing
+The [target tracer sources](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) and [documentation](https://github.com/schilkp/Tonbandgeraet/tree/main/docs) are
+released under the [MIT License](https://github.com/schilkp/Tonbandgeraet/blob/main/tband/LICENSE). All conversion and
+analysis tools, such as the [decoder and converter](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-conv),
+the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-cli), and the
+[web converter](https://github.com/schilkp/Tonbandgeraet/tree/main/web) are released under the [GNU GPL3 License](https://github.com/schilkp/Tonbandgeraet/blob/main/conv/tband-cli/LICENSE).
 
 ## Status
 
@@ -64,7 +75,7 @@ also a [WASM version with web frontend](./doc/web.md), which runs in the browser
   is limited to cores that share a single, monotonic, time stamp timer.
 
 - Full FreeRTOS support, including some PRs: PRs are in a draft state/being
-  reviewd. Certain FreeRTOS (rare) are not yet traced correctly due to insufficient
+  reviewed. Certain FreeRTOS (rare) are not yet traced correctly due to insufficient
   tracing hooks. Tracing of streambuffers, direct-to-task notification, timers, and
   event groups are not yet Implemented.
 

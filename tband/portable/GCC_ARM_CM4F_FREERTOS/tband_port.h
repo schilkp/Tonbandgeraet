@@ -1,7 +1,8 @@
 /*h
  * @file tband_port.h
- * @brief FreeRTOS tracer Cortex M4F port
+ * @brief Tonbandgeraet FreeRTOS Cortex M4F port
  * @author Philipp Schilk, 2024
+ * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
  */
 #ifndef TBAND_PORT_H_
 
