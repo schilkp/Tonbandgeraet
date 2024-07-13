@@ -2,7 +2,7 @@
 
 ## Installation
 
-Add all source files from [`tband/core`](https://github.com/schilkp/Tonbandgeraet/tree/main/tband/src) to your project
+Add all source files from [`tband/src`](https://github.com/schilkp/Tonbandgeraet/tree/main/tband/src) to your project
 and place all headers from [`tband/inc`](https://github.com/schilkp/Tonbandgeraet/tree/main/tband/inc) inside a folder
 that is recognized as an include path.
 
