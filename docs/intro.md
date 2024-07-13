@@ -7,7 +7,7 @@
 
 A small embedded systems tracer with support for bare-metal and FreeRTOS-based targets.
 
-Philipp Schilk, 2024 - GNU GPL3 License
+Philipp Schilk, 2024
 
 ---
 
