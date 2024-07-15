@@ -39,4 +39,4 @@ COBS framed:       0x01   0xFF  0x01  0x02 ... 0xFD  0xFE  0x02   0xFF  0x00
 When decoding, the value pointed at by a `0xFF` pointer must therefor not be decoded to a zero but only be interpreted as a 
 another pointer.
 
-Because trace events are usually very short, this means that most can be framed with only two bytes of ove11jrhead.
+Because trace events are usually very short, this means that most can be framed with only two bytes of overhead.

@@ -19,8 +19,8 @@ Tonbandgerät's [core](https://github.com/schilkp/Tonbandgeraet/tree/main/tband)
 and handler written in C and designed for embedded systems. It requires minimal [porting](./porting.md) and [configuration](./config.md),
 and features multiple [backends](./handling.md) for gathering and transmitting traces.
 
-It can be used both with an RTOS or in bare-metal environments to [instrument user code](./evtmarkers.md) and track hardware events by tracing [interrupts](./interrupts.md).
-Full tracing of [FreeRTOS](https://www.freertos.org/index.html) tasks and resources is also supported out-of-the box.
+It can be used both with an RTOS, or in bare-metal environments to [instrument user code](./evtmarkers.md) and track hardware events by tracing [interrupts](./interrupts.md).
+Full tracing of [FreeRTOS](https://www.freertos.org/index.html) tasks and resources is also supported out-of-the-box.
 
 Tonbandgerät is based on a simple custom [binary trace format](./bin_format.md) designed to be fairly fast to encode and keep traces as small as possible. Recorded
 traces can be viewed in Google's in-browser [perfetto](https://perfetto.dev) after conversion with the provided [CLI](./tband_cli.md) tool
@@ -31,7 +31,7 @@ The documentation for Tonbandgerät can be found in the `docs/` folder and compi
 by running `mdbook build` in `docs/`. The latest version of the documentation can also be viewed online [here](https://schilk.co/Tonbandgeraet/docs/index.html).
 
 ## Trace Converter + Viewing
-The [trace converter](./doc/tband_cli.md) is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience there is
+The [trace converter](./doc/tband_cli.md) is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience, there is
 also a [WASM version with web frontend](./doc/web.md), which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
 
 ## Licensing

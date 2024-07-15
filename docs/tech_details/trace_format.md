@@ -1,6 +1,6 @@
 # The Tonbandgerät Binary Trace Format
 
-To store trace events in a compact binary format, Tonbandgerät uses zero-delimted [COBS](./cobs.md)
+To store trace events in a compact binary format, Tonbandgerät uses zero-delimited [COBS](./cobs.md)
 frames each containing a single trace event. The [set of trace event types](./bin_events.md) (each identified by an 8
 bit id) and their respective structure is fixed.
 
