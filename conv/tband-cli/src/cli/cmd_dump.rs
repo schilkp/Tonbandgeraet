@@ -17,7 +17,7 @@ pub struct Cmd {
     #[arg(short, long)]
     pub mode: TraceMode,
 
-    /// Input files with optional core id.
+    /// Input file with optional core id.
     ///
     /// For split multi-core recording, append core id to file name as such: filename@core_id
     #[arg(short, long)]

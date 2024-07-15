@@ -16,7 +16,7 @@ Options:
           [possible values: bare-metal, free-rtos]
 
   -i, --input <INPUT>
-          Input files with optional core id.
+          Input file with optional core id.
           
           For split multi-core recording, append core id to file name as such: filename@core_id
 
