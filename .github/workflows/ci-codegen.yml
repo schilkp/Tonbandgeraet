@@ -35,9 +35,13 @@ jobs:
           set -e
           poetry install
       
-      - name: Run
+      - name: Run Python Codegen
         working-directory: ${{github.workspace}}/codegen
         run: poetry run python codegen
+      
+      - name: Run CLI Help Dump
+        working-directory: ${{github.workspace}}/docs/
+        run: bash ./update_cli_help.bash
 
       - name: Check for diff
         id: check-codegen-diff
