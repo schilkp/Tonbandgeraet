@@ -28,6 +28,9 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt
+      
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
 
       - name: Install
         working-directory: ${{github.workspace}}/codegen
