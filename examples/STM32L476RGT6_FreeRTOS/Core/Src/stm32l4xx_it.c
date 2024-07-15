@@ -184,7 +184,7 @@ void SysTick_Handler(void) {
     xPortSysTickHandler();
   }
 
-  if (TRACING_SNAPSHOT_DONE) {
+  if (TRACING_SNAPSHOT_BUF_FULL) {
     if (tband_tracing_finished()) {
       __disable_irq();
 

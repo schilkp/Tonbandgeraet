@@ -337,10 +337,10 @@ uint64_t traceport_timestamp(void) {
   }
 }
 
-volatile bool TRACING_SNAPSHOT_DONE = false;
+volatile bool TRACING_SNAPSHOT_BUF_FULL = false;
 
 void traceport_snapshot_done(void) {
-  TRACING_SNAPSHOT_DONE = true;
+  TRACING_SNAPSHOT_BUF_FULL = true;
 }
 
 /* USER CODE END 4 */
