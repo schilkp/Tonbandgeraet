@@ -56,7 +56,7 @@
   // FIXME: Documentation (Called after Scheduler started if any freertos tracing,
   //        automatically called in later versions).
   void impl_tband_scheduler_started_manual(void);
-  #define tband_scheduler_started() impl_tband_scheduler_started_manual(()
+  #define tband_scheduler_started() impl_tband_scheduler_started_manual()
 
   // Task switched in:
   #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)
