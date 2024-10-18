@@ -99,7 +99,6 @@ int main(void) {
 
   // Start tim2 (for tracing timestamps):
   HAL_TIM_Base_Start_IT(&htim2);
-  HAL_TIM_Base_Start_IT(&htim5);
 
   NVIC_SetPriority(SVCall_IRQn, 0U);
 
@@ -338,9 +337,7 @@ uint64_t traceport_timestamp(void) {
 
 volatile bool TRACING_SNAPSHOT_BUF_FULL = false;
 
-void traceport_snapshot_done(void) {
-  TRACING_SNAPSHOT_BUF_FULL = true;
-}
+void traceport_snapshot_done(void) { TRACING_SNAPSHOT_BUF_FULL = true; }
 
 /* USER CODE END 4 */
 
@@ -354,10 +351,6 @@ void traceport_snapshot_done(void) {
  */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   /* USER CODE BEGIN Callback 0 */
-  if (htim->Instance == TIM2) {
-    htim2.Instance->CNT = 1;
-    HAL_TIM_Base_Start_IT(&htim2);
-  }
 
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM17) {
