@@ -47,7 +47,6 @@ TIM_HandleTypeDef htim5;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-volatile uint32_t ts_timer_extension = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -356,7 +355,6 @@ void traceport_snapshot_done(void) {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   /* USER CODE BEGIN Callback 0 */
   if (htim->Instance == TIM2) {
-    ts_timer_extension++;
     htim2.Instance->CNT = 1;
     HAL_TIM_Base_Start_IT(&htim2);
   }
