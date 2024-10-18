@@ -105,12 +105,12 @@
 // == API: GENERAL =============================================================
 
 #if (tband_configENABLE == 1)
-  bool tband_tracing_enabled();
-  bool tband_tracing_finished();
+  bool tband_tracing_enabled(void);
+  bool tband_tracing_finished(void);
   bool tband_tracing_backend_finished(unsigned int core_id);
 #else /* tband_configENABLE == 1 */
-  #define tband_tracing_enabled()
-  #define tband_tracing_finished()
+  #define tband_tracing_enabled(void)
+  #define tband_tracing_finished(void)
   #define tband_tracing_backend_finished(core_id) (void)(core_id)
 #endif /* tband_configENABLE == 1 */
 
@@ -122,16 +122,16 @@
 // == API: STREAMING BACKEND ===================================================
 
 #if (tband_configUSE_BACKEND_STREAMING == 1)
-  int tband_start_streaming();
-  int tband_stop_streaming();
+  int tband_start_streaming(void);
+  int tband_stop_streaming(void);
 #endif /* tband_configUSE_BACKEND_STREAMING == 1 */
 
 // == API: SNAPSHOT BACKEND ====================================================
 
 #if (tband_configUSE_BACKEND_SNAPSHOT == 1)
-  int tband_trigger_snapshot();
-  int tband_stop_snapshot();
-  int tband_reset_snapshot();
+  int tband_trigger_snapshot(void);
+  int tband_stop_snapshot(void);
+  int tband_reset_snapshot(void);
   const volatile uint8_t* tband_get_core_snapshot_buf(unsigned int core_id);
   size_t tband_get_core_snapshot_buf_amnt(unsigned int core_id);
 #endif /* tband_configUSE_BACKEND_SNAPSHOT == 1 */
@@ -151,8 +151,8 @@
 #if (tband_configENABLE == 1)
 
   // System Metadata:
-  void impl_tband_gather_system_metadata();
-  #define tband_gather_system_metadata() impl_tband_gather_system_metadata()
+  void impl_tband_gather_system_metadata(void);
+  #define tband_gather_system_metadata(void) impl_tband_gather_system_metadata(void)
 
   // ISRs:
   #if (tband_configISR_TRACE_ENABLE == 1)
@@ -257,7 +257,7 @@
 
 // Provide shims for tracing hooks that are called manually if they are disabled:
 #ifndef tband_gather_system_metadata
-  #define tband_gather_system_metadata()
+  #define tband_gather_system_metadata(void)
 #endif /* tband_gather_system_metadata */
 
 #ifndef tband_isr_name

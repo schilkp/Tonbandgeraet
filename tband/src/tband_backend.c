@@ -103,7 +103,7 @@ static volatile tband_spinlock backend_spinlocks[tband_portNUMBER_OF_CORES] = CO
 // Internal implementation. Checks that tracing is disabled and all backends have completed
 // handling all events. *Must* be called from a critical section and while tracing_enabled_spinlock
 // is held!
-static bool impl_tracing_finished() {
+static bool impl_tracing_finished(void) {
   // This relies the backends only checking the global tracing_enabled flag once
   // they already hold their backend spinlock.
   //
@@ -161,9 +161,9 @@ static bool impl_backend_finished(unsigned int core_id) {
   }
 }
 
-bool tband_tracing_enabled() { return atomic_load(&tracing_enabled); }
+bool tband_tracing_enabled(void) { return atomic_load(&tracing_enabled); }
 
-bool tband_tracing_finished() {
+bool tband_tracing_finished(void) {
   tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
@@ -292,7 +292,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
   return did_drop;
 }
 
-int tband_start_streaming() {
+int tband_start_streaming(void) {
   int err = 0;
   tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
@@ -348,7 +348,7 @@ end:
   return err;
 }
 
-int tband_stop_streaming() {
+int tband_stop_streaming(void) {
   int err = 0;
   tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
@@ -452,7 +452,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
   return false;
 }
 
-int tband_trigger_snapshot() {
+int tband_trigger_snapshot(void) {
   int err = 0;
 
   tband_portENTER_CRITICAL_FROM_ANY();
@@ -475,7 +475,7 @@ end:
   return err;
 }
 
-int tband_stop_snapshot() {
+int tband_stop_snapshot(void) {
   int err = 0;
   tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
@@ -494,7 +494,7 @@ int tband_stop_snapshot() {
 // FIXME ENSURE WE NEVER TRY TO ACQUIRE TRACING_ACTIVE WHILE HOLDING BACKEND
 // SPINLOCk
 
-int tband_reset_snapshot() {
+int tband_reset_snapshot(void) {
   int err = 0;
 
   tband_portENTER_CRITICAL_FROM_ANY();
