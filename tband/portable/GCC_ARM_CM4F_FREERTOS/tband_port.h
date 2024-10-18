@@ -3,6 +3,8 @@
  * @brief Tonbandgeraet FreeRTOS Cortex M4F port
  * @author Philipp Schilk, 2024
  * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
+ *
+ * https://github.com/schilkp/Tonbandgeraet
  */
 #ifndef TBAND_PORT_H_
 

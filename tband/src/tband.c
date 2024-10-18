@@ -3,6 +3,8 @@
  * @brief Tonbandgeraet embedded tracer: Basic events.
  * @author Philipp Schilk, 2024
  * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
+ *
+ * https://github.com/schilkp/Tonbandgeraet
  */
 
 #include "tband.h"

@@ -3,6 +3,8 @@
  * @brief Internal APIs.
  * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
  * @author Philipp Schilk, 2024
+ *
+ * https://github.com/schilkp/Tonbandgeraet
  */
 #ifndef TBAND_INTERNAL_H_
 #define TBAND_INTERNAL_H_
