@@ -1,5 +1,5 @@
 use crate::cli::cmd_convert::read_file;
-use log::info;
+use log::{info, warn};
 use tband_conv::decode::StreamDecoder;
 
 use clap::Parser;
@@ -44,7 +44,7 @@ impl Cmd {
 
         let trailing_bytes = decode.get_bytes_in_buffer();
         if trailing_bytes > 0 {
-            println!("{trailing_bytes} bytes.");
+            warn!("{trailing_bytes} trailing bytes.");
         }
 
         Ok(())
