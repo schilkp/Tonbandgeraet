@@ -14,7 +14,7 @@
 
 uint64_t traceport_timestamp(void);
 #define tband_portTIMESTAMP()             traceport_timestamp()
-#define tband_portTIMESTAMP_RESOLUTION_NS 1
+#define tband_portTIMESTAMP_RESOLUTION_NS 25 
 
 // #define tband_configUSE_BACKEND_STREAMING 1
 // bool traceport_handle_raw_evt(uint8_t *buf, size_t len);
