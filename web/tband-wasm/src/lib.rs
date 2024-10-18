@@ -1,8 +1,5 @@
-mod utils;
-
 use log::{info, Level, Log};
 use serde::Serialize;
-use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 
 use tband_conv::{convert::TraceConverter, decode::evts};
@@ -143,7 +140,7 @@ pub fn to_console_log(msg: &str, level: Level) {
 
 #[wasm_bindgen]
 pub fn setup_log() {
-    set_panic_hook();
+    console_error_panic_hook::set_once();
     log::set_logger(&LOGGER)
         .map(|()| log::set_max_level(log::LevelFilter::Info))
         .expect("Failed to setup logger");
