@@ -20,7 +20,7 @@ pub struct Cmd {
     /// Input file with optional core id.
     ///
     /// For split multi-core recording, append core id to file name as such: filename@core_id
-    #[arg(short, long)]
+    #[arg()]
     pub input: InputFile,
 }
 

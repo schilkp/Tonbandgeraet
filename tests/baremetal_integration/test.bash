@@ -19,7 +19,7 @@ cd "$script_dir"
 echo "Dumping trace.."
 cd "$script_dir"
 cd ../../conv/tband-cli
-cargo run -- dump --format bin --mode bare-metal -i "${script_dir}"/trace.bin > "${script_dir}/dump"
+cargo run -- dump --format bin --mode bare-metal "${script_dir}"/trace.bin > "${script_dir}/dump"
 
 cd "$script_dir"
 cat dump
