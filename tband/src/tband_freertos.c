@@ -45,7 +45,7 @@ static volatile atomic_ulong next_queue_id = 0;
 #error "INCLUDE_xTaskGetIdleTaskHandle is not enabled!"
 #endif /* INCLUDE_xTaskGetIdleTaskHandle */
 
-void impl_tband_scheduler_started_manual(void) {
+void impl_tband_freertos_scheduler_started_manual(void) {
   tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
 #if (tband_portNUMBER_OF_CORES > 1)
