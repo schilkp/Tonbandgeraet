@@ -46,7 +46,7 @@ static uint8_t q1_storage[Q1_QUEUE_LENGTH * Q1_ITEM_SIZE]; // Storage
 void task1_entry(void *args) {
   UNUSED(args);
 
-  tband_gather_system_metadata();
+  tband_freertos_scheduler_started();
 
   tband_freertos_task_valmarker_name(0, "T1Val");
   tband_freertos_task_evtmarker_name(0, "T1Evts");
@@ -198,7 +198,8 @@ int rtos_init(void) {
   // sb1 = xStreamBufferCreateStatic(STREAM_BUFFER_SIZE_BYTES, 1, sb1_storage, &sb1_buffer);
   // if (sb1 == 0) return 1;
   // tband_freertos_stream_buffer_name(sb1, "sb1");
-
+  
+  tband_gather_system_metadata();
   if (tband_trigger_snapshot() != 0) {
     Error_Handler();
   }
