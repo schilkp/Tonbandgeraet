@@ -87,7 +87,7 @@ impl TraceConverter {
 
         let mut trace = Trace::new(self.core_count, self.mode);
 
-        for evt_idx in 0..max_idx {
+        for evt_idx in 0..=max_idx {
             let evt = &self.evts.evts[evt_idx];
             let core_id = evt.core_id;
 
