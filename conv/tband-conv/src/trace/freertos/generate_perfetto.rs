@@ -14,7 +14,7 @@ impl Trace {
 
                 let mut in_event = false;
                 for evt in &queue.state.0 {
-                    let ts = evt.ts;
+                    let ts = self.convert_ts(evt.ts);
                     if in_event {
                         evts.push(track.slice_end_evt(ts));
                     }
@@ -34,7 +34,7 @@ impl Trace {
                 let track = syn.new_global_counter_track(trace_name, CounterTrackUnit::Count, 1, false);
                 evts.extend(syn.new_descriptor_trace_evts());
                 for evt in &queue.state.0 {
-                    let ts = evt.ts;
+                    let ts = self.convert_ts(evt.ts);
                     evts.push(track.int_counter_evt(ts, evt.inner.fill));
                 }
             }
