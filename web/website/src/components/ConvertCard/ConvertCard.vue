@@ -61,6 +61,8 @@ function download() {
     ui_success("Downloaded.");
   }
 }
+
+const url_docs = __TBAND_BASE__ + "docs/index.html";
 </script>
 
 <template>
@@ -117,8 +119,7 @@ function download() {
         <a href="https://github.com/schilkp/Tonbandgeraet">📦 Source</a>
       </div>
       <div class="uk-width-1-4@s uk-text-center">
-        <a href="https://schilk.co/Tonbandgeraet/docs/index.html"
-          >📚 Documentation</a
+        <a v-bind:href="url_docs">📚 Documentation</a
         >
       </div>
       <div class="uk-width-1-4@s uk-text-center">
