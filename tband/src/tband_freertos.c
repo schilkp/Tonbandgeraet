@@ -35,8 +35,16 @@
 // ===== STATE =================================================================
 
 // Unique ID counters (shared between all cores)
-static volatile atomic_ulong next_task_id = 0;
-static volatile atomic_ulong next_queue_id = 0;
+// Note: ID 0 is reserved.
+static volatile atomic_ulong next_task_id = 1;
+static volatile atomic_ulong next_queue_id = 1;
+
+#if (configUSE_PREEMPTION == 0)
+// Track last running task_id per-core
+// This is required when preemption is disabled to detect and prevent continous
+// generation of task-switched-in events by the IDLE task.
+static volatile uint32_t core_last_task[tband_portNUMBER_OF_CORES] = {0};
+#endif /* configUSE_PREEMPTION */
 
 // ===== TRACE HOOKS ===========================================================
 
@@ -82,10 +90,26 @@ void impl_tband_freertos_scheduler_started_manual(void) {
 #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)
 void impl_tband_freertos_task_switched_in(uint32_t task_id) {
   tband_portENTER_CRITICAL_FROM_ANY();
+
+#if (configUSE_PREEMPTION == 0)
+  // With preemption disabled, the IDLE task will continously generate
+  // "task-switched-in" events while it is running. Skip repeated 
+  // task-switched-in events:
+  if (core_last_task[tband_portGET_CORE_ID()] == task_id) {
+    goto done;
+  }
+#endif /* configUSE_PREEMPTION */
+
   uint64_t ts = tband_portTIMESTAMP();
   uint8_t buf[EVT_FREERTOS_TASK_SWITCHED_IN_MAXLEN];
   size_t len = encode_freertos_task_switched_in(buf, ts, task_id);
   handle_trace_evt(buf, len, EVT_FREERTOS_TASK_SWITCHED_IN_IS_METADATA, ts);
+
+#if (configUSE_PREEMPTION == 0)
+  core_last_task[tband_portGET_CORE_ID()] = task_id;
+done:
+#endif /* configUSE_PREEMPTION */
+
   tband_portEXIT_CRITICAL_FROM_ANY();
 }
 #endif /* (tband_configFREERTOS_TASK_TRACE_ENABLE == 1) */
