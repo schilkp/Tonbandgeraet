@@ -13,6 +13,8 @@ if (process.env.NODE_ENV === "development") {
     base = process.env.TBAND_BASE || "https://schilk.co/Tonbandgeraet/";
 }
 
+console.log("URL base: " + base);
+
 // https://vitejs.dev/config/
 export default defineConfig({
     base: base,
