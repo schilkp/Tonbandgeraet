@@ -183,6 +183,15 @@
     #define tband_freertos_recursive_mutex_name(handle, name) tband_freertos_queue_name((handle), (name))
   #endif /* (tband_configFREERTOS_TRACE_ENABLE == 1) */
 
+  // Counting Semaphore Create:
+  #if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)
+    void impl_tband_freertos_counting_semaphore_create(uint32_t id, uint32_t initial_count);
+    #define traceCREATE_COUNTING_SEMAPHORE(pxQueue) impl_tband_freertos_counting_semaphore_create(                     \
+        (uint32_t)(xHandle)->uxQueueNumber /* queue id */,                                                             \
+        (uint32_t)uxInitialCount /* initial count */                                                                   \
+      )
+  #endif /* (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1) */
+
   // Queue send:
   // FIXME: Add version toggle!
   #if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)

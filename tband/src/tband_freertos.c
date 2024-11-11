@@ -325,6 +325,17 @@ void impl_tband_freertos_queue_name(void *queue_handle, char *name) {
 #endif /* (tband_configFREERTOS_TRACE_ENABLE == 1) */
 
 #if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)
+void impl_tband_freertos_counting_semaphore_create(uint32_t id, uint32_t initial_count) {
+  tband_portENTER_CRITICAL_FROM_ANY();
+  uint64_t ts = tband_portTIMESTAMP();
+  uint8_t buf[EVT_FREERTOS_QUEUE_SEND_MAXLEN];
+  size_t len = encode_freertos_queue_send(buf, ts, id, initial_count);
+  handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_SEND_IS_METADATA, ts);
+  tband_portEXIT_CRITICAL_FROM_ANY();
+}
+#endif /* (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1) */
+
+#if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)
 void impl_tband_freertos_queue_send(uint32_t id, uint32_t copy_position, uint32_t size_before) {
   tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
