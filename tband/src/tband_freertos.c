@@ -93,7 +93,7 @@ void impl_tband_freertos_task_switched_in(uint32_t task_id) {
 
 #if (configUSE_PREEMPTION == 0)
   // With preemption disabled, the IDLE task will continously generate
-  // "task-switched-in" events while it is running. Skip repeated 
+  // "task-switched-in" events while it is running. Skip repeated
   // task-switched-in events:
   if (core_last_task[tband_portGET_CORE_ID()] == task_id) {
     goto done;

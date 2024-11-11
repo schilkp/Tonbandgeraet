@@ -183,7 +183,7 @@
     #define tband_freertos_recursive_mutex_name(handle, name) tband_freertos_queue_name((handle), (name))
   #endif /* (tband_configFREERTOS_TRACE_ENABLE == 1) */
 
-  // Queue snd:
+  // Queue send:
   // FIXME: Add version toggle!
   #if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)
     void impl_tband_freertos_queue_send(uint32_t id, uint32_t copy_position, uint32_t size_before);
