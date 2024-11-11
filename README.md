@@ -105,3 +105,5 @@ the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-cli), an
   could also handle trace recording (building on [probe.rs](https://probe.rs/) for RTT communication). A gui
   built on [tauri](https://tauri.app/) and/or [egui](https://github.com/emilk/egui) could continue to enable
   the current in-browser experience.
+
+- If going the egui route, this could be a good basis: https://gitlab.com/surfer-project/surfer 
