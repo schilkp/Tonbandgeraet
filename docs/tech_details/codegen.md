@@ -4,7 +4,7 @@ The set of possible tracing events and their fields is defined in a simple pytho
 generation script [here](https://github.com/schilkp/Tonbandgeraet/blob/main/codegen/codegen/__main__.py).
 Based on this, the [c event encoder](https://github.com/schilkp/Tonbandgeraet/blob/main/tband/inc/tband_encode.h),
 an event [event decoder test file](https://github.com/schilkp/Tonbandgeraet/blob/main/tests/unit_test/test_encoding_funcs/test.c),
-the [rust event decoder](https://github.com/schilkp/Tonbandgeraet/blob/main/conv/tband-conv/src/decode/evts.rs),
+the [rust event decoder](https://github.com/schilkp/Tonbandgeraet/blob/main/tools/tband-conv/src/decode/evts.rs),
 and the [event index documentation](https://github.com/schilkp/Tonbandgeraet/blob/main/docs/tech_details/bin_events.md) is generated.
 
 # Example Output

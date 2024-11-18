@@ -37,9 +37,9 @@ also a [WASM version with web frontend](./doc/web.md), which runs in the browser
 ## Licensing
 The [target tracer sources](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) and [documentation](https://github.com/schilkp/Tonbandgeraet/tree/main/docs) are
 released under the [MIT License](https://github.com/schilkp/Tonbandgeraet/blob/main/tband/LICENSE). All conversion and
-analysis tools, such as the [decoder and converter](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-conv),
-the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-cli), and the
-[web converter](https://github.com/schilkp/Tonbandgeraet/tree/main/web) are released under the [GNU GPL3 License](https://github.com/schilkp/Tonbandgeraet/blob/main/conv/tband-cli/LICENSE).
+analysis tools, such as the [decoder and converter](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-conv),
+the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli), and the
+[web converter](https://github.com/schilkp/Tonbandgeraet/tree/main/web) are released under the [GNU GPL3 License](https://github.com/schilkp/Tonbandgeraet/blob/main/tools/tband-cli/LICENSE).
 
 ## Status
 

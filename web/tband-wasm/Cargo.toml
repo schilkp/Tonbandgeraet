@@ -15,7 +15,7 @@ wasm-bindgen = { version = "0.2.84"}
 # code size when deploying.
 # console_error_panic_hook = { version = "0.1.7", optional = true }
 
-tband_conv = { path = "../../conv/tband-conv" }
+tband_conv = { path = "../../tools/tband-conv" }
 log = { version = "0.4.21", features = ["std"] }
 console_log = "1.0.0"
 web-sys = { version = "0.3.69", features = ["Document", "Window", "Element", "HtmlElement", "HtmlDivElement", "CustomEvent", "CustomEventInit"] }

@@ -31,15 +31,15 @@ The documentation for Tonbandgerät can be found in the `docs/` folder and compi
 by running `mdbook build` in `docs/`. The latest version of the documentation can also be viewed online [here](https://schilk.co/Tonbandgeraet/docs/index.html).
 
 ## Trace Converter + Viewing
-The trace converter is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/conv). For convenience, there is
+The trace converter is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/tools). For convenience, there is
 also a WASM version with web frontend, which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
 
 ## Licensing
 The [target tracer sources](https://github.com/schilkp/Tonbandgeraet/tree/main/tband) and [documentation](https://github.com/schilkp/Tonbandgeraet/tree/main/docs) are
 released under the [MIT License](https://github.com/schilkp/Tonbandgeraet/blob/main/tband/LICENSE). All conversion and
-analysis tools, such as the [decoder and converter](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-conv),
-the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-cli), and the
-[web converter](https://github.com/schilkp/Tonbandgeraet/tree/main/web) are released under the [GNU GPL3 License](https://github.com/schilkp/Tonbandgeraet/blob/main/conv/tband-cli/LICENSE).
+analysis tools, such as the [decoder and converter](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-conv),
+the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli), and the
+[web converter](https://github.com/schilkp/Tonbandgeraet/tree/main/web) are released under the [GNU GPL3 License](https://github.com/schilkp/Tonbandgeraet/blob/main/tools/tband-cli/LICENSE).
 
 ---
 ## Status

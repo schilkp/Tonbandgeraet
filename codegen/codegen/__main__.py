@@ -169,13 +169,13 @@ def main():
     )
     gen_c_tests.gen(groups, c_test_file)
 
-    rs_crate_dir = abspath(join(script_loc, "..", "..", "conv", "tband-conv"))
+    rs_crate_dir = abspath(join(script_loc, "..", "..", "tools", "tband-conv"))
     rs_decoder_file = abspath(
         join(
             script_loc,
             "..",
             "..",
-            "conv",
+            "tools",
             "tband-conv",
             "src",
             "decode",

@@ -5,7 +5,7 @@
 The trace converter and CLI is written in rust 🦀. To compile and run `tband-cli` locally, first you
 need to [download and install rust](https://www.rust-lang.org/learn/get-started) if you don't already have it.
 
-Then, open the [`./conv/tband-cli`](https://github.com/schilkp/Tonbandgeraet/tree/main/conv/tband-cli) folder.
+Then, open the [`./tools/tband-cli`](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli) folder.
 
 Now you have two options. To compile & install `tband-cli`, run:
 

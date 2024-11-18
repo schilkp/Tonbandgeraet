@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 script_dir="$(pwd)"
 
 # Grab jelp messages
-cd ../conv/
+cd ../tools/
 main_help=$(cargo run -- --help)
 conv_help=$(cargo run -- conv --help)
 dump_help=$(cargo run -- dump --help)
