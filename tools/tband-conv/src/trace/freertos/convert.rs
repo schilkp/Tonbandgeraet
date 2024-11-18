@@ -377,7 +377,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &mut task.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding task #{task_id} name from '{previous_name}' to '{}'.",
+                            "[--METADATA--] Overwriting task #{task_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
@@ -392,7 +392,7 @@ impl TraceConverter {
                     core_id: evt.core_id as usize,
                 };
                 if !matches!(task.kind, TaskKind::Normal) && new_kind != task.kind {
-                    warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'.", task.kind, new_kind);
+                    warn!("[--METADATA--] Overwriting task #{task_id} type from '{}' to '{}'.", task.kind, new_kind);
                 }
                 task.kind = new_kind;
             }
@@ -402,7 +402,7 @@ impl TraceConverter {
                 let task = t.freertos.tasks.get_mut_or_create(task_id);
                 let new_kind = TaskKind::TimerSvc;
                 if !matches!(task.kind, TaskKind::Normal) && new_kind != task.kind {
-                    warn!("[--METADATA--] Overriding task #{task_id} type from '{}' to '{}'.", task.kind, new_kind);
+                    warn!("[--METADATA--] Overwriting task #{task_id} type from '{}' to '{}'.", task.kind, new_kind);
                 }
                 task.kind = new_kind;
             }
@@ -413,7 +413,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &mut queue.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding queue #{queue_id} name from '{previous_name}' to '{}'.",
+                            "[--METADATA--] Overwriting queue #{queue_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
@@ -427,7 +427,7 @@ impl TraceConverter {
                 let new_kind: QueueKind = evt.kind.into();
 
                 if queue.kind == new_kind && !matches!(new_kind, QueueKind::Queue) {
-                    warn!("[--METADATA--] Overriding queue #{queue_id} type from '{}' to '{}'.", queue.kind, new_kind);
+                    warn!("[--METADATA--] Overwriting queue #{queue_id} type from '{}' to '{}'.", queue.kind, new_kind);
                 }
                 queue.kind = new_kind;
             }
@@ -444,7 +444,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &evtmarker.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding Task #{} Marker #{evtmarker_id} name from '{previous_name}' to '{}'.",
+                            "[--METADATA--] Overwriting Task #{} Marker #{evtmarker_id} name from '{previous_name}' to '{}'.",
                             task_id,
                             evt.name
                         );
@@ -465,7 +465,7 @@ impl TraceConverter {
                 if let Some(previous_name) = &valmarker.name {
                     if *previous_name != evt.name {
                         warn!(
-                            "[--METADATA--] Overiding Value Marker #{valmarker_id} name from '{previous_name}' to '{}'.",
+                            "[--METADATA--] Overwriting Value Marker #{valmarker_id} name from '{previous_name}' to '{}'.",
                             evt.name
                         );
                     }
