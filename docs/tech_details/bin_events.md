@@ -427,6 +427,16 @@ Index of all Tonbandgerät tracing events.
 - Metadata: no
 - Max length (unframed): 21 bytes
 
+### FreeRTOS/queue_cur_length:
+
+| **Field Name:** | `id` | `ts` | `queue_id` | `length` |
+| :- | :-: | :-: | :-: | :-: |
+| **Field Type:** | [u8](./bin_event_fields.md:u8) | [u64](./bin_event_fields.md:u64) | [u32](./bin_event_fields.md:s32) | [u32](./bin_event_fields.md:s32) |
+| **Note:** | 0x70 | required | required | required |
+
+- Metadata: no
+- Max length (unframed): 21 bytes
+
 ### FreeRTOS/task_evtmarker_name:
 
 | **Field Name:** | `id` | `evtmarker_id` | `task_id` | `name` |

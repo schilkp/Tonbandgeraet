@@ -97,6 +97,7 @@ EVTS = [
     Evt("curtask_block_on_queue_peek",    id=109, fields=[U32("queue_id"), U32("ticks_to_wait")]),
     Evt("curtask_block_on_queue_send",    id=110, fields=[U32("queue_id"), U32("ticks_to_wait")]),
     Evt("curtask_block_on_queue_receive", id=111, fields=[U32("queue_id"), U32("ticks_to_wait")]),
+    Evt("queue_cur_length",               id=112, fields=[U32("queue_id"), U32("length")]),
 
     # # Stream buffers:
     # Evt("streambuffer_created",                  id=112, fields=[U32("streambuffer_id")]),

@@ -732,6 +732,23 @@ void test_freertos_curtask_block_on_queue_receive(void){
   }
 }
 
+void test_freertos_queue_cur_length(void){
+  {
+    // Min
+    uint8_t buf[EVT_FREERTOS_QUEUE_CUR_LENGTH_MAXLEN] = {0};
+    size_t len = encode_freertos_queue_cur_length(buf, 0x0, 0x0, 0x0);
+    uint8_t expected[] = {0x70, 0x0, 0x0, 0x0};
+    compare_arrays(buf, len, expected, sizeof(expected), "MIN");
+  }
+  {
+    // Max
+    uint8_t buf[EVT_FREERTOS_QUEUE_CUR_LENGTH_MAXLEN] = {0};
+    size_t len = encode_freertos_queue_cur_length(buf, UINT64_MAX, UINT32_MAX, UINT32_MAX);
+    uint8_t expected[] = {0x70, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xff, 0xff, 0xff, 0xff, 0xf, 0xff, 0xff, 0xff, 0xff, 0xf};
+    compare_arrays(buf, len, expected, sizeof(expected), "MAX");
+  }
+}
+
 void test_freertos_task_evtmarker_name(void){
   {
     // Min
@@ -882,6 +899,7 @@ int main(void) {
   RUN_TEST(test_freertos_curtask_block_on_queue_peek);
   RUN_TEST(test_freertos_curtask_block_on_queue_send);
   RUN_TEST(test_freertos_curtask_block_on_queue_receive);
+  RUN_TEST(test_freertos_queue_cur_length);
   RUN_TEST(test_freertos_task_evtmarker_name);
   RUN_TEST(test_freertos_task_evtmarker);
   RUN_TEST(test_freertos_task_evtmarker_begin);

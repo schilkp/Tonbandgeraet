@@ -601,6 +601,17 @@ static inline size_t encode_freertos_curtask_block_on_queue_receive(uint8_t buf[
   return cobs_finish(&cobs);
 }
 
+#define EVT_FREERTOS_QUEUE_CUR_LENGTH_IS_METADATA (0)
+#define EVT_FREERTOS_QUEUE_CUR_LENGTH_MAXLEN (COBS_MAXLEN((21)))
+static inline size_t encode_freertos_queue_cur_length(uint8_t buf[EVT_FREERTOS_QUEUE_CUR_LENGTH_MAXLEN], uint64_t ts, uint32_t queue_id, uint32_t length) {
+  struct cobs_state cobs = cobs_start(buf);
+  encode_u8(&cobs, 0x70);
+  encode_u64(&cobs, ts);
+  encode_u32(&cobs, queue_id);
+  encode_u32(&cobs, length);
+  return cobs_finish(&cobs);
+}
+
 #define EVT_FREERTOS_TASK_EVTMARKER_NAME_IS_METADATA (1)
 #define EVT_FREERTOS_TASK_EVTMARKER_NAME_MAXLEN (COBS_MAXLEN((11 + tband_configMAX_STR_LEN)))
 static inline size_t encode_freertos_task_evtmarker_name(uint8_t buf[EVT_FREERTOS_TASK_EVTMARKER_NAME_MAXLEN], uint32_t evtmarker_id, uint32_t task_id, const char *name) {

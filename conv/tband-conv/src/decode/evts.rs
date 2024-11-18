@@ -335,6 +335,7 @@ pub enum FreeRTOSEvtKind {
     CurtaskBlockOnQueuePeek(FreeRTOSCurtaskBlockOnQueuePeekEvt),
     CurtaskBlockOnQueueSend(FreeRTOSCurtaskBlockOnQueueSendEvt),
     CurtaskBlockOnQueueReceive(FreeRTOSCurtaskBlockOnQueueReceiveEvt),
+    QueueCurLength(FreeRTOSQueueCurLengthEvt),
     TaskEvtmarker(FreeRTOSTaskEvtmarkerEvt),
     TaskEvtmarkerBegin(FreeRTOSTaskEvtmarkerBeginEvt),
     TaskEvtmarkerEnd(FreeRTOSTaskEvtmarkerEndEvt),
@@ -952,6 +953,27 @@ impl FreeRTOSCurtaskBlockOnQueueReceiveEvt {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub struct FreeRTOSQueueCurLengthEvt {
+    pub queue_id: u32,
+    pub length: u32,
+}
+
+impl FreeRTOSQueueCurLengthEvt {
+    fn decode(buf: &[u8], current_idx: &mut usize) -> anyhow::Result<RawEvt> {
+        let ts = decode_u64(buf, current_idx)?;
+        let queue_id = decode_u32(buf, current_idx).context("Failed to decode 'queue_id' u32 field.")?;
+        let length = decode_u32(buf, current_idx).context("Failed to decode 'length' u32 field.")?;
+        if bytes_left(buf, *current_idx) {
+            return Err(anyhow!("Loose bytes at end of 'QueueCurLength' event."));
+        }
+        Ok(RawEvt::FreeRTOS(FreeRTOSEvt {
+            ts,
+            kind: FreeRTOSEvtKind::QueueCurLength(Self { queue_id, length }),
+        }))
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct FreeRTOSTaskEvtmarkerNameEvt {
     pub evtmarker_id: u32,
     pub task_id: u32,
@@ -1129,6 +1151,7 @@ impl RawEvt {
                     0x6D => FreeRTOSCurtaskBlockOnQueuePeekEvt::decode(buf, &mut current_idx),
                     0x6E => FreeRTOSCurtaskBlockOnQueueSendEvt::decode(buf, &mut current_idx),
                     0x6F => FreeRTOSCurtaskBlockOnQueueReceiveEvt::decode(buf, &mut current_idx),
+                    0x70 => FreeRTOSQueueCurLengthEvt::decode(buf, &mut current_idx),
                     0x7A => FreeRTOSTaskEvtmarkerNameEvt::decode(buf, &mut current_idx),
                     0x7B => FreeRTOSTaskEvtmarkerEvt::decode(buf, &mut current_idx),
                     0x7C => FreeRTOSTaskEvtmarkerBeginEvt::decode(buf, &mut current_idx),
