@@ -306,6 +306,11 @@ void impl_tband_freertos_queue_created(void *handle, uint8_t type_val) {
     size_t len = encode_freertos_queue_kind(buf, id, kind);
     handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_KIND_IS_METADATA, ts);
   }
+  {
+    uint8_t buf[EVT_FREERTOS_QUEUE_CUR_LENGTH_MAXLEN];
+    size_t len = encode_freertos_queue_cur_length(buf, ts, id, 0);
+    handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_CUR_LENGTH_IS_METADATA, ts);
+  }
 #endif /* (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1) */
 
   tband_portEXIT_CRITICAL_FROM_ANY();
