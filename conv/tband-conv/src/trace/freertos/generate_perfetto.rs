@@ -20,9 +20,9 @@ impl Trace {
                     }
                     let state_name = if evt.inner.fill == 0 {
                         if let Some(locked_by_id) = evt.inner.by_task {
-                            format!("Tacken by {}", self.freertos.name_task(locked_by_id))
+                            format!("Taken by {}", self.freertos.name_task(locked_by_id))
                         } else {
-                            String::from("Tacken")
+                            String::from("Taken")
                         }
                     } else {
                         String::from("Available")
