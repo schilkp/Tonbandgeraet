@@ -285,7 +285,7 @@
 #endif /* tband_evtmarker_begin */
 
 #ifndef tband_evtmarker_end
-  #define tband_evtmarker_end(id, msg)
+  #define tband_evtmarker_end(id)
 #endif /* tband_evtmarker_end */
 
 #ifndef tband_valmarker_name
