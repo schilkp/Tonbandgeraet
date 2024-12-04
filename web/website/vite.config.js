@@ -8,10 +8,11 @@ const dev_port = 5173;
 
 var base;
 if (process.env.NODE_ENV === "development") {
-    base = "http://localhost:" + dev_port + "/";
+    base = "http://localhost:" + dev_port
 } else {
-    base = process.env.TBAND_BASE || "https://schilk.co/Tonbandgeraet/";
+    base = process.env.TBAND_BASE || "https://schilk.co/Tonbandgeraet";
 }
+base = base.replace(/\/$/, '') + '/'
 
 console.log("URL base: " + base);
 
