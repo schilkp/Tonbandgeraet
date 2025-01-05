@@ -404,7 +404,7 @@ void impl_tband_freertos_queue_receive_from_isr(uint32_t id, uint32_t size_befor
   uint64_t ts = tband_portTIMESTAMP();
   uint32_t new_size = (size_before == 0) ? 0 : size_before - 1;
   uint8_t buf[EVT_FREERTOS_QUEUE_RECEIVE_FROM_ISR_MAXLEN];
-  size_t len = encode_freertos_queue_receive(buf, ts, id, new_size);
+  size_t len = encode_freertos_queue_receive_from_isr(buf, ts, id, new_size);
   handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_RECEIVE_FROM_ISR_IS_METADATA, ts);
   tband_portEXIT_CRITICAL_FROM_ANY();
 }
