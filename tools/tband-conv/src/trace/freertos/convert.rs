@@ -218,14 +218,13 @@ impl TraceConverter {
             }
 
             FreeRTOSEvtKind::QueueReceiveFromIsr(evt) => {
-                let current_task = t.core(core_id).freertos.current_task_id;
                 let queue_id = evt.queue_id as usize;
                 let queue = t.freertos.queues.get_mut_or_create(queue_id);
                 queue.state.push(
                     ts,
                     QueueState {
                         fill: evt.len_after,
-                        by_task: current_task,
+                        by_task: None,
                     },
                 );
             }
