@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// FIXME C externg guards in all headers!
+// FIXME C extern guards in all headers!
 
 //                       ____ ___  _   _ _____ ___ ____
 //                      / ___/ _ \| \ | |  ___|_ _/ ___|
