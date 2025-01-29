@@ -31,7 +31,7 @@ The documentation for Tonbandgerät can be found in the `docs/` folder and compi
 by running `mdbook build` in `docs/`. The latest version of the documentation can also be viewed online [here](https://schilk.co/Tonbandgeraet/docs/index.html).
 
 ## Trace Converter + Viewing
-The trace converter is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/tools). For convenience, there is
+The trace converter, which is written in rust, can be found [here](https://github.com/schilkp/Tonbandgeraet/tree/main/tools). For convenience, there is
 also a WASM version with web frontend, which runs in the browser and can be found [here](https://schilk.co/Tonbandgeraet/).
 
 ## Licensing
