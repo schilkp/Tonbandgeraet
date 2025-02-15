@@ -20,7 +20,7 @@ def read_file(f: str) -> str:
         return infile.read()
 
 
-HEADER = read_file("header.h")
+HEADER = read_file("header.c")
 
 
 def varint(val: int, byte_count: int) -> List[int]:
