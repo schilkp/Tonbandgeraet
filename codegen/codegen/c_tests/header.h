@@ -9,6 +9,8 @@
  *        | |_| | |_| | | |\  | |_| || |   | |___| |_| | |  | |
  *        |____/ \___/  |_| \_|\___/ |_|   |_____|____/___| |_|
  *
+ * Note that the main purpose of this test suite is to exercises the generated
+ * functions while they run under various sanititizers.
  */
 #include <string.h>
 
