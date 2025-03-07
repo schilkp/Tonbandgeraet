@@ -33,8 +33,8 @@ static inline size_t encode_isr_name(uint8_t buf[EVT_ISR_NAME_MAXLEN], uint32_t 
 
 ### Rust Decoder
 
-The rust code generator emits a struct for each field, and a decoder function that attempts to reconstruct the event
-from a given buffer:
+The rust code generator emits a struct representing the event, and a decoder function that attempts to reconstruct the event
+from a binary buffer:
 
 ```rs
 #[derive(Debug, Clone, Serialize)]
