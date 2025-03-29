@@ -1,76 +1,43 @@
 _default:
     just --list
+
 # === Utils ===
 
 # Run code generator script.
 codegen:
-    cd codegen && poetry install
-    cd codegen && poetry run python ./codegen
+    ./codegen/run.bash
 
 # === Testing ===
 
 # Run unit tests.
 unit_tests:
-    #!/bin/env bash
-    set -e
-    cd tests/unit_test
-    rm -rf build
-    mkdir -p build
-    cmake -B build -DCMAKE_GENERATOR="Unix Makefiles"
-    make -C build -j 4
-    python run_tests.py -t 0.5 -j 4 build/bin/
+    ./tests/unit_test/run.bash
 
 # Run bare-metal integration tests.
 baremetal_integration_tests:
-    cd ./tests/baremetal_integration/ && ./test.bash
+    ./tests/baremetal_integration/run.bash
 
 # Build examples (requires a FreeRTOS checkout)
 build_examples:
-    #!/bin/env bash
-    set -e
-    if [ "${SKIP_STM32L476RGT6_FreeRTOS:-0}" != "1" ]; then
-        echo "===== Configuring STM32L476RGT6_FreeRTOS ====="
-        cd examples/STM32L476RGT6_FreeRTOS
-        rm -rf build
-        mkdir build
-        cmake -G Ninja -B build .
-        echo "==== Building STM32L476RGT6_FreeRTOS ===="
-        ninja -C build
-        cd ../../
-    else
-        @echo "===== Skipping STM32L476RGT6_FreeRTOS ====="
-    fi
-    if [ "${SKIP_POSIX_FreeRTOS:-0}" != "1" ]; then
-        echo "==== Configuring POSIX_FreeRTOS ===="
-        cd examples/POSIX_FreeRTOS
-        rm -rf build
-        mkdir build
-        cmake -G Ninja -B build .
-        echo "==== Building POSIX_FreeRTOS ===="
-        ninja -C build
-        cd ../../
-    else
-        echo "==== Skipping POSIX_FreeRTOS ===="
-    fi
+    ./tests/build_examples.bash
 
 # === FreeRTOS checkout ===
 
 # Setup project FreeRTOS checkout.
 freertos_clone:
-    rm -rf FreeRTOS-Kernel
-    git clone https://github.com/FreeRTOS/FreeRTOS-Kernel.git FreeRTOS-Kernel
+    ./scripts/freertos_clone.bash
 
 # Put project FreeRTOS checkout at latest commit.
 freertos_checkout_main:
-    cd FreeRTOS-Kernel && git checkout main
+    ./scripts/freertos_checkout_main.bash
 
 # Put project FreeRTOS checkout at v10.3.1.
 freertos_checkout_v10_3_1:
-    cd FreeRTOS-Kernel && git checkout V10.3.1-kernel-only
+    ./scripts/freertos_checkout_v10_3_1.bash
 
 # Put project FreeRTOS checkout at v11.1.0.
 freertos_checkout_v11_1_0:
-    cd FreeRTOS-Kernel && git checkout V11.1.0
+    ./scripts/freertos_checkout_v11_1_0.bash
 
 # === Website ===
 
@@ -88,18 +55,7 @@ build_wasm:
 
 # Generate web demo traces. Requires FreeRTOS checkout (v11 or newer)
 generate_web_demo_traces:
-    #!/bin/env bash
-    set -e
-    echo "==== Configuring POSIX_FreeRTOS ===="
-    cd examples/POSIX_FreeRTOS
-    rm -rf build
-    mkdir build
-    cmake -G Ninja -B build .
-    echo "==== Building POSIX_FreeRTOS ===="
-    ninja -C build
-    cd ../../
-    echo "==== Generating Trace ===="
-    DUMP_DEMO_TRACE=1 ./examples/POSIX_FreeRTOS/build/POSIX_FreeRTOS > ./web/website/demo_traces/freertos.json
+    ./scripts/generate_web_demo_traces.bash
 
 # Setup website environment.
 setup_website:
