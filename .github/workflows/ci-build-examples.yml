@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Install just
         run:  sudo apt-get install just
 
@@ -34,5 +34,10 @@ jobs:
           just freertos_checkout_${{ matrix.freertos_version }}
 
       - name: Run
-        run: just build_examples
+        run: |
+          if [[ "${{ matrix.freertos_version }}" == "v10_3_1" ]]; then
+            echo "FreeRTOS version ${{ matrix.freertos_version }} does not support POSIX simulator. Skipping example"
+            export SKIP_POSIX_FreeRTOS=1
+          fi
+          just build_examples
 

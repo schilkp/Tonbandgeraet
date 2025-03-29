@@ -25,18 +25,32 @@ baremetal_integration_tests:
 
 # Build examples (requires a FreeRTOS checkout)
 build_examples:
-    @echo "===== Configuring STM32L476RGT6_FreeRTOS ====="
-    cd examples/STM32L476RGT6_FreeRTOS && rm -rf build
-    cd examples/STM32L476RGT6_FreeRTOS && mkdir build
-    cd examples/STM32L476RGT6_FreeRTOS/build && cmake -G Ninja ..
-    @echo "====== Building STM32L476RGT6_FreeRTOS ======="
-    cd examples/STM32L476RGT6_FreeRTOS && ninja -C build
-    @echo "========= Configuring POSIX_FreeRTOS ========="
-    cd examples/POSIX_FreeRTOS && rm -rf build
-    cd examples/POSIX_FreeRTOS && mkdir build
-    cd examples/POSIX_FreeRTOS/build && cmake -G Ninja ..
-    @echo "========== Building POSIX_FreeRTOS ==========="
-    cd examples/POSIX_FreeRTOS && ninja -C build
+    #!/bin/env bash
+    set -e
+    if [ "${SKIP_STM32L476RGT6_FreeRTOS:-0}" != "1" ]; then
+        echo "===== Configuring STM32L476RGT6_FreeRTOS ====="
+        cd examples/STM32L476RGT6_FreeRTOS
+        rm -rf build
+        mkdir build
+        cmake -G Ninja -B build .
+        echo "==== Building STM32L476RGT6_FreeRTOS ===="
+        ninja -C build
+        cd ../../
+    else
+        @echo "===== Skipping STM32L476RGT6_FreeRTOS ====="
+    fi
+    if [ "${SKIP_POSIX_FreeRTOS:-0}" != "1" ]; then
+        echo "==== Configuring POSIX_FreeRTOS ===="
+        cd examples/POSIX_FreeRTOS
+        rm -rf build
+        mkdir build
+        cmake -G Ninja -B build .
+        echo "==== Building POSIX_FreeRTOS ===="
+        ninja -C build
+        cd ../../
+    else
+        echo "==== Skipping POSIX_FreeRTOS ===="
+    fi
 
 # === FreeRTOS checkout ===
 
