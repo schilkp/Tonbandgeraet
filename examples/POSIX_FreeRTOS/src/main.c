@@ -59,6 +59,22 @@ void traceport_snapshot_done(void) {
     printf("}\n");
   }
 
+  const char *write_trace = getenv("WRITE_TRACE");
+  if (write_trace != NULL) {
+    FILE *ptr = fopen(write_trace, "wb");
+    assert(ptr != 0);
+
+    const uint8_t *buf = (void *)tband_get_metadata_buf(0);
+    size_t len = tband_get_metadata_buf_amnt(0);
+    assert(fwrite(buf, 1, len, ptr) == len);
+
+    buf = (void *)tband_get_core_snapshot_buf(0);
+    len = tband_get_core_snapshot_buf_amnt(0);
+    assert(fwrite(buf, 1, len, ptr) == len);
+
+    fclose(ptr);
+  }
+
   exit(0);
 }
 

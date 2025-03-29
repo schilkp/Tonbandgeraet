@@ -10,16 +10,20 @@ codegen:
 # === Testing ===
 
 # Run unit tests.
-unit_tests:
+test_unit:
     ./tests/unit_test/run.bash
 
 # Run bare-metal integration tests.
-baremetal_integration_tests:
+test_baremetal_integration:
     ./tests/baremetal_integration/run.bash
 
 # Build examples (requires a FreeRTOS checkout)
-build_examples:
+test_build_examples:
     ./tests/build_examples.bash
+
+# Run FreeRTOS integration tests (Requires a FreeRTOS checkout v11 or newer)
+test_freertos_integration:
+    ./tests/freertos_integration/run.bash
 
 # === FreeRTOS checkout ===
 

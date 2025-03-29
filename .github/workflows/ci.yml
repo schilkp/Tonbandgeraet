@@ -49,6 +49,38 @@ jobs:
       - name: Run
         working-directory: ${{github.workspace}}
         run: ./tests/baremetal_integration/run.bash
+  
+  # ===--------------------------------------------------------------------=== #
+  # Run Tonbandgeraet bare-metal integration tests.
+  # ===--------------------------------------------------------------------=== #
+  tband-freertos-integration:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        freertos_version:
+          - "v11_1_0"
+          - "main"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+      
+      - name: Fetch FreeRTOS
+        run: |
+          ./scripts/freertos_clone.bash
+          ./scripts/freertos_checkout_${{ matrix.freertos_version }}.bash
+
+      - name: Run
+        working-directory: ${{github.workspace}}
+        run: ./tests/freertos_integration/run.bash
+
 
   # ===--------------------------------------------------------------------=== #
   # Compile all example projects against different FreeRTOS versions
