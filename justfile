@@ -12,6 +12,7 @@ codegen:
 # Run unit tests.
 unit_tests:
     #!/bin/env bash
+    set -e
     cd tests/unit_test
     rm -rf build
     mkdir -p build
