@@ -1,0 +1,38 @@
+name: ci-build-examples
+
+on:
+  push:
+    branches: ["main"]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  tband-build-examples:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        freertos_version:
+          - "v10_3_1"
+          - "v11_1_0"
+          - "main"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install just
+        run:  sudo apt-get install just
+
+      - name: Install gcc-arm-none-eabi
+        run:  sudo apt-get install gcc-arm-none-eabi
+
+      - name: Fetch FreeRTOS
+        run: |
+          just freertos_clone
+          just freertos_checkout_${{ matrix.freertos_version }}
+
+      - name: Run
+        run: just build_examples
+

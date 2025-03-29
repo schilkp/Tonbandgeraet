@@ -24,6 +24,15 @@ unit_tests:
 baremetal_integration_tests:
     cd ./tests/baremetal_integration/ && ./test.bash
 
+# Build examples (requires a FreeRTOS checkout)
+build_examples:
+    echo "===== Configuring STM32L476RGT6_FreeRTOS ====="
+    cd examples/STM32L476RGT6_FreeRTOS && rm -rf build
+    cd examples/STM32L476RGT6_FreeRTOS && mkdir build
+    cd examples/STM32L476RGT6_FreeRTOS/build && cmake -G Ninja ..
+    echo "====== Building STM32L476RGT6_FreeRTOS ======="
+    cd examples/STM32L476RGT6_FreeRTOS && ninja -C build
+
 # === FreeRTOS checkout ===
 
 # Setup project FreeRTOS checkout.
