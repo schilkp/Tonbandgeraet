@@ -1,0 +1,312 @@
+name: ci-web
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+# Allow only one concurrent run, preventing conflicts during deployment.
+# This is technically not needed for pull_request runs.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # ===--------------------------------------------------------------------=== #
+  # Run Tonbandgeraet unit tests
+  # ===--------------------------------------------------------------------=== #
+  tband-unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install just
+        run:  sudo apt-get install just
+
+      - name: Run
+        working-directory: ${{github.workspace}}
+        run: just unit_tests
+
+  # ===--------------------------------------------------------------------=== #
+  # Run Tonbandgeraet bare-metal integration tests.
+  # ===--------------------------------------------------------------------=== #
+  tband-baremetal-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install just
+        run:  sudo apt-get install just
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+
+      - name: Run
+        working-directory: ${{github.workspace}}
+        run: just baremetal_integration_tests
+
+  # ===--------------------------------------------------------------------=== #
+  # Compile all example projects against different FreeRTOS versions
+  # ===--------------------------------------------------------------------=== #
+  tband-build-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        freertos_version:
+          - "v10_3_1"
+          - "v11_1_0"
+          - "main"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install just
+        run:  sudo apt-get install just
+
+      - name: Install gcc-arm-none-eabi
+        run:  sudo apt-get install gcc-arm-none-eabi
+
+      - name: Fetch FreeRTOS
+        run: |
+          just freertos_clone
+          just freertos_checkout_${{ matrix.freertos_version }}
+
+      - name: Run
+        run: |
+          if [[ "${{ matrix.freertos_version }}" == "v10_3_1" ]]; then
+            echo "FreeRTOS version ${{ matrix.freertos_version }} does not support POSIX simulator. Skipping example"
+            export SKIP_POSIX_FreeRTOS=1
+          fi
+          just build_examples
+
+  # ===--------------------------------------------------------------------=== #
+  # Run code-gen and validate that no files have changed.
+  # ===--------------------------------------------------------------------=== #
+  codegen-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+
+      - name: Install
+        working-directory: ${{github.workspace}}/codegen
+        run: |
+          set -e
+          poetry install
+
+      - name: Run Python Codegen
+        working-directory: ${{github.workspace}}/codegen
+        run: poetry run python codegen
+
+      - name: Run CLI Help Dump
+        working-directory: ${{github.workspace}}/docs/
+        run: bash ./update_cli_help.bash
+
+      - name: Check for diff
+        id: check-codegen-diff
+        working-directory: ${{github.workspace}}
+        run: |
+          set +e
+          git diff --exit-code >> ~/codegen_changes.patch
+          exitCode=$?
+          set -e
+
+          if [ $exitCode -eq 0 ]; then
+              echo -e "OK"
+          else
+              # Run a git diff to print the differences
+              echo -e "::group::Format Difference"
+              git diff --color=always
+              echo -e "::endgroup::"
+              echo -e "List of files with differences:"
+              echo -e $(git diff --name-only)
+              echo -e ""
+          fi
+          exit $exitCode
+
+      - name: Upload Diff
+        if: failure() && ( steps.check-codegen-diff.outcome == 'failure' )
+        id: upload-codegen-patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: code
+          path: ~/codegen_changes.patch
+          retention-days: 2
+
+  # ===--------------------------------------------------------------------=== #
+  # Cargo test
+  # ===--------------------------------------------------------------------=== #
+  tools-cargo-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+
+      - name: Cargo Test
+        working-directory: ${{github.workspace}}/tools/
+        run: cargo test --all
+
+  # ===--------------------------------------------------------------------=== #
+  # Cargo format check
+  # ===--------------------------------------------------------------------=== #
+  tools-fmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt
+      - name: Format Check
+        working-directory: ${{github.workspace}}/tools/
+        run: cargo fmt -- --check
+
+  # ===--------------------------------------------------------------------=== #
+  # Cargo lint
+  # ===--------------------------------------------------------------------=== #
+  tools-clippy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: clippy
+
+      - name: Install protoc
+        run:  sudo apt-get install protobuf-compiler
+
+      - name: Lint
+        working-directory: ${{github.workspace}}/tools/
+        run: cargo clippy --all-features -- -D warnings
+
+  # ===--------------------------------------------------------------------=== #
+  # Build & check website
+  # ===--------------------------------------------------------------------=== #
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: "wasm32-unknown-unknown"
+          components: "clippy, rustfmt"
+
+      - name: Install protoc
+        run: sudo apt-get install protobuf-compiler
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Install mdbook
+        run: |
+          mkdir ~/bin
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
+
+      - name: Install just
+        run:  sudo apt-get install just
+
+      - name: Fetch FreeRTOS
+        run: |
+          just freertos_clone
+          just freertos_checkout_v11_1_0
+
+      - name: Build documentation
+        working-directory: ${{github.workspace}}/docs
+        run: ~/bin/mdbook build
+
+      - name: Build wasm bindings
+        working-directory: ${{github.workspace}}/web/tband-wasm
+        run: wasm-pack build
+
+      - name: Generate demo traces
+        working-directory: ${{github.workspace}}/web/tband-wasm
+        run: just generate_web_demo_traces
+
+      - name: Run rust tests
+        working-directory: ${{github.workspace}}/web/tband-wasm
+        run: cargo test --all
+
+      - name: Run clippy
+        working-directory: ${{github.workspace}}/web/tband-wasm
+        run: cargo clippy -- -D warnings
+
+      - name: Check rust format
+        working-directory: ${{github.workspace}}/web/tband-wasm
+        run: cargo fmt -- --check
+
+      - name: Setup node env
+        working-directory: ${{github.workspace}}/web/website
+        run: npm install
+
+      - name: Check website format
+        working-directory: ${{github.workspace}}/web/website
+        run: npm run format:check
+
+      - name: Build website
+        working-directory: ${{github.workspace}}/web/website
+        run: npm run build
+
+      - name: Upload artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{github.workspace}}/web/website/dist
+
+  # ===--------------------------------------------------------------------=== #
+  # Deploy to github pages (push only)
+  # ===--------------------------------------------------------------------=== #
+  web-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    if: github.event_name == 'push'
+    needs: [tband-unit-test, tband-baremetal-integration, tband-build-examples, codegen-test, tools-cargo-test, tools-fmt-check, tools-clippy-check, web]
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
