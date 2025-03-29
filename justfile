@@ -86,6 +86,21 @@ build_docs:
 build_wasm:
     cd web/tband-wasm && wasm-pack build
 
+# Generate web demo traces. Requires FreeRTOS checkout (v11 or newer)
+generate_web_demo_traces:
+    #!/bin/env bash
+    set -e
+    echo "==== Configuring POSIX_FreeRTOS ===="
+    cd examples/POSIX_FreeRTOS
+    rm -rf build
+    mkdir build
+    cmake -G Ninja -B build .
+    echo "==== Building POSIX_FreeRTOS ===="
+    ninja -C build
+    cd ../../
+    echo "==== Generating Trace ===="
+    DUMP_DEMO_TRACE=1 ./examples/POSIX_FreeRTOS/build/POSIX_FreeRTOS > ./web/website/demo_traces/freertos.json
+
 # Setup website environment.
 setup_website:
     cd web/website && npm install

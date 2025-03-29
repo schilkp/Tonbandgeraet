@@ -1,8 +1,8 @@
+#include "app.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
-
-#include "app.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -34,32 +34,30 @@ uint64_t traceport_timestamp(void) {
          (ts.tv_nsec - ts_start.tv_nsec);
 }
 
-void dump_hex(uint8_t b) {
-  static size_t i = 0;
-  if (i % 8 != 7) {
-    printf("%02x ", b);
-  } else {
-    printf("%02x\n", b);
-  }
-  i++;
-}
-
 void traceport_snapshot_done(void) {
-  const uint8_t *buf = (uint8_t *)tband_get_metadata_buf(0);
-  size_t len = tband_get_metadata_buf_amnt(0);
-
-  for (size_t i = 0; i < len; i++) {
-    dump_hex(buf[i]);
+  if (getenv("DUMP_DEMO_TRACE") != NULL) {
+    printf("{\n");
+    printf("  \"title\": \"Example FreeRTOS Trace\",\n");
+    printf("  \"trace_mode\": \"freertos\",\n");
+    printf("  \"data\": [\n");
+    printf("    {\n");
+    printf("      \"core_id\": 0,\n");
+    printf("      \"hex\": \"");
+    const uint8_t *buf = (uint8_t *)tband_get_metadata_buf(0);
+    size_t len = tband_get_metadata_buf_amnt(0);
+    for (size_t i = 0; i < len; i++) {
+      printf("%02x", buf[i]);
+    }
+    buf = (uint8_t *)tband_get_core_snapshot_buf(0);
+    len = tband_get_core_snapshot_buf_amnt(0);
+    for (size_t i = 0; i < len; i++) {
+      printf("%02x", buf[i]);
+    }
+    printf("\"\n");
+    printf("    }\n");
+    printf("  ]\n");
+    printf("}\n");
   }
-
-  buf = (uint8_t *)tband_get_core_snapshot_buf(0);
-  len = tband_get_core_snapshot_buf_amnt(0);
-
-  for (size_t i = 0; i < len; i++) {
-    dump_hex(buf[i]);
-  }
-
-  printf("\n");
 
   exit(0);
 }
