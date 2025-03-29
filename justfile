@@ -1,6 +1,5 @@
 _default:
     just --list
-
 # === Utils ===
 
 # Run code generator script.
@@ -26,12 +25,18 @@ baremetal_integration_tests:
 
 # Build examples (requires a FreeRTOS checkout)
 build_examples:
-    echo "===== Configuring STM32L476RGT6_FreeRTOS ====="
+    @echo "===== Configuring STM32L476RGT6_FreeRTOS ====="
     cd examples/STM32L476RGT6_FreeRTOS && rm -rf build
     cd examples/STM32L476RGT6_FreeRTOS && mkdir build
     cd examples/STM32L476RGT6_FreeRTOS/build && cmake -G Ninja ..
-    echo "====== Building STM32L476RGT6_FreeRTOS ======="
+    @echo "====== Building STM32L476RGT6_FreeRTOS ======="
     cd examples/STM32L476RGT6_FreeRTOS && ninja -C build
+    @echo "========= Configuring POSIX_FreeRTOS ========="
+    cd examples/POSIX_FreeRTOS && rm -rf build
+    cd examples/POSIX_FreeRTOS && mkdir build
+    cd examples/POSIX_FreeRTOS/build && cmake -G Ninja ..
+    @echo "========== Building POSIX_FreeRTOS ==========="
+    cd examples/POSIX_FreeRTOS && ninja -C build
 
 # === FreeRTOS checkout ===
 
