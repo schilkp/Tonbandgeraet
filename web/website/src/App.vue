@@ -5,7 +5,7 @@ import DataCard from "./components/DataCard/DataCard.vue";
 </script>
 
 <template>
-  <HeaderCard />
-  <DataCard />
-  <ConvertCard />
+    <HeaderCard />
+    <DataCard />
+    <ConvertCard />
 </template>

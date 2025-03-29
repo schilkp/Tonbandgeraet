@@ -77,6 +77,10 @@ jobs:
         working-directory: ${{github.workspace}}/web/website
         run: npm install
 
+      - name: Check website format
+        working-directory: ${{github.workspace}}/web/website
+        run: npm run format:check
+
       - name: Build website
         working-directory: ${{github.workspace}}/web/website
         run: npm run build

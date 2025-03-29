@@ -10,7 +10,6 @@ on:
 jobs:
   web-build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,7 +31,7 @@ jobs:
         run: |
           mkdir ~/bin
           curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
-      
+
       - name: Build documentation
         working-directory: ${{github.workspace}}/docs
         run: ~/bin/mdbook build
@@ -56,6 +55,10 @@ jobs:
       - name: Setup node env
         working-directory: ${{github.workspace}}/web/website
         run: npm install
+
+      - name: Check website format
+        working-directory: ${{github.workspace}}/web/website
+        run: npm run format:check
 
       - name: Build website
         working-directory: ${{github.workspace}}/web/website

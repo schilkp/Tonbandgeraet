@@ -9,4 +9,4 @@ export function download_trace(trace: Uint8Array, file_name: string) {
     a.download = file_name;
     a.click();
     window.URL.revokeObjectURL(url);
-};
+}

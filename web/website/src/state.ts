@@ -1,5 +1,5 @@
-import { TraceMode } from 'tband_wasm';
-import { reactive } from 'vue'
+import { TraceMode } from "tband_wasm";
+import { reactive } from "vue";
 
 export class TraceDataPiece {
     core_id: number;
@@ -9,7 +9,7 @@ export class TraceDataPiece {
         this.core_id = core_id;
         this.data = data;
     }
-};
+}
 
 export const trace_mode = reactive({
     value: TraceMode.FreeRTOS,
@@ -20,9 +20,9 @@ export const core_count = reactive({
 });
 
 export const trace_data = reactive<{ pieces: Array<TraceDataPiece> }>({
-    pieces: []
+    pieces: [],
 });
 
 export const converted_trace = reactive<{ data: Uint8Array | null }>({
-    data: null
+    data: null,
 });

@@ -1,8 +1,11 @@
 import { ui_info } from "./log";
 import { TraceDataPiece } from "./state";
 
-
-export function process_input_trace(content: string | ArrayBuffer, format: string, core_id: number): TraceDataPiece {
+export function process_input_trace(
+    content: string | ArrayBuffer,
+    format: string,
+    core_id: number,
+): TraceDataPiece {
     switch (format) {
         default:
         case "hex":
@@ -10,13 +13,18 @@ export function process_input_trace(content: string | ArrayBuffer, format: strin
         case "base64":
             return process_b64_trace(<string>content, core_id);
         case "binary":
-            return new TraceDataPiece(core_id, new Uint8Array(<ArrayBuffer>content));
+            return new TraceDataPiece(
+                core_id,
+                new Uint8Array(<ArrayBuffer>content),
+            );
     }
 }
 
-
 function remove_markers(content: string): string {
-    const markers = ["==== START OF TONBANDGERAET BUFFER ====", "==== END OF TONBANDGERAET BUFFER ===="]
+    const markers = [
+        "==== START OF TONBANDGERAET BUFFER ====",
+        "==== END OF TONBANDGERAET BUFFER ====",
+    ];
 
     for (var marker of markers) {
         if (content.includes(marker)) {
@@ -25,7 +33,7 @@ function remove_markers(content: string): string {
         content = content.replace(marker, "");
     }
 
-    return content
+    return content;
 }
 
 function process_hex_trace(content: string, core_id: number): TraceDataPiece {
@@ -53,7 +61,10 @@ function process_hex_trace(content: string, core_id: number): TraceDataPiece {
     if (!match) {
         throw "Malformed.";
     }
-    return new TraceDataPiece(core_id, Uint8Array.from(match.map((byte) => parseInt(byte, 16))));
+    return new TraceDataPiece(
+        core_id,
+        Uint8Array.from(match.map((byte) => parseInt(byte, 16))),
+    );
 }
 
 function process_b64_trace(content: string, core_id: number): TraceDataPiece {

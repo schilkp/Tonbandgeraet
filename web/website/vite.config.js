@@ -1,18 +1,18 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
-import vue from '@vitejs/plugin-vue'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
+import vue from "@vitejs/plugin-vue";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const dev_port = 5173;
 
 var base;
 if (process.env.NODE_ENV === "development") {
-    base = "http://localhost:" + dev_port
+    base = "http://localhost:" + dev_port;
 } else {
     base = process.env.TBAND_BASE || "https://schilk.co/Tonbandgeraet";
 }
-base = base.replace(/\/$/, '') + '/'
+base = base.replace(/\/$/, "") + "/";
 
 console.log("URL base: " + base);
 
@@ -31,15 +31,15 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: '../../docs/book/*',
-                    dest: 'docs'
-                }
-            ]
-        })
+                    src: "../../docs/book/*",
+                    dest: "docs",
+                },
+            ],
+        }),
     ],
 
     server: {
         port: dev_port,
         strictPort: true, // strict mode so base defined above is always correct.
-    }
-})
+    },
+});

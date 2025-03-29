@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview"
+        "format": "prettier --write \"src/**/*.{js,ts,json,css,scss,md,vue}\"",
+        "format:check": "prettier --check \"src/**/*.{js,ts,json,css,scss,md,vue}\""
     },
     "dependencies": {
         "tband_wasm": "file:../tband-wasm/pkg",
@@ -22,6 +23,7 @@
         "typescript": "^5.2.2",
         "vite": "^5.3.1",
         "vite-plugin-static-copy": "^1.0.5",
-        "vue-tsc": "^2.0.22"
+        "vue-tsc": "^2.0.22",
+        "prettier": "^3.5.3"
     }
 }
