@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 import { core_count } from "../../state.ts";
 import { Flash } from "../../flash_ui_element.ts";
@@ -31,6 +31,11 @@ function core_count_update(e: any) {
     }
     core_count_inp.value = core_count.value;
 }
+
+// Watch for changes to core_count from elsewhere
+watch(core_count, (newValue) => {
+    core_count_inp.value = newValue;
+});
 </script>
 
 <template>

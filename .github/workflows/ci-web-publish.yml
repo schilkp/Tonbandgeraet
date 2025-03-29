@@ -53,6 +53,14 @@ jobs:
           mkdir ~/bin
           curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
 
+      - name: Install just
+        run:  sudo apt-get install just
+
+      - name: Fetch FreeRTOS
+        run: |
+          just freertos_clone
+          just freertos_checkout_v11_1_0
+
       - name: Build documentation
         working-directory: ${{github.workspace}}/docs
         run: ~/bin/mdbook build
@@ -60,6 +68,10 @@ jobs:
       - name: Build wasm bindings
         working-directory: ${{github.workspace}}/web/tband-wasm
         run: wasm-pack build
+
+      - name: Generate demo traces
+        working-directory: ${{github.workspace}}/web/tband-wasm
+        run: just generate_web_demo_traces
 
       - name: Run rust tests
         working-directory: ${{github.workspace}}/web/tband-wasm

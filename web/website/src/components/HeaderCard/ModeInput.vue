@@ -1,9 +1,37 @@
 <script setup lang="ts">
 import { TraceMode } from "tband_wasm";
 import { trace_mode } from "../../state.ts";
+import { watch } from "vue";
 
 const trace_mode_input = defineModel();
-trace_mode_input.value = "freertos";
+
+function updateInputFromTraceMode() {
+    switch (trace_mode.value) {
+        case TraceMode.FreeRTOS:
+            trace_mode_input.value = "freertos";
+            break;
+        case TraceMode.BareMetal:
+            trace_mode_input.value = "baremetal";
+            break;
+        default:
+            console.error("Unknown Trace mode!");
+            break;
+    }
+
+    if (trace_mode.value === TraceMode.FreeRTOS) {
+        trace_mode_input.value = "freertos";
+    } else if (trace_mode.value === TraceMode.BareMetal) {
+        trace_mode_input.value = "baremetal";
+    }
+}
+
+// Set initial value
+updateInputFromTraceMode();
+
+// Watch for changes to trace_mode from elsewhere
+watch(trace_mode, () => {
+    updateInputFromTraceMode();
+});
 
 function trace_mode_update() {
     switch (trace_mode_input.value) {

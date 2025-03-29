@@ -36,7 +36,10 @@ function remove_markers(content: string): string {
     return content;
 }
 
-function process_hex_trace(content: string, core_id: number): TraceDataPiece {
+export function process_hex_trace(
+    content: string,
+    core_id: number,
+): TraceDataPiece {
     let inp = remove_markers(<string>content);
 
     var hex = "";
