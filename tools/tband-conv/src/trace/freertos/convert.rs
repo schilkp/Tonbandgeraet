@@ -424,7 +424,7 @@ impl TraceConverter {
                 let queue_id = evt.queue_id as usize;
                 let queue = t.freertos.queues.get_mut_or_create(queue_id);
                 let new_kind: QueueKind = evt.kind.into();
-                if queue.kind != new_kind && !matches!(new_kind, QueueKind::Queue) {
+                if queue.kind != new_kind && !matches!(queue.kind, QueueKind::Queue) {
                     warn!("[--METADATA--] Overwriting queue #{queue_id} type from '{}' to '{}'.", queue.kind, new_kind);
                 }
                 queue.kind = new_kind;
