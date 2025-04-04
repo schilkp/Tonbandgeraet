@@ -107,3 +107,5 @@ the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli), a
   the current in-browser experience.
 
 - If going the egui route, this could be a good basis: https://gitlab.com/surfer-project/surfer 
+
+- GUI example/reference: https://github.com/wolfpld/tracy/blob/master/manual/tracy.tex
