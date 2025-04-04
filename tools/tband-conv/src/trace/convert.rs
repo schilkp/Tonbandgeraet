@@ -7,7 +7,6 @@ use crate::{
 };
 use anyhow::anyhow;
 use log::{debug, info, trace, warn};
-use std::iter::repeat;
 
 #[derive(Debug, Clone)]
 struct TraceEvt {
@@ -36,7 +35,7 @@ impl TraceConverter {
             core_count,
             mode,
             common_stream_decoder: StreamDecoder::new(mode),
-            core_stream_decoder: Vec::from_iter(repeat(StreamDecoder::new(mode)).take(core_count)),
+            core_stream_decoder: Vec::from_iter(std::iter::repeat_n(StreamDecoder::new(mode), core_count)),
             evts: TraceEvtSequence::new(core_count),
         })
     }
@@ -141,7 +140,7 @@ impl TraceEvtSequence {
             current_core: 0,
             evts: vec![],
             core_count,
-            core_max_ts: Vec::from_iter(repeat(0).take(core_count)),
+            core_max_ts: Vec::from_iter(std::iter::repeat_n(0, core_count)),
         }
     }
 
