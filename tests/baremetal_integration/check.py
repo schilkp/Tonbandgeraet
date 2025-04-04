@@ -16,8 +16,17 @@ assert evt["BaseMetadata"]["IsrName"]["name"] == "ISR0"
 
 print("...")
 
-evt = evts.pop(-1)
+evt = evts.pop(-6)
 print("evt: " + str(evt))
 assert evt["Base"]["ts"] == 40
 assert evt["Base"]["kind"]["EvtmarkerEnd"]["evtmarker_id"] == 0
 
+evt = evts.pop(-5)
+print("evt: " + str(evt))
+assert evt["BaseMetadata"]["EvtmarkerName"]["evtmarker_id"] == 100
+assert evt["BaseMetadata"]["EvtmarkerName"]["name"] == "my_fn1"
+
+evt = evts.pop(-4)
+print("evt: " + str(evt))
+assert evt["Base"]["ts"] == 40
+assert evt["Base"]["kind"]["EvtmarkerBegin"]["evtmarker_id"] == 100

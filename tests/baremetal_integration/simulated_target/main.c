@@ -4,6 +4,17 @@
 #include "mocks.h"
 #include "tband.h"
 
+void my_fn1() {
+  tband_fn_begin(100);
+  mock_port_ts_fake.return_val += 10;
+  tband_fn_end();
+}
+
+void my_fn2() {
+  tband_fn(101);
+  mock_port_ts_fake.return_val += 10;
+}
+
 int main() {
 
   mock_port_ts_reset();
@@ -21,26 +32,29 @@ int main() {
 
   assert(tband_trigger_snapshot() == 0);
 
-  mock_port_ts_fake.return_val = 10;
+  mock_port_ts_fake.return_val += 10;
   tband_isr_enter(0);
 
-  mock_port_ts_fake.return_val = 12;
+  mock_port_ts_fake.return_val += 2;
   tband_isr_enter(1);
 
-  mock_port_ts_fake.return_val = 14;
+  mock_port_ts_fake.return_val += 2;
   tband_isr_exit(1);
 
-  mock_port_ts_fake.return_val = 16;
+  mock_port_ts_fake.return_val += 2;
   tband_isr_exit(0);
 
-  mock_port_ts_fake.return_val = 20;
+  mock_port_ts_fake.return_val += 4;
   tband_evtmarker(0, "EVENT@20");
 
-  mock_port_ts_fake.return_val = 30;
+  mock_port_ts_fake.return_val += 10;
   tband_evtmarker_begin(0, "EVENT@30");
 
-  mock_port_ts_fake.return_val = 40;
+  mock_port_ts_fake.return_val += 10;
   tband_evtmarker_end(0);
+
+  my_fn1();
+  my_fn2();
 
   assert(tband_tracing_finished() != true);
 

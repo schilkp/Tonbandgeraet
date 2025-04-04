@@ -244,6 +244,41 @@
      * @param val value to be traced.
      */
     #define tband_valmarker(id, val) impl_tband_valmarker(id, val)
+
+    /**
+     * @brief Trace function event marker.
+     *
+     * @param id value marker id.
+     */
+    #define tband_fn(id)                                                       \
+      static int tband_fn_trace_is_named = 0;                                  \
+      static uint32_t tband_fn_trace_id = id;                                  \
+      if (!tband_fn_trace_is_named) {                                          \
+        tband_evtmarker_name(tband_fn_trace_id, __func__);                     \
+        tband_fn_trace_is_named = 1;                                           \
+      }                                                                        \
+      tband_evtmarker(tband_fn_trace_id, ""); 
+  
+    /**
+     * @brief Trace beginning of a function slice event marker.
+     *
+     * @param id value marker id.
+     */
+    #define tband_fn_begin(id)                                                 \
+      static int tband_fn_trace_is_named = 0;                                  \
+      static uint32_t tband_fn_trace_id = id;                                  \
+      if (!tband_fn_trace_is_named) {                                          \
+        tband_evtmarker_name(tband_fn_trace_id, __func__);                     \
+        tband_fn_trace_is_named = 1;                                           \
+      }                                                                        \
+      tband_evtmarker_begin(tband_fn_trace_id, ""); 
+  
+    /**
+     * @brief Trace end of a function slice event marker.
+     *
+     * @param id value marker id.
+     */
+    #define tband_fn_end() tband_evtmarker_end(tband_fn_trace_id)
   #endif /* (tband_configMARKER_TRACE_ENABLE == 1) */
 
 #endif /* tband_configENABLE == 1*/
@@ -295,6 +330,18 @@
 #ifndef tband_valmarker
   #define tband_valmarker(id, val)
 #endif /* tband_valmarker */
+
+#ifndef tband_fn
+  #define tband_fn(id)
+#endif /* tband_fn */
+
+#ifndef tband_fn_begin
+  #define tband_fn_begin(id)
+#endif /* tband_fn_begin */
+
+#ifndef tband_fn_end
+  #define tband_fn_end()
+#endif /* tband_fn_end */
 
 #endif /* TBAND_H_ */
 // clang-format on
