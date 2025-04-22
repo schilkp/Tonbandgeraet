@@ -59,7 +59,7 @@ function demo_update() {
     if (demo_input.value != "") {
         // Load demo trace:
         const demo_info = demos[demo_input.value];
-        console.log(demo_info);
+        console.log("Loading demo trace '" + demo_info.title + "'");
         fetch_and_load_demo(demo_info.path)
             .then(() => {
                 UIKit.notification(

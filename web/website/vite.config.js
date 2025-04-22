@@ -46,8 +46,6 @@ if (fs.existsSync(demo_traces_dir)) {
     });
 }
 
-console.log(demo_traces_available);
-
 // https://vitejs.dev/config/
 export default defineConfig({
     base: base,
