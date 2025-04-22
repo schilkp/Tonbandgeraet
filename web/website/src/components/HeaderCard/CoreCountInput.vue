@@ -34,7 +34,7 @@ function core_count_update(e: any) {
 
 // Watch for changes to core_count from elsewhere
 watch(core_count, (newValue) => {
-    core_count_inp.value = newValue;
+    core_count_inp.value = newValue.value;
 });
 </script>
 
