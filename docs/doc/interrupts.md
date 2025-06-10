@@ -7,8 +7,7 @@ ID, and can optionally be named but don't otherwise require any kind of configur
 Note that unlike event markers, they are local to one core. If two cores share an
 interrupt, you will have to name it on both cores.
 
-> 💡 Note
->
+> [!TIP]
 > Tracing of frequent interrupts may require significant resources.
 
 ## Example

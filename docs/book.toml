@@ -5,6 +5,8 @@ language = "en"
 multilingual = false
 src = "."
 
+[preprocessor.alerts]
+
 [output.html]
 smart-punctuation = true
 mathjax-support = true

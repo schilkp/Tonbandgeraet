@@ -6,8 +6,7 @@ from any context.
 
 A marker does not have to be initialized to be used, but can optionally be named.
 
-> 💡 Note
->
+> [!TIP]
 > Internally, Tonbandgerät uses a [varlen](../tech_details/varlen.md) encoding scheme for numeric values,
 > so don't be appalled by the idea of using a 64-bit trace message to track your 8 bit value. Small values
 > will only require a few bytes.

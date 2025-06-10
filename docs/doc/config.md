@@ -96,7 +96,8 @@ Size of the per-core [snapshot buffer](./snapshot.md) in bytes, if enabled.
 Set to `1` to enable the [post-mortem backend](./postmortem.md). Note that exactly one backend must be
 enabled!
 
-> NOT YET IMPLEMENTED
+> [!WARNING]
+> The post-mortem backend has not been implemented yet.
 
 ---
 # External Backend Config:
@@ -138,4 +139,5 @@ Can be disabled to reduce the number of generated events.
 Set to 0 to disable serialization and tracing of FreeRTOS stream buffer operatons.
 Can be disabled to reduce the number of generated events.
 
-> NOT YET IMPLEMENTED
+> [!WARNING]
+> Stream buffers are not yet supported.
