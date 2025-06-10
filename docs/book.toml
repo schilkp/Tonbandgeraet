@@ -25,3 +25,9 @@ boost-hierarchy = 2
 boost-paragraph = 1
 expand = true
 heading-split-level = 2
+
+[output.linkcheck]
+follow-web-links = true
+exclude = [
+  '''[^:\s]+\.md:[^:\s]+''', # Ignore links with anchors - not supported..
+]

@@ -49,7 +49,7 @@ jobs:
       - name: Run
         working-directory: ${{github.workspace}}
         run: ./tests/baremetal_integration/run.bash
-  
+
   # ===--------------------------------------------------------------------=== #
   # Run Tonbandgeraet bare-metal integration tests.
   # ===--------------------------------------------------------------------=== #
@@ -71,7 +71,7 @@ jobs:
 
       - name: Install protoc
         run:  sudo apt-get install protobuf-compiler
-      
+
       - name: Fetch FreeRTOS
         run: |
           ./scripts/freertos_clone.bash
@@ -271,6 +271,13 @@ jobs:
           mkdir ~/bin
           curl -sSL https://github.com/tommilligan/mdbook-admonish/releases/download/v1.20.0/mdbook-admonish-v1.20.0-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
           chmod +x ~/bin/mdbook-admonish
+
+      - name: Install mdbook-linkcheck
+        run: |
+          cd ~/bin
+          curl -L -o mdbook-linkcheck.zip https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/download/v0.7.7/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+          unzip mdbook-linkcheck.zip
+          chmod +x mdbook-linkcheck
 
       - name: Build documentation
         working-directory: ${{github.workspace}}/docs
