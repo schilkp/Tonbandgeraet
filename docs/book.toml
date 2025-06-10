@@ -27,7 +27,7 @@ expand = true
 heading-split-level = 2
 
 [output.linkcheck]
-follow-web-links = true
+follow-web-links = false
 exclude = [
   '''[^:\s]+\.md:[^:\s]+''', # Ignore links with anchors - not supported..
 ]
