@@ -43,11 +43,12 @@ the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli), a
 
 ## Status
 
-> [!IMPORTANT]
-> Tonbandgerät is in early development and by no means considered stable. Everything - including the
-> binary trace format - is subject to change.
->
-> Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues).
+```admonish info
+Tonbandgerät is in early development and by no means considered stable. Everything - including the
+binary trace format - is subject to change.
+
+Please report any issues [here](https://github.com/schilkp/Tonbandgeraet/issues).
+```
 
 ### Completed:
 
