@@ -62,7 +62,7 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    src: "../../docs/book/*",
+                    src: "../../docs/book/html/*",
                     dest: "docs",
                 },
                 {
