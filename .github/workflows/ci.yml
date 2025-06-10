@@ -263,7 +263,7 @@ jobs:
       - name: Install mdbook
         run: |
           mkdir -p ~/bin
-          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.51/mdbook-v0.4.51-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
           chmod +x ~/bin/mdbook
 
       - name: Install mdbook-admonish
