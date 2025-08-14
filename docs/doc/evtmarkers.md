@@ -16,7 +16,7 @@ Consider the following (fictional) firmware. An external sensor triggers, once r
 the handler, a call to the `sensor_do_work()` function is scheduled, which in turn fetches the data from the sensor
 and does some DSP processing involving an FFT.
 
-To gain some insight in the timing and operation of this code, it is instrumented with Tonbandgerät event markers. First, during setup,
+To gain some insight into the timing and operation of this code, it is instrumented with Tonbandgerät event markers. First, during setup,
 the event markers with IDs `0` and `1` are named. In the interrupt, an instant event is traced. In the callback, the
 fetching of sensor data and DSP calculation are wrapped in span event markers.
 

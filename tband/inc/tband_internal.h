@@ -11,7 +11,7 @@
 // clang-format off
 
 #ifndef tbandPROPER_INTERNAL_INCLUDE
-  #error "This internal header file is not a public API and should be be included. Include tband.h instead."
+  #error "This internal header file is not a public API and should not be included. Include tband.h instead."
 #endif /* tbandPROPER_INTERNAL_INCLUDE */
 
 // ===== Internal APIs =========================================================

@@ -98,17 +98,17 @@ details. This macro **must** return a value between 0 and `tband_portNUMBER_OF_C
 ## `tband_portBACKEND_STREAM_DATA(buf, len)`
 - Required: `YES` (if streaming backend is enabled)
 - Return type: `bool`
-- Arg. 1 type: `const uin8_t*`
+- Arg. 1 type: `const uint8_t*`
 - Arg. 2 type: `size_t`
 
 Required if the [streaming backend](./streaming.md) is used. Called by Tonbandgerät to
 submit data that is to be streamed. Return value of `true` indicates that data could *not*
 be streamed and was dropped. Return value of `false` indicates that data was not dropped
-and succesfully streamed.
+and successfully streamed.
 
 #### Example:
 ```c
-bool stream_data(const uin8_t* buf, size_t buf_len);
+bool stream_data(const uint8_t* buf, size_t buf_len);
 #define tband_portBACKEND_STREAM_DATA(buf, len) stream_data(buf, len)
 ```
 
@@ -123,15 +123,15 @@ If the [snapshot backend](./snapshot.md) is active and stops because of a full
 snapshot buffer, this callback is called.
 
 Note that this macro is called *from within the tracing hook of the first event that could not be stored in the buffer*, and
-therefor may be called from any context (interrupts, RTOS tasks, RTOS scheduler, ...).
+therefore may be called from any context (interrupts, RTOS tasks, RTOS scheduler, ...).
 
 Because the callback is always called from within a Tonbandgerät [critical section](./porting_critical_sections.md) and
 while certain internal spin locks are held, *no Tonbandgerät APIs may be called from inside this callback*.
 
-Even in a multicore setp, this callback is called only once on the one core that first filled
+Even in a multicore setup, this callback is called only once on the one core that first filled
 its buffer.
 
-Furthermore, note that this callback is called once the (first) buffer is full, but it may some moments for the snapshot
+Furthermore, note that this callback is called once the (first) buffer is full, but it may take some moments for the snapshot
 backend to finish, especially on all cores.
 
 #### Example:

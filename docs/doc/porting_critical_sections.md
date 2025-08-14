@@ -39,7 +39,7 @@ RTOS tracing will almost always generate tracing events from interrupts. A criti
 in this case, disable interrupts and prevent any mechanism for context switching. This is best done
 by using the critical section API provided by the RTOS. Note that these APIs may have calling
 semantics that differ from how Tonbandgerät's critical sections work. For example, FreeRTOS
-provides seperate APIs for critical sections within and outside interrupts, and can only
+provides separate APIs for critical sections within and outside interrupts, and can only
 be used if the port supports detecting if execution is currently inside an interrupt. Using the
 FreeRTOS ARM Cortex M4 port, this may be done as follows:
 
@@ -65,7 +65,7 @@ FreeRTOS ARM Cortex M4 port, this may be done as follows:
   }
 ```
 
-## Critical Sections & Mulit-core Support
+## Critical Sections & Multi-core Support
 
-No adaption of a critical section implementation is necessary when moving to a multi-core configuration,
+No adaptation of a critical section implementation is necessary when moving to a multi-core configuration,
 as Tonbandgerät protects all static resources that are accessed from multiple cores with spinlocks.

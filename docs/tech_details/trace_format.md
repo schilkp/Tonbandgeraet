@@ -6,7 +6,7 @@ bit id) and their respective structure is fixed.
 
 ## Trace Event Structure
 
-Inside the COBS frame, each event type is structure as follows:
+Inside the COBS frame, each event type is structured as follows:
 
 - An 8-bit ID, which identifies the type of trace event and hence internal structure of the fields to follow.
 - Zero or more *required* [known-length fields](#known-length-fields), which are always present in every event instance of this type.
@@ -17,7 +17,7 @@ Inside the COBS frame, each event type is structure as follows:
     - Nothing
 
 
-Some examples of valid event structures follow, where each field is denoted as `name:type` with optional fields enclosed in square braces (`[]`), and variable-length fields appended with an elipses (`...`):
+Some examples of valid event structures follow, where each field is denoted as `name:type` with optional fields enclosed in square braces (`[]`), and variable-length fields appended with an ellipses (`...`):
 
 ```text
 id:u8
@@ -39,13 +39,13 @@ byte of a field by having its MSB be zero, see [field types](./bin_event_fields.
 
 ## Required fields
 
-Required fields are straight forward to encode and decode: The encoder serialises all fields and inserts them
+Required fields are straight forward to encode and decode: The encoder serializes all fields and inserts them
 sequentially into the event frame. Since they are all required to be [known-length fields](#known-length-fields), and
 the decoder is aware of the set of required fields present, it can simply identify and decode them.
 
 ## Optional fields
 
-Optional fields must not necessarily be included in an event. If they are present, they are encoded as ususal.
+Optional fields must not necessarily be included in an event. If they are present, they are encoded as usual.
 If they are not present, they are simply omitted. Importantly however, they must always appear in the order in which they are defined
 and cannot be excluded and included freely without restriction:
 

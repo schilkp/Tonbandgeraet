@@ -14,7 +14,7 @@ will only require a few bytes.
 
 ## Example
 
-Consider the following firmware snippet that implements some for of buffer. The functions to
+Consider the following firmware snippet that implements some form of buffer. The functions to
 add and remove data from the buffer are instrumented with value markers to track how much data
 the buffer contains at any given time.
 
@@ -42,7 +42,7 @@ void remove_from_buf(struct buf *b, uint8_t *data, size_t len) {
 
 ```
 
-A trace of this imaginary fimware would like this:
+A trace of this imaginary firmware would look like this:
 ![Valmarker Example Trace.](./imgs/valmarkers.png)
 
 

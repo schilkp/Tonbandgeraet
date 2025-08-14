@@ -6,9 +6,9 @@ at most have a few hundred interrupts. This would mean that most bytes of most n
 fields are zero most of the time, wasting trace storage capacity or transfer bandwidth.
 
 To combat this, Tonbandgerät uses the same specific form of variable-length (varlen) encoding that
-is also by UTF-8 for most numeric values:
+is also used by UTF-8 for most numeric values:
 
-> Values are split into 7-bit septets, and are encoding starting with the least significant
+> Values are split into 7-bit septets, and are encoded starting with the least significant
 > septet. Each septet is encoded as an 8-bit value, consisting of the septet in the lower bits,
 > and a control bit in the most significant bit position that is set to `1` if there are more
 > septets to follow, or `0` if this is the last septet and all following bits should be assumed
@@ -26,7 +26,7 @@ byte:
     +--> No more bits to follow.
 ```
 
-The value `0xFF` requires more than seven bits and therefor is split into two bytes:
+The value `0xFF` requires more than seven bits and therefore is split into two bytes:
 
 ```test
         +---> First 7 bits          +---> Next 7 bits

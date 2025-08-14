@@ -159,7 +159,7 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
       (void)atomic_fetch_add(&dropped_evt_cnt, 1);
       return;
     } else {
-      // Succesfully submitted dropped event count. Submit next one in
+      // Successfully submitted dropped event count. Submit next one in
       // tband_configTRACE_DROP_CNT_EVERY events.
       if (period_dropped_evt_tracing) {
         dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()] = tband_configTRACE_DROP_CNT_EVERY;

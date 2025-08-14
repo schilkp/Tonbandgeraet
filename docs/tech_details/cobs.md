@@ -5,7 +5,7 @@ separate binary trace events that have been stored or transmitted together. Spec
 in a reversible fashion, with only minimal overhead. Zeroes are then used to delimit individual trace messages.
 
 Specifically, after COBS framing, an \\( N \neq 0 \\) byte message will be at most
-\\( 1 + \left\lceil \frac{N}{254} \right\rceil + N \\) bytes long, including a trailing zero for delimination.
+\\( 1 + \left\lceil \frac{N}{254} \right\rceil + N \\) bytes long, including a trailing zero for delimitation.
 
 Please read the above article for a more precise specification, but roughly speaking this is done by replacing all zeroes with
 a pointer to the next zero:
@@ -36,7 +36,7 @@ COBS framed:       0x01   0xFF  0x01  0x02 ... 0xFD  0xFE  0x02   0xFF  0x00
 
 ```
 
-When decoding, the value pointed at by a `0xFF` pointer must therefor not be decoded to a zero but only be interpreted as a 
+When decoding, the value pointed at by a `0xFF` pointer must therefore not be decoded to a zero but only be interpreted as a 
 another pointer.
 
 Because trace events are usually very short, this means that most can be framed with only two bytes of overhead.

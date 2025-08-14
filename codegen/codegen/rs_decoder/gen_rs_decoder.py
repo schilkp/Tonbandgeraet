@@ -215,7 +215,7 @@ def gen_evt(e: Evt, group: EvtGroup) -> str:
         result += f"    Some({basic_field_decode(field)})\n"
         result += f"  }} else {{\n"
         result += f"    None\n"
-        result += f"  }};n"
+        result += f"  }};\n"
     if e.varlen_field is not None:
         result += f"    let {e.varlen_field.name} = {varlen_field_decode(e.varlen_field.kind)};\n"
     result += f"    if bytes_left(buf, *current_idx) {{\n"
@@ -268,7 +268,7 @@ def gen_main_decode_func(groups: List[EvtGroup]) -> str:
     result += (
         "    pub fn decode(buf: &[u8], mode: TraceMode) -> anyhow::Result<Self> {\n"
     )
-    result += "        let mut current_idx: usize = 0;;\n"
+    result += "        let mut current_idx: usize = 0;\n"
     result += "        let id: u8 = decode_u8(buf, &mut current_idx)?;\n"
     result += "        match id {\n"
     for event in base_group.evts:

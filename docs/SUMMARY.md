@@ -2,7 +2,7 @@
 
 [Introduction](./intro.md)
 # Documentation
-- [Getting Starting](./doc/getting_started.md)
+- [Getting Started](./doc/getting_started.md)
 - [Porting](./doc/porting.md)
     - [Critical Sections](./doc/porting_critical_sections.md)
 - [Configuration](./doc/config.md)

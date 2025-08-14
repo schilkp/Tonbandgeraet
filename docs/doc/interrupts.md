@@ -18,7 +18,7 @@ In the example below, an interrupt routine is being traced:
 ```c
 #include "tband.h"
 
-#define TICK_ISR_ID
+#define TICK_ISR_ID 0
 
 // Setup:
 void setup(void) {

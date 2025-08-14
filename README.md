@@ -23,7 +23,7 @@ It can be used both with an RTOS, or in bare-metal environments to instrument us
 Full tracing of FreeRTOS tasks and resources is also supported out-of-the-box.
 
 Tonbandgerät is based on a simple custom binary trace format designed to be both compact and fairly fast to encode. Recorded
-traces can be viewed in Google's in-browser perfetto after conversion with the provided CLI tool
+traces can be viewed in Google's in-browser Perfetto after conversion with the provided CLI tool
 or in-browser converter.
 
 ## Documentation
@@ -74,9 +74,9 @@ the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli), a
   Implemented and theoretically (almost?) done, but completely untested.
 
 - Full FreeRTOS support, including some PRs: PRs are in a draft state/being
-  reviewed. Certain FreeRTOS (rare) are not yet traced correctly due to insufficient
+  reviewed. Certain FreeRTOS events (rare) are not yet traced correctly due to insufficient
   tracing hooks. Tracing of streambuffers, direct-to-task notification, timers, and
-  event groups are not yet Implemented.
+  event groups are not yet implemented.
 
 
 #### Other:
@@ -101,7 +101,7 @@ the [CLI](https://github.com/schilkp/Tonbandgeraet/tree/main/tools/tband-cli), a
   quite want to open. Furthermore, as it stands at the time of writing, a perfetto-based trace will never
   be able to display trace events in real time.
 
-- A custom UI would enable real-time viewing an be the first step towards a more "integrated" desktop tool that
+- A custom UI would enable real-time viewing and be the first step towards a more "integrated" desktop tool that
   could also handle trace recording (building on [probe.rs](https://probe.rs/) for RTT communication). A gui
   built on [tauri](https://tauri.app/) and/or [egui](https://github.com/emilk/egui) could continue to enable
   the current in-browser experience.

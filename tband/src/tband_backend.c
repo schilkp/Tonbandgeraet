@@ -510,8 +510,8 @@ int tband_reset_snapshot(void) {
   for (unsigned int core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
     tband_spinlock_acquire(&backend_spinlocks[core_id]);
 
-    // Dont need to clear whole buffer - it won't get read if the idx is reset.
-    // The first element is reset to zero, but this is technically unecessary:
+    // Don't need to clear whole buffer - it won't get read if the idx is reset.
+    // The first element is reset to zero, but this is technically unnecessary:
     // it should never be written to!
     snapshot_backends[core_id].idx = 0;
     snapshot_backends[core_id].buf[0] = 0;

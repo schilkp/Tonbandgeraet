@@ -28,8 +28,8 @@ worst-case trace hook execution time.
 - Default: `50`
 
 In addition to sending the [dropped event counter](./dropped_evts.md) after an event was
-dropped, Tonbandgerät will also serialize and trace the number of dropped events after ever
-`tband_configTRACE_DROP_CNT_EVERY` normal tracing events. Set to zero to disable periode
+dropped, Tonbandgerät will also serialize and trace the number of dropped events after every
+`tband_configTRACE_DROP_CNT_EVERY` normal tracing events. Set to zero to disable periodic
 dropped event tracing.
 
 ## `tband_configMARKER_TRACE_ENABLE`:
@@ -130,14 +130,14 @@ Can be disabled to reduce the number of generated events.
 - Possible Values: `0, 1`
 - Default: `1`
 
-Set to 0 to disable serialization and tracing of FreeRTOS queue operatons.
+Set to 0 to disable serialization and tracing of FreeRTOS queue operations.
 Can be disabled to reduce the number of generated events.
 
 ## `tband_configFREERTOS_STREAM_BUFFER_TRACE_ENABLE`:
 - Possible Values: `0, 1`
 - Default: `1`
 
-Set to 0 to disable serialization and tracing of FreeRTOS stream buffer operatons.
+Set to 0 to disable serialization and tracing of FreeRTOS stream buffer operations.
 Can be disabled to reduce the number of generated events.
 
 ```admonish warning

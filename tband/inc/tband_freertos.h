@@ -137,7 +137,7 @@
       )
   #endif /* (tband_configFREERTOS_TASK_TRACE_ENABLE == 1) */
 
-  // Task priority disinherti:
+  // Task priority disinherit:
   #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)
     void impl_tband_freertos_task_priority_disinherit(uint32_t task_id, uint32_t priority);
     #define traceTASK_PRIORITY_DISINHERIT(pxTCBOfMutexHolder, uxOriginalPriority) impl_tband_freertos_task_priority_disinherit( \
@@ -252,7 +252,7 @@
         )
   #endif /* (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1) */
 
-  // Task blocking on qeuue receive:
+  // Task blocking on queue receive:
   // FIXME: Add version toggle!
   #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)
     void impl_tband_freertos_blocking_on_queue_receive(uint32_t queue_id, uint32_t ticks_to_wait);

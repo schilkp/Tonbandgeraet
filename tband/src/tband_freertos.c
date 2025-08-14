@@ -41,7 +41,7 @@ static volatile atomic_ulong next_queue_id = 1;
 
 #if (configUSE_PREEMPTION == 0)
 // Track last running task_id per-core
-// This is required when preemption is disabled to detect and prevent continous
+// This is required when preemption is disabled to detect and prevent continuous
 // generation of task-switched-in events by the IDLE task.
 static volatile uint32_t core_last_task[tband_portNUMBER_OF_CORES] = {0};
 #endif /* configUSE_PREEMPTION */
@@ -92,7 +92,7 @@ void impl_tband_freertos_task_switched_in(uint32_t task_id) {
   tband_portENTER_CRITICAL_FROM_ANY();
 
 #if (configUSE_PREEMPTION == 0)
-  // With preemption disabled, the IDLE task will continously generate
+  // With preemption disabled, the IDLE task will continuously generate
   // "task-switched-in" events while it is running. Skip repeated
   // task-switched-in events:
   if (core_last_task[tband_portGET_CORE_ID()] == task_id) {

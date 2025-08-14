@@ -13,7 +13,7 @@ Now you have two options. To compile & install `tband-cli`, run:
 > cargo install --path .
 ```
 
-This will compile the tool, and place the finished executable in your local cargo binary direction. Where that
+This will compile the tool, and place the finished executable in your local cargo binary directory. Where that
 is [depends on your system](https://doc.rust-lang.org/cargo/commands/cargo-install.html). Most likely you will
 have to add it to your `PATH`.
 
@@ -46,7 +46,7 @@ It supports both binary and hex trace files, and both bare-metal and FreeRTOS tr
 the tool can save the result to a file (`--output`), open it directly in perfetto (`--open`), or 
 provide a link and host a local server to provide the trace to perfetto (`--serve`).
 
-The input files must be given last. If converting a multi-core trace split into seperate files, 
+The input files must be given last. If converting a multi-core trace split into separate files, 
 append the core id to each file as follows:
 
 ```text
