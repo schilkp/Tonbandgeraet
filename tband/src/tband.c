@@ -149,9 +149,9 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
   bool period_dropped_evt_tracing = tband_configTRACE_DROP_CNT_EVERY > 0;
   if ((period_dropped_evt_tracing && dropped_evt_trace_period_cnt == 0) ||
       last_traced_dropped_evt_cnt != current_dropped_evt_cnt) {
-    uint8_t buf[EVT_DROPPED_EVT_CNT_MAXLEN];
-    size_t len = encode_dropped_evt_cnt(buf, ts, atomic_load(&dropped_evt_cnt));
-    bool did_drop_evt = tband_submit_to_backend(buf, len, EVT_DROPPED_EVT_CNT_IS_METADATA);
+    uint8_t buf_dropped[EVT_DROPPED_EVT_CNT_MAXLEN];
+    size_t len = encode_dropped_evt_cnt(buf_dropped, ts, atomic_load(&dropped_evt_cnt));
+    bool did_drop_evt = tband_submit_to_backend(buf_dropped, len, EVT_DROPPED_EVT_CNT_IS_METADATA);
 
     if (did_drop_evt) {
       // Increase dropped event count and try again to submit a dropped event count evt
