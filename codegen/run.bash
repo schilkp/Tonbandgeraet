@@ -5,5 +5,4 @@ set -e
 cd "$(dirname "$0")"
 
 # Run codegen
-poetry install
-poetry run python ./codegen
+uv run python ./codegen

@@ -1,15 +1,12 @@
-[tool.poetry]
+[project]
 name = "code_gen"
 version = "0.1.0"
 description = ""
-authors = ["schilkp <schilk.philipp@gmail.com>"]
-license = "GPL-3.0-only"
+authors = [{name = "schilkp", email = "schilk.philipp@gmail.com"}]
+license = {text = "GPL-3.0-only"}
 readme = "README.md"
-package-mode = false
+requires-python = ">=3.10"
+dependencies = []
 
-[tool.poetry.dependencies]
-python = "^3.10"
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
-
+[project.optional-dependencies]
+dev = ["black>=24.4.2"]

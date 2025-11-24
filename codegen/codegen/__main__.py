@@ -1,3 +1,8 @@
+#!/usr/bin/env -S uv run
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 import sys
 from os.path import abspath, dirname, join
 
