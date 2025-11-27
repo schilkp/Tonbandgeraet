@@ -8,6 +8,10 @@
  */
 #ifndef TBAND_PORT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define tband_portENTER_CRITICAL_FROM_ANY()                                                        \
   unsigned int tband_port_prev_primask;                                                            \
   __asm volatile("mrs   %0, primask  \n\t" /* Save previous primask value */                       \
@@ -18,5 +22,9 @@
 
 #define tband_portEXIT_CRITICAL_FROM_ANY()                                                         \
   __asm volatile("msr   primask, %0  \n\t" : : "r"(tband_port_prev_primask) : "memory");
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TBAND_PORT_H_ */

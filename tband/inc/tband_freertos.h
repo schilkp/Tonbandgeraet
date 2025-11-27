@@ -10,6 +10,10 @@
 #ifndef TBAND_FREERTOS_H_
 #define TBAND_FREERTOS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -357,5 +361,9 @@
 #ifndef tband_freertos_task_valmarker
   #define tband_freertos_task_valmarker(id, val)
 #endif /* tband_freertos_task_valmarker */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TBAND_FREERTOS_H_ */

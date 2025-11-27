@@ -11,11 +11,13 @@
 #ifndef TBAND_H_
 #define TBAND_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-// FIXME: Add C extern guards in all headers!
 
 //                       ____ ___  _   _ _____ ___ ____
 //                      / ___/ _ \| \ | |  ___|_ _/ ___|
@@ -257,8 +259,8 @@
         tband_evtmarker_name(tband_fn_trace_id, __func__);                     \
         tband_fn_trace_is_named = 1;                                           \
       }                                                                        \
-      tband_evtmarker(tband_fn_trace_id, ""); 
-  
+      tband_evtmarker(tband_fn_trace_id, "");
+
     /**
      * @brief Trace beginning of a function slice event marker.
      *
@@ -271,8 +273,8 @@
         tband_evtmarker_name(tband_fn_trace_id, __func__);                     \
         tband_fn_trace_is_named = 1;                                           \
       }                                                                        \
-      tband_evtmarker_begin(tband_fn_trace_id, ""); 
-  
+      tband_evtmarker_begin(tband_fn_trace_id, "");
+
     /**
      * @brief Trace end of a function slice event marker.
      *
@@ -342,6 +344,10 @@
 #ifndef tband_fn_end
   #define tband_fn_end()
 #endif /* tband_fn_end */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TBAND_H_ */
 // clang-format on
