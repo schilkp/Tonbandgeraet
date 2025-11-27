@@ -1,4 +1,4 @@
-/*h
+/**
  * @file tband_port.h
  * @brief Tonbandgeraet FreeRTOS Cortex M4F port
  * @author Philipp Schilk, 2024
