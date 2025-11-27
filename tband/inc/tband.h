@@ -259,8 +259,8 @@ extern "C" {
         tband_evtmarker_name(tband_fn_trace_id, __func__);                     \
         tband_fn_trace_is_named = 1;                                           \
       }                                                                        \
-      tband_evtmarker(tband_fn_trace_id, ""); 
-  
+      tband_evtmarker(tband_fn_trace_id, "");
+
     /**
      * @brief Trace beginning of a function slice event marker.
      *
@@ -273,8 +273,8 @@ extern "C" {
         tband_evtmarker_name(tband_fn_trace_id, __func__);                     \
         tband_fn_trace_is_named = 1;                                           \
       }                                                                        \
-      tband_evtmarker_begin(tband_fn_trace_id, ""); 
-  
+      tband_evtmarker_begin(tband_fn_trace_id, "");
+
     /**
      * @brief Trace end of a function slice event marker.
      *
