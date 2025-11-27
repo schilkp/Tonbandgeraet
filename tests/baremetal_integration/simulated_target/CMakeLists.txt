@@ -8,8 +8,8 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(simtarget)
 
-add_compile_options(-Wall -Wextra -Wpedantic -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
-add_link_options(-Wall -Wextra -Wpedantic -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
+add_compile_options(-Wall -Wextra -Wpedantic -Werror -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
+add_link_options(-Wall -Wextra -Wpedantic -Werror -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
 
 # Mocking framework:
 target_include_directories(simtarget PUBLIC ../../resources/fff)

@@ -25,6 +25,10 @@ test_build_examples:
 test_freertos_integration:
     ./tests/freertos_integration/run.bash
 
+# Run all tests:
+test: test_unit test_baremetal_integration test_freertos_integration test_build_examples
+    @echo "✅ all tests ok ✅"
+
 # === FreeRTOS checkout ===
 
 # Setup project FreeRTOS checkout.

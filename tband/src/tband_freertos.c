@@ -266,6 +266,13 @@ void impl_tband_freertos_queue_created(void *handle, uint8_t type_val) {
   uint32_t id = (uint32_t)atomic_fetch_add(&next_queue_id, 1);
   vQueueSetQueueNumber(queue, (UBaseType_t)id);
 
+  {
+    uint8_t buf[EVT_FREERTOS_QUEUE_CREATED_MAXLEN];
+    size_t len = encode_freertos_queue_created(buf, ts, id);
+    handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_CREATED_IS_METADATA, ts);
+  }
+
+#if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)
   enum FrQueueKind kind;
   switch (type_val) {
     case queueQUEUE_TYPE_BASE:
@@ -294,13 +301,6 @@ void impl_tband_freertos_queue_created(void *handle, uint8_t type_val) {
       break;
   }
 
-  {
-    uint8_t buf[EVT_FREERTOS_QUEUE_CREATED_MAXLEN];
-    size_t len = encode_freertos_queue_created(buf, ts, id);
-    handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_CREATED_IS_METADATA, ts);
-  }
-
-#if (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1)
   {
     uint8_t buf[EVT_FREERTOS_QUEUE_KIND_MAXLEN];
     size_t len = encode_freertos_queue_kind(buf, id, kind);
