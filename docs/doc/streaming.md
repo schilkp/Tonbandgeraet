@@ -41,7 +41,7 @@ This hook is called by Tonbandgerät for every trace event that is generated.
 
 ```admonish info
 Tonbandgerät will only attempt to transmit any given trace event once. If
-the `tband_portBACKEND_STREAM_DATA` hook returns false, indicating the event
+the `tband_portBACKEND_STREAM_DATA` hook returns true, indicating the event
 was dropped, Tonbandgerät will drop the event and increment the internal dropped-
 event counter. This causes Tonbandgerät to generate droppped-event marker events,
 which are generated until one was able to be streamed/submitted sucessfully.
