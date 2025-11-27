@@ -4,9 +4,20 @@
 
 Add all source files from [`tband/src`](https://github.com/schilkp/Tonbandgeraet/tree/main/tband/src) to your project
 and place all headers from [`tband/inc`](https://github.com/schilkp/Tonbandgeraet/tree/main/tband/inc) inside a folder
-that is recognized as an include path.
+that is available as an include path.
 
-If you are using FreeRTOS, include `tband.h` at the end of the `FreeRTOSConfig.h` header.
+If you are using FreeRTOS, include `tband.h` at the end of the `FreeRTOSConfig.h` header:
+
+```c
+#ifndef __ASSEMBLER__
+#include "tband.h"
+#endif
+```
+
+```admonish note
+The `__ASSEMBLER__` guard is required as some FreeRTOS [ports](https://esp32.com/viewtopic.php?t=22738)
+include the header from assembly files.
+```
 
 To use the tracer, only include `tband.h` in your code. Do not directly include any other Tonbandgerät headers.
 Note that Tonbandgerät is written using C11. Older versions of C are not tested.

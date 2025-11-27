@@ -146,6 +146,8 @@ standard names. */
 // === Tracing =====================================================================================
 
 // Include tracer:
+#ifndef __ASSEMBLER__
 #include "tband.h"
+#endif
 
 #endif /* FREERTOS_CONFIG_H */
