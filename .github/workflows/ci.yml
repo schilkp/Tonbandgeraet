@@ -274,25 +274,36 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Install mdbook
+      - name: install mdbook
+        env:
+          MDBOOK_HASH: "d611bcde080f1ab9932ca1724197ac2c23bb8c5d64581bb5da238bfbb4d39184"
         run: |
           mkdir -p ~/bin
-          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.51/mdbook-v0.4.51-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
+          curl -sSL -o /tmp/mdbook.tar.gz https://github.com/rust-lang/mdBook/releases/download/v0.4.51/mdbook-v0.4.51-x86_64-unknown-linux-gnu.tar.gz
+          echo "$MDBOOK_HASH  /tmp/mdbook.tar.gz" | sha256sum --check --status || { echo "mdBook hash mismatch!"; exit 1; }
+          tar -xz -f /tmp/mdbook.tar.gz --directory="$HOME/bin"
           chmod +x ~/bin/mdbook
 
       - name: Install mdbook-admonish
+        env:
+          ADMONISH_HASH: "64ce6dad3d20d3723c149e333d9cf85a9f7d057f18c2707d264698afdfc6679f"
         run: |
           mkdir -p ~/bin
-          curl -sSL https://github.com/tommilligan/mdbook-admonish/releases/download/v1.20.0/mdbook-admonish-v1.20.0-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory="$HOME/bin"
+          curl -sSL -o /tmp/mdbook-admonish.tar.gz https://github.com/tommilligan/mdbook-admonish/releases/download/v1.20.0/mdbook-admonish-v1.20.0-x86_64-unknown-linux-gnu.tar.gz
+          echo "$ADMONISH_HASH  /tmp/mdbook-admonish.tar.gz" | sha256sum --check --status || { echo "mdbook-admonish hash mismatch!"; exit 1; }
+          tar -xz -f /tmp/mdbook-admonish.tar.gz --directory="$HOME/bin"
           chmod +x ~/bin/mdbook-admonish
 
       - name: Install mdbook-linkcheck
+        env:
+          MDBOOK_LINKCHECK_HASH: "18cebca9493804b307b39a44af2664cdfa881e84b8d92a94205d6c51572318ef"
         run: |
           mkdir -p ~/bin
-          cd ~/bin
+          cd /tmp
           curl -L -o mdbook-linkcheck.zip https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/download/v0.7.7/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
-          unzip mdbook-linkcheck.zip
-          chmod +x mdbook-linkcheck
+          echo "$MDBOOK_LINKCHECK_HASH  mdbook-linkcheck.zip" | sha256sum --check --status || { echo "mdbook-linkcheck hash mismatch!"; exit 1; }
+          unzip mdbook-linkcheck.zip -d $HOME/bin
+          chmod +x $HOME/bin/mdbook-linkcheck
 
       - name: Build documentation
         working-directory: ${{github.workspace}}/docs
