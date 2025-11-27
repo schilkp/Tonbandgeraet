@@ -11,11 +11,13 @@
 #ifndef TBAND_H_
 #define TBAND_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-// FIXME: Add C extern guards in all headers!
 
 //                       ____ ___  _   _ _____ ___ ____
 //                      / ___/ _ \| \ | |  ___|_ _/ ___|
@@ -342,6 +344,10 @@
 #ifndef tband_fn_end
   #define tband_fn_end()
 #endif /* tband_fn_end */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TBAND_H_ */
 // clang-format on

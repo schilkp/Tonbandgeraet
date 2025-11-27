@@ -17,6 +17,10 @@
 #ifndef TRACE_ENCODER_H_
 #define TRACE_ENCODER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -676,6 +680,10 @@ static inline size_t encode_freertos_task_valmarker(uint8_t buf[EVT_FREERTOS_TAS
   encode_s64(&cobs, val);
   return cobs_finish(&cobs);
 }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TRACE_ENCODER_H_ */
 // clang-format on

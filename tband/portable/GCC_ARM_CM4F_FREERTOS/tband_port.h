@@ -8,6 +8,10 @@
  */
 #ifndef TBAND_PORT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -27,5 +31,9 @@
   } else {                                                                                         \
     taskEXIT_CRITICAL();                                                                           \
   }
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* TBAND_PORT_H_ */
