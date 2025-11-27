@@ -83,4 +83,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 )
 
+add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+add_link_options(-Wall -Wextra -Wpedantic -Werror)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-comment")

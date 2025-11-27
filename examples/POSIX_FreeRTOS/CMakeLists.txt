@@ -15,6 +15,9 @@ enable_language(C)
 
 add_executable(${CMAKE_PROJECT_NAME})
 
+add_compile_options(-Wall -Wextra -Wpedantic -Werror -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
+add_link_options(-Wall -Wextra -Wpedantic -Werror -fanalyzer -fsanitize=undefined -fsanitize=address -fno-sanitize-recover=all)
+
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # FreeRTOS Core:
     ../../FreeRTOS-Kernel/croutine.c
