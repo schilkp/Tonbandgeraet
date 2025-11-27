@@ -133,21 +133,26 @@ void impl_tband_valmarker(uint32_t id, int64_t val) {
 // Number of dropped events (shared between all cores)
 static volatile atomic_ulong dropped_evt_cnt = 0;
 
-// Dropped event tracing event inclusion state counter (local to core)
-static volatile uint32_t dropped_evt_trace_periodic_cnts[tband_portNUMBER_OF_CORES] = {0};
-
 // Last submitted dropped event count (local to core)
 static volatile unsigned long last_traced_dropped_evt_cnts[tband_portNUMBER_OF_CORES] = {0};
 
+#if tband_configTRACE_DROP_CNT_EVERY > 0
+// Dropped event tracing event inclusion state counter (local to core)
+static volatile uint32_t dropped_evt_trace_periodic_cnts[tband_portNUMBER_OF_CORES] = {0};
+#endif
+
 void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
+#if tband_configTRACE_DROP_CNT_EVERY > 0
   uint32_t dropped_evt_trace_period_cnt = dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()];
+#else
+  uint32_t dropped_evt_trace_period_cnt = 0;
+#endif
   unsigned long last_traced_dropped_evt_cnt = last_traced_dropped_evt_cnts[tband_portGET_CORE_ID()];
   uint32_t current_dropped_evt_cnt = atomic_load(&dropped_evt_cnt);
 
   // Submit 'dropped evt count' marker if the value of dropped event count has changed
   // since we last traced it, or tband_configTRACE_DROP_CNT_EVERY events have passed.
-  bool period_dropped_evt_tracing = tband_configTRACE_DROP_CNT_EVERY > 0;
-  if ((period_dropped_evt_tracing && dropped_evt_trace_period_cnt == 0) ||
+  if (((tband_configTRACE_DROP_CNT_EVERY > 0) && dropped_evt_trace_period_cnt == 0) ||
       last_traced_dropped_evt_cnt != current_dropped_evt_cnt) {
     uint8_t buf_dropped[EVT_DROPPED_EVT_CNT_MAXLEN];
     size_t len = encode_dropped_evt_cnt(buf_dropped, ts, atomic_load(&dropped_evt_cnt));
@@ -159,18 +164,20 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
       (void)atomic_fetch_add(&dropped_evt_cnt, 1);
       return;
     } else {
+#if tband_configTRACE_DROP_CNT_EVERY > 0
       // Successfully submitted dropped event count. Submit next one in
       // tband_configTRACE_DROP_CNT_EVERY events.
-      if (period_dropped_evt_tracing) {
-        dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()] = tband_configTRACE_DROP_CNT_EVERY;
-      }
+      dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()] = tband_configTRACE_DROP_CNT_EVERY;
+#endif
+      (void)0; // don't warn on empty else.
     }
   } else {
     // No dropped event count has to be traced on this call. If periodic dropped
     // event count inclusions are enabled decrease the counter:
-    if (period_dropped_evt_tracing) {
-      dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()]--;
-    }
+#if tband_configTRACE_DROP_CNT_EVERY > 0
+    dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()]--;
+#endif
+    (void)0; // don't warn on empty else.
   }
 
   // Submit to port:
