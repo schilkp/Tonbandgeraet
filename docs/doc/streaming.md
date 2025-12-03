@@ -39,28 +39,26 @@ When using the streaming backend, you must implement the
 
 This hook is called by Tonbandgerät for every trace event that is generated.
 
-```admonish info
-Tonbandgerät will only attempt to transmit any given trace event once. If
-the `tband_portBACKEND_STREAM_DATA` hook returns true, indicating the event
-was dropped, Tonbandgerät will drop the event and increment the internal dropped-
-event counter. This causes Tonbandgerät to generate droppped-event marker events,
-which are generated until one was able to be streamed/submitted sucessfully.
-```
+> [!TIP]
+> Tonbandgerät will only attempt to transmit any given trace event once. If
+> the `tband_portBACKEND_STREAM_DATA` hook returns true, indicating the event
+> was dropped, Tonbandgerät will drop the event and increment the internal dropped-
+> event counter. This causes Tonbandgerät to generate droppped-event marker events,
+> which are generated until one was able to be streamed/submitted sucessfully.
 
-```admonish warning
-This hook is called from within tracing hooks, and from within
-[critical sections](./porting_critical_sections.md). These hooks may be called
-from any context, such as an RTOS kernel or interrupts, depending on your
-implementation and usage of Tonbandgerät.
-
-This limits your ability to call RTOS APIs, or perform any kind of blocking
-operation. Doing so might not work, or even worse, might cause some very
-strange and hard to track-down behaviour.
-
-Consider using a communication port specifically designed for such scenarios
-(such as SEGGER's RTT), or use this hook to place data into some form of
-static buffer that is processed asynchronously.
-```
+> [!WARNING]
+> This hook is called from within tracing hooks, and from within
+> [critical sections](./porting_critical_sections.md). These hooks may be called
+> from any context, such as an RTOS kernel or interrupts, depending on your
+> implementation and usage of Tonbandgerät.
+>
+> This limits your ability to call RTOS APIs, or perform any kind of blocking
+> operation. Doing so might not work, or even worse, might cause some very
+> strange and hard to track-down behaviour.
+>
+> Consider using a communication port specifically designed for such scenarios
+> (such as SEGGER's RTT), or use this hook to place data into some form of
+> static buffer that is processed asynchronously.
 
 #### Example:
 ```c
