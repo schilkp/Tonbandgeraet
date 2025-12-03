@@ -234,6 +234,8 @@ void impl_tband_freertos_task_create(void *task_handle, uint32_t priority, char 
     size_t len = encode_freertos_task_priority_set(buf, ts, task_id, priority);
     handle_trace_evt(buf, len, EVT_FREERTOS_TASK_PRIORITY_SET_IS_METADATA, ts);
   }
+#else
+  (void)priority;
 #endif /* (tband_configFREERTOS_TASK_TRACE_ENABLE == 1) */
 
   {
@@ -311,6 +313,8 @@ void impl_tband_freertos_queue_created(void *handle, uint8_t type_val) {
     size_t len = encode_freertos_queue_cur_length(buf, ts, id, 0);
     handle_trace_evt(buf, len, EVT_FREERTOS_QUEUE_CUR_LENGTH_IS_METADATA, ts);
   }
+#else
+  (void)type_val;
 #endif /* (tband_configFREERTOS_QUEUE_TRACE_ENABLE == 1) */
 
   tband_portEXIT_CRITICAL_FROM_ANY();
