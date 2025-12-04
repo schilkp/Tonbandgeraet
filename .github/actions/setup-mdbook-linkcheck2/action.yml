@@ -1,0 +1,25 @@
+name: 'Setup mdbook-linkcheck2'
+description: 'Download, build, and cache mdbook-linkcheck2'
+
+inputs:
+  mdbook-linkcheck2-version:
+    description: 'mdbook-linkcheck2 version to install'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache mdbook-linkcheck
+      id: cache-mdbook-linkcheck2
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/bin/mdbook-linkcheck2
+        key: mdbook-linkcheck2-${{ inputs.mdbook-linkcheck2-version }}
+        restore-keys: |
+          mdbook-linkcheck2-
+
+    - name: Download, Build + Install mdbook-linkcheck2-
+      if: steps.cache-mdbook-linkcheck2.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cargo install mdbook-linkcheck2@${{ inputs.mdbook-linkcheck2-version }}

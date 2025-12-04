@@ -1,5 +1,4 @@
 # WASM
 
-```admonish warning
-This page has not been written yet.
-```
+> [!WARNING]
+> This page has not been written yet.

@@ -14,10 +14,9 @@ If you are using FreeRTOS, include `tband.h` at the end of the `FreeRTOSConfig.h
 #endif
 ```
 
-```admonish note
-The `__ASSEMBLER__` guard is required as some FreeRTOS [ports](https://esp32.com/viewtopic.php?t=22738)
-include the header from assembly files.
-```
+> [!NOTE]
+> The `__ASSEMBLER__` guard is required as some FreeRTOS [ports](https://esp32.com/viewtopic.php?t=22738)
+> include the header from assembly files.
 
 To use the tracer, only include `tband.h` in your code. Do not directly include any other Tonbandgerät headers.
 Note that Tonbandgerät is written using C11. Older versions of C are not tested.
