@@ -32,8 +32,3 @@
     - [Trace Event Fields](./tech_details/bin_event_fields.md)
     - [Code Generation](./tech_details/codegen.md)
     - [Trace Event Index](./tech_details/bin_events.md)
-- [🚧 Technologies Overview](./tech_details/techstack.md)
-    - [🚧 Target Tracer](./tech_details/target.md)
-    - [🚧 Rust + WASM](./tech_details/wasm.md)
-    - [🚧 Website](./tech_details/web.md)
-    - [🚧 Perfetto & Synthetto](./tech_details/synthetto.md)
