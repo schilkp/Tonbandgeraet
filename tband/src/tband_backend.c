@@ -501,8 +501,8 @@ int tband_reset_snapshot(void) {
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   // Check if tracing is already active:
-  bool tracing_not_active = !impl_tracing_finished();
-  if (!tracing_not_active) {
+  bool tracing_finished = impl_tracing_finished();
+  if (!tracing_finished) {
     err = -1;
     goto end;
   }
