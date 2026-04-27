@@ -17,7 +17,7 @@
 - [🚧 Trace Handling](./doc/handling.md)
     - [🚧 The Metadata Buffer](./doc/metadata_buf.md)
     - [Streaming Backend](./doc/streaming.md)
-    - [🚧 Snapshot Backend](./doc/snapshot.md)
+    - [Snapshot Backend](./doc/snapshot.md)
     - [🚧 Post-Mortem Backend](./doc/postmortem.md)
     - [🚧 External Backend](./doc/external_backend.md)
     - [🚧 Dropped Events](./doc/dropped_evts.md)
