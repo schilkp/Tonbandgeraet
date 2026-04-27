@@ -14,7 +14,7 @@
         - [🚧 FreeRTOS Task Tracing](./doc/freertos_tasks.md)
         - [🚧 FreeRTOS Resource Tracing](./doc/freertos_resources.md)
         - [🚧 FreeRTOS Task-local Markers](./doc/freertos_task_local_markers.md)
-- [🚧 Trace Handling](./doc/handling.md)
+- [Trace Handling](./doc/handling.md)
     - [🚧 The Metadata Buffer](./doc/metadata_buf.md)
     - [Streaming Backend](./doc/streaming.md)
     - [Snapshot Backend](./doc/snapshot.md)
