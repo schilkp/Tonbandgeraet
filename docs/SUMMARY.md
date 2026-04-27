@@ -19,7 +19,7 @@
     - [Streaming Backend](./doc/streaming.md)
     - [Snapshot Backend](./doc/snapshot.md)
     - [🚧 Post-Mortem Backend](./doc/postmortem.md)
-    - [🚧 External Backend](./doc/external_backend.md)
+    - [External Backend](./doc/external_backend.md)
     - [🚧 Dropped Events](./doc/dropped_evts.md)
 - [🚧 Multi-core Support](./doc/multicore_support.md)
 - [Viewing your traces](./doc/viewing.md)
