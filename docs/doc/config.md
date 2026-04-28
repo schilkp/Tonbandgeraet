@@ -21,7 +21,7 @@ Set to `1` to enable Tonbandgerät. If disabled, all code is excluded to save sp
 
 Maximum string length that Tonbandgerät will serialize and trace. Serves as a safeguard
 against incorrectly terminated strings, and helps providing a static upper bound on
-worst-case trace hook execution time.
+trace packet size and worst-case trace hook execution time.
 
 ## `tband_configTRACE_DROP_CNT_EVERY`:
 - Possible Values: `0+`
@@ -58,7 +58,7 @@ Enables the [metadata buffer](./metadata_buf.md) if set to `1`.
 - Possible Values: `1+`
 - Default: `256`
 
-Size of the [metadata buffer](./metadata_buf.md) in bytes, if enabled.
+Size of the per-core [metadata buffer](./metadata_buf.md) in bytes, if enabled.
 
 ---
 # Streaming Backend Config:
