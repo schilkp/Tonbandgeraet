@@ -121,6 +121,7 @@ extern "C" {
 
 #if (tband_configUSE_BACKEND_STREAMING == 1)
   int tband_start_streaming(void);
+  int tband_restart_streaming(void);
   int tband_stop_streaming(void);
 #endif /* tband_configUSE_BACKEND_STREAMING == 1 */
 

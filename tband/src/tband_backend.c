@@ -289,10 +289,10 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
   return did_drop;
 }
 
-int tband_start_streaming(void) {
+// Internal implementation. Starts streaming, optionally sending the metadata buffer contents
+// first. *Must* be called from a critical section and while tracing_enabled_spinlock is held!
+static int impl_start_streaming(bool send_metadata_buf) {
   int err = 0;
-  tband_portENTER_CRITICAL_FROM_ANY();
-  tband_spinlock_acquire(&tracing_enabled_spinlock);
 
   // Check if tracing is already active:
   bool tracing_finished = impl_tracing_finished();
@@ -301,44 +301,70 @@ int tband_start_streaming(void) {
     goto end;
   }
 
-  // Send data from metadata buffers, if enabled:
+  // Send data from metadata buffers, if enabled and requested:
 #if (tband_configUSE_METADATA_BUF == 1)
+  if (send_metadata_buf) {
 
-  bool did_drop = false;
+    bool did_drop = false;
 
-  for (unsigned int core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
+    for (unsigned int core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
 
-    tband_spinlock_acquire(&metadata_bufs[core_id].spinlock);
-    size_t metadata_amnt = metadata_bufs[core_id].idx;
-    tband_spinlock_release(&metadata_bufs[core_id].spinlock);
+      tband_spinlock_acquire(&metadata_bufs[core_id].spinlock);
+      size_t metadata_amnt = metadata_bufs[core_id].idx;
+      tband_spinlock_release(&metadata_bufs[core_id].spinlock);
 
-    uint8_t *buf = (uint8_t *)metadata_bufs[core_id].buf;
-    if (metadata_amnt > 0) {
-      uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
-      size_t core_id_msg_len = encode_core_id(core_id_msg, 0, core_id);
-      did_drop |=
-        tband_portBACKEND_STREAM_DATA(((const uint8_t *)core_id_msg), ((size_t)core_id_msg_len));
-      did_drop |= tband_portBACKEND_STREAM_DATA(((const uint8_t *)buf), ((size_t)metadata_amnt));
+      uint8_t *buf = (uint8_t *)metadata_bufs[core_id].buf;
+      if (metadata_amnt > 0) {
+        uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
+        size_t core_id_msg_len = encode_core_id(core_id_msg, 0, core_id);
+        did_drop |=
+          tband_portBACKEND_STREAM_DATA(((const uint8_t *)core_id_msg), ((size_t)core_id_msg_len));
+        did_drop |= tband_portBACKEND_STREAM_DATA(((const uint8_t *)buf), ((size_t)metadata_amnt));
+      }
+      if (did_drop) break;
     }
-    if (did_drop) break;
+
+    // Reset to current core:
+    uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
+    size_t core_id_msg_len = encode_core_id(core_id_msg, 0, tband_portGET_CORE_ID());
+    did_drop |=
+      tband_portBACKEND_STREAM_DATA(((const uint8_t *)core_id_msg), ((size_t)core_id_msg_len));
+
+    if (did_drop) {
+      err = -2;
+      goto end;
+    }
   }
-
-  // Reset to current core:
-  uint8_t core_id_msg[EVT_CORE_ID_MAXLEN] = {0};
-  size_t core_id_msg_len = encode_core_id(core_id_msg, 0, tband_portGET_CORE_ID());
-  did_drop |=
-    tband_portBACKEND_STREAM_DATA(((const uint8_t *)core_id_msg), ((size_t)core_id_msg_len));
-
-  if (did_drop) {
-    err = -2;
-    goto end;
-  }
-
+#else  /* tband_configUSE_METADATA_BUF == 1 */
+  (void)send_metadata_buf;
 #endif /* tband_configUSE_METADATA_BUF == 1 */
 
   atomic_store(&tracing_enabled, true);
 
 end:
+  return err;
+}
+
+int tband_start_streaming(void) {
+  int err = 0;
+  tband_portENTER_CRITICAL_FROM_ANY();
+  tband_spinlock_acquire(&tracing_enabled_spinlock);
+
+  err = impl_start_streaming(true);
+
+  tband_spinlock_release(&tracing_enabled_spinlock);
+  tband_portEXIT_CRITICAL_FROM_ANY();
+
+  return err;
+}
+
+int tband_restart_streaming(void) {
+  int err = 0;
+  tband_portENTER_CRITICAL_FROM_ANY();
+  tband_spinlock_acquire(&tracing_enabled_spinlock);
+
+  err = impl_start_streaming(false);
+
   tband_spinlock_release(&tracing_enabled_spinlock);
   tband_portEXIT_CRITICAL_FROM_ANY();
 

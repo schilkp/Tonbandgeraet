@@ -11,7 +11,9 @@ immediately forwarded to the `tband_portBACKEND_STREAM_DATA` hook for
 transmission, which must be provided.
 
 If the [metadata buffer](./metadata_buf.md) is enabled, its contents are
-automatically transmitted when streaming is started.
+automatically transmitted when streaming is started with
+`tband_start_streaming()`. If streaming is stopped and needs to be restarted
+use `tband_restart_streaming()`, which does not re-send the metadata buffer.
 
 ## Configuration
 
@@ -88,6 +90,26 @@ enabling trace event streaming. This ensure all the trace events generated
 during resource setup (such as names/types of queues, tasks, etc) are
 transmitted for a proper trace, even if streaming is not enabled at that time.
 
+### `tband_restart_streaming()`
+
+Start streaming trace data, identically to `tband_start_streaming()`, but
+without transmitting the [metadata buffer](./metadata_buf.md) contents.
+
+**Prototype:**
+```c
+int tband_restart_streaming(void);
+```
+
+**Return values:**
+- `0` - Streaming started successfully
+- `-1` - Streaming is already active
+
+Use this instead of `tband_start_streaming()` when streaming has been stopped
+and needs to be restarted (e.g. to pause/resume tracing)
+
+If the metadata buffer is disabled, this function behaves identically to
+`tband_start_streaming()`.
+
 ### `tband_stop_streaming()`
 
 Stop streaming trace data.
@@ -130,3 +152,11 @@ transmitted when `tband_start_streaming()` is called.
 
 Metadata for all cores is transmitted before regular trace event streaming
 begins.
+
+If streaming is ever stopped and and needs to be re-started, use
+`tband_restart_streaming()` instead of `tband_start_streaming()`: it starts
+streaming exactly like `tband_start_streaming()`, but does not resend the
+metadata buffer.
+
+Resending the metadata buffer can cause a trace to be corrupted with
+out-of-order timestamps.
