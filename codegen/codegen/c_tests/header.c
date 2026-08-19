@@ -30,8 +30,7 @@ void util_print_array(uint8_t *in, size_t in_len, char *name) {
   printf("\r\n");
 }
 
-void compare_arrays(uint8_t *in, size_t in_len, uint8_t *expect,
-                    size_t expect_len, char *msg) {
+void compare_arrays(uint8_t *in, size_t in_len, uint8_t *expect, size_t expect_len, char *msg) {
   // COBS Frame expected value:
   size_t expected_framed_len = COBS_MAXLEN(expect_len);
   uint8_t expected_framed[expected_framed_len];
@@ -49,3 +48,6 @@ void compare_arrays(uint8_t *in, size_t in_len, uint8_t *expect,
   TEST_ASSERT_EQUAL_INT(expected_framed_len, in_len);
   TEST_ASSERT_EQUAL_UINT8_ARRAY(expected_framed, in, expect_len);
 }
+
+// clang-format off
+

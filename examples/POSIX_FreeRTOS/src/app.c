@@ -5,9 +5,9 @@
  */
 #include "app.h"
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 #define UNUSED(X) (void)X
 
@@ -197,7 +197,7 @@ int rtos_init(void) {
   // sb1 = xStreamBufferCreateStatic(STREAM_BUFFER_SIZE_BYTES, 1, sb1_storage, &sb1_buffer);
   // if (sb1 == 0) return 1;
   // tband_freertos_stream_buffer_name(sb1, "sb1");
-  
+
   tband_gather_system_metadata();
   assert(tband_trigger_snapshot() == 0);
 

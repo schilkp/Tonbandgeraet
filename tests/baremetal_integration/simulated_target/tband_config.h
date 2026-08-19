@@ -9,7 +9,7 @@
 #define tband_configENABLE                1
 #define tband_configISR_TRACE_ENABLE      1
 #define tband_configFREERTOS_TRACE_ENABLE 1
-#define tband_configTRACE_DROP_CNT_EVERY 100
+#define tband_configTRACE_DROP_CNT_EVERY  100
 
 #define tband_configUSE_BACKEND_SNAPSHOT 1
 // extern volatile bool TRACING_SNAPSHOT_BUF_FULL;

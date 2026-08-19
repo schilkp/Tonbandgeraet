@@ -10,7 +10,7 @@
 #define tband_configISR_TRACE_ENABLE      0
 #define tband_configFREERTOS_TRACE_ENABLE 1
 
-#define tband_configTRACE_DROP_CNT_EVERY  100
+#define tband_configTRACE_DROP_CNT_EVERY 100
 
 uint64_t traceport_timestamp(void);
 #define tband_portTIMESTAMP()             traceport_timestamp()

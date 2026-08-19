@@ -198,7 +198,7 @@ int rtos_init(void) {
   // sb1 = xStreamBufferCreateStatic(STREAM_BUFFER_SIZE_BYTES, 1, sb1_storage, &sb1_buffer);
   // if (sb1 == 0) return 1;
   // tband_freertos_stream_buffer_name(sb1, "sb1");
-  
+
   tband_gather_system_metadata();
   if (tband_trigger_snapshot() != 0) {
     Error_Handler();

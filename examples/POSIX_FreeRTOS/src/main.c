@@ -30,8 +30,7 @@ uint64_t traceport_timestamp(void) {
   struct timespec ts;
   assert(clock_gettime(BEST_MONOTONIC_CLOCK, &ts) != -1);
 
-  return (ts.tv_sec - ts_start.tv_sec) * 1000000000LL +
-         (ts.tv_nsec - ts_start.tv_nsec);
+  return (ts.tv_sec - ts_start.tv_sec) * 1000000000LL + (ts.tv_nsec - ts_start.tv_nsec);
 }
 
 void traceport_snapshot_done(void) {

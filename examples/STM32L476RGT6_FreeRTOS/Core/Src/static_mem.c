@@ -5,7 +5,8 @@
   vApplicationGetIdleTaskMemory gets called when configSUPPORT_STATIC_ALLOCATION
   equals to 1 and is required for static memory allocation support.
 */
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer,
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+                                   StackType_t **ppxIdleTaskStackBuffer,
                                    uint32_t *pulIdleTaskStackSize) {
   /* Idle task control block and stack */
   static StaticTask_t Idle_TCB;
@@ -20,7 +21,8 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
   vApplicationGetTimerTaskMemory gets called when configSUPPORT_STATIC_ALLOCATION
   equals to 1 and is required for static memory allocation support.
 */
-void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer,
+void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
+                                    StackType_t **ppxTimerTaskStackBuffer,
                                     uint32_t *pulTimerTaskStackSize) {
   /* Timer task control block and stack */
   static StaticTask_t Timer_TCB;

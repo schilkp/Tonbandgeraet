@@ -11,10 +11,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define tband_portENTER_CRITICAL_FROM_ANY()                                                        \
-    taskENTER_CRITICAL();                                                                          \
+#define tband_portENTER_CRITICAL_FROM_ANY() taskENTER_CRITICAL();
 
-#define tband_portEXIT_CRITICAL_FROM_ANY()                                                         \
-    taskEXIT_CRITICAL();                                                                           \
+#define tband_portEXIT_CRITICAL_FROM_ANY() taskEXIT_CRITICAL();
 
 #endif /* TBAND_PORT_H_ */
