@@ -154,7 +154,7 @@ static const char hex_lut[] = {'0', '1', '2', '3', '4', '5', '6', '7',
 void dump_hex(uint8_t b) {
   static size_t i = 0;
 
-  char msg[4] = "xx \n";
+  char msg[] = "xx \n";
 
   uint8_t MSB = (b >> 4) & 0xF;
   uint8_t LSB = (b >> 0) & 0xF;
