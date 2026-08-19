@@ -124,6 +124,23 @@ jobs:
           ./tests/build_examples.bash
 
   # ===--------------------------------------------------------------------=== #
+  # Check C/H source formatting with clang-format.
+  # ===--------------------------------------------------------------------=== #
+  c-fmt-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Run clang-format
+        run: ./scripts/clang-format.bash --check
+
+  # ===--------------------------------------------------------------------=== #
   # Run code-gen and validate that no files have changed.
   # ===--------------------------------------------------------------------=== #
   codegen-test:
@@ -351,7 +368,7 @@ jobs:
       pages: write
       id-token: write
     if: github.event_name == 'push'
-    needs: [tband-unit-test, tband-baremetal-integration, tband-build-examples, codegen-test, tools-cargo-test, tools-fmt-check, tools-clippy-check, web]
+    needs: [tband-unit-test, tband-baremetal-integration, tband-build-examples, c-fmt-check, codegen-test, tools-cargo-test, tools-fmt-check, tools-clippy-check, web]
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

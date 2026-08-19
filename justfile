@@ -7,6 +7,13 @@ _default:
 codegen:
     ./codegen/run.bash
 
+# Format sources
+format:
+    ./scripts/clang-format.bash
+    cd ./tools && cargo fmt
+    cd ./web/tband-wasm/ && cargo fmt
+    cd ./web/website && npm run format
+
 # === Testing ===
 
 # Run unit tests.
