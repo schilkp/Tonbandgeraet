@@ -1,7 +1,7 @@
 /**
  * @file app.c
  * @brief Application Source File.
- * @author Philipp Schilk, 2024
+ * @author Philipp Schilk, 2024-2026
  */
 #include "app.h"
 #include "FreeRTOS.h"

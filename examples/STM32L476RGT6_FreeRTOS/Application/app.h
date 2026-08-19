@@ -1,7 +1,7 @@
 /**
  * @file app.h
  * @brief Application Header.
- * @author Philipp Schilk, 2024
+ * @author Philipp Schilk, 2024-2026
  */
 #ifndef APP_H_
 #define APP_H_

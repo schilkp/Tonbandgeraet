@@ -1,7 +1,7 @@
 /**
  * @file tband_port.h
  * @brief tband port testing stubs
- * @author Philipp Schilk, 2024
+ * @author Philipp Schilk, 2024-2026
  */
 #ifndef tband_port_H_
 

@@ -1,8 +1,8 @@
 /**
  * @file tband_internal.h
  * @brief Internal APIs.
- * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
- * @author Philipp Schilk, 2024
+ * @note Copyright (c) 2024-2026 Philipp Schilk. Released under the MIT license.
+ * @author Philipp Schilk, 2024-2026
  *
  * https://github.com/schilkp/Tonbandgeraet
  */

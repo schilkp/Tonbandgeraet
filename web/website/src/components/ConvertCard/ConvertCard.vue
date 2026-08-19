@@ -125,7 +125,7 @@ const url_docs = __TBAND_BASE__ + "docs/index.html";
                 <a href="https://schilk.co/">🌍 schilk.co</a>
             </div>
             <div class="uk-width-1-4@s uk-text-center">
-                Philipp Schilk '25, GNU GPL3
+                Philipp Schilk '26, GNU GPL3
             </div>
         </div>
     </div>

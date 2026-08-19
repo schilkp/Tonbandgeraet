@@ -1,8 +1,8 @@
 /**
  * @file tband_backend.c
  * @brief FreeRTOS Tracer Backends
- * @author Philipp Schilk, 2024
- * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
+ * @author Philipp Schilk, 2024-2026
+ * @note Copyright (c) 2024-2026 Philipp Schilk. Released under the MIT license.
  *
  * https://github.com/schilkp/Tonbandgeraet
  */

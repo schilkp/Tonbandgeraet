@@ -2,7 +2,7 @@
  * @file tband_encode.h
  * @brief FreeRTOS tracing event encoder
  * @warning This file is generated. Do not edit. See `code_gen` folder in repo.
- * @note Copyright (c) 2024 Philipp Schilk. Released under the MIT license.
+ * @note Copyright (c) 2024-2026 Philipp Schilk. Released under the MIT license.
  *
  * https://github.com/schilkp/Tonbandgeraet
  */
