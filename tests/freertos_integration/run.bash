@@ -27,5 +27,15 @@ cd "$project_root"/examples/POSIX_FreeRTOS
 WRITE_TRACE="$script_dir/trace.bin" ./build/POSIX_FreeRTOS
 
 echo "Decoding trace..."
-cd "$script_dir"/../../tools/tband-cli
-cargo run -- conv --format bin --mode free-rtos "${script_dir}"/trace.bin
+cd "$project_root"/tools/tband-cli
+cargo run -- --Werror conv --format bin --mode free-rtos "${script_dir}"/trace.bin
+
+# Dump trace for check script:
+echo "Dumping trace.."
+cd "$project_root"/tools/tband-cli
+cargo run -- --Werror dump --format bin --mode free-rtos "${script_dir}"/trace.bin > "${script_dir}/dump"
+
+# Run check script:
+cd "$script_dir"
+echo "check.."
+python check.py
