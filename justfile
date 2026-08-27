@@ -32,8 +32,12 @@ test_build_examples:
 test_freertos_integration_posix:
     ./tests/freertos_integration_posix/run.bash
 
+# Run FreeRTOS integration tests against a QEMU-emulated MPS2-AN385 board (requires a FreeRTOS checkout, and qemu-system-arm)
+test_freertos_integration_qemu:
+    ./tests/freertos_integration_qemu/run.bash
+
 # Run all tests:
-test: test_unit test_baremetal_integration test_freertos_integration_posix test_build_examples
+test: test_unit test_baremetal_integration test_freertos_integration_posix test_freertos_integration_qemu test_build_examples
     @echo "✅ all tests ok ✅"
 
 # === FreeRTOS checkout ===

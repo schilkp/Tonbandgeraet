@@ -27,4 +27,17 @@ else
     echo "==== Skipping POSIX_FreeRTOS ===="
 fi
 
+if [ "${SKIP_QEMU_MPS2_AN385_FREERTOS:-0}" != "1" ]; then
+    echo "==== Configuring QEMU_MPS2_AN385_FREERTOS ===="
+    cd examples/QEMU_MPS2_AN385_FREERTOS
+    rm -rf build
+    mkdir build
+    cmake -G Ninja -B build .
+    echo "==== Building QEMU_MPS2_AN385_FREERTOS ===="
+    ninja -C build
+    cd ../../
+else
+    echo "==== Skipping QEMU_MPS2_AN385_FREERTOS ===="
+fi
+
 echo "==== OK ===="

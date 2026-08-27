@@ -89,6 +89,50 @@ jobs:
 
 
   # ===--------------------------------------------------------------------=== #
+  # Run Tonbandgeraet FreeRTOS integration tests against a QEMU-emulated
+  # MPS2-AN385 (Cortex-M3) board.
+  # ===--------------------------------------------------------------------=== #
+  tband-freertos-integration-qemu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        freertos_version:
+          - "v10_3_1"
+          - "v10_4_0"
+          - "v11_1_0"
+          - "main"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install protoc
+        run: |
+          echo "set man-db/auto-update false" | sudo debconf-communicate
+          sudo dpkg-reconfigure man-db
+          sudo apt-get install protobuf-compiler
+
+      - name: Install gcc-arm-none-eabi and qemu-system-arm
+        run: |
+          echo "set man-db/auto-update false" | sudo debconf-communicate
+          sudo dpkg-reconfigure man-db
+          sudo apt-get install gcc-arm-none-eabi qemu-system-arm
+
+      - name: Fetch FreeRTOS
+        run: |
+          ./scripts/freertos_clone.bash
+          ./scripts/freertos_checkout_${{ matrix.freertos_version }}.bash
+
+      - name: Run
+        working-directory: ${{github.workspace}}
+        run: ./tests/freertos_integration_qemu/run.bash
+
+
+  # ===--------------------------------------------------------------------=== #
   # Compile all example projects against different FreeRTOS versions
   # ===--------------------------------------------------------------------=== #
   tband-build-examples:
