@@ -62,6 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         freertos_version:
+          - "v10_4_0"
           - "v11_1_0"
           - "main"
 
@@ -98,6 +99,7 @@ jobs:
       matrix:
         freertos_version:
           - "v10_3_1"
+          - "v10_4_0"
           - "v11_1_0"
           - "main"
 
