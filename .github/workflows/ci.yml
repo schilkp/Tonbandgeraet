@@ -10,10 +10,9 @@ on:
   workflow_dispatch:
 
 
-# Allow only one concurrent run, preventing conflicts during deployment.
-# This is technically not needed for pull_request runs.
+# Allow only one concurrent run on main/actually deploying runs:
 concurrency:
-  group: "pages"
+  group: ${{ github.event_name == 'push' && 'pages' || github.run_id }}
   cancel-in-progress: false
 
 jobs:
