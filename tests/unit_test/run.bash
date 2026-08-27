@@ -8,4 +8,4 @@ rm -rf build
 mkdir -p build
 cmake -B build -G Ninja
 ninja -C build
-python runner.py -t 0.5 -j 4 build/bin/
+python runner.py -t 4 -j 4 build/bin/

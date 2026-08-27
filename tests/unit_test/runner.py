@@ -124,8 +124,8 @@ class SuiteResult:
         return out
 
 
-def run_test_suite(path: str, timeout_ms: Optional[float]) -> SuiteResult:
-    result = execute_suite_executeable(path, timeout_ms)
+def run_test_suite(path: str, timeout_s: Optional[float]) -> SuiteResult:
+    result = execute_suite_executeable(path, timeout_s)
 
     with open(path + "_report.yml", 'w') as f:
         for line in result.generate_report():
@@ -134,10 +134,10 @@ def run_test_suite(path: str, timeout_ms: Optional[float]) -> SuiteResult:
     return result
 
 
-def execute_suite_executeable(path: str, timeout_ms: Optional[float]) -> SuiteResult:
+def execute_suite_executeable(path: str, timeout_s: Optional[float]) -> SuiteResult:
     try:
         test_output = subprocess.run(
-            path, capture_output=True, timeout=timeout_ms)
+            path, capture_output=True, timeout=timeout_s)
 
         stdout = test_output.stdout.decode('utf-8').strip().splitlines()
         stderr = test_output.stderr.decode('utf-8').strip().splitlines()
@@ -236,7 +236,7 @@ def main():
     parser.add_argument('-j', '--jobs', type=int,
                         help="allow multiple jobs to run at once.", default=1)
     parser.add_argument('-t', '--timeout', type=float,
-                        help="timeout for test suite execution in milliseconds.", required=False)
+                        help="timeout for test suite execution in seconds.", required=False)
     parser.add_argument('-p', '--print-fail-stdout', action="store_true",
                         help='print stdout of failed tests.', default=False)
     parser.add_argument('test_suite', type=str, nargs='+',
