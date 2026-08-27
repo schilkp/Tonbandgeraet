@@ -50,6 +50,10 @@ freertos_checkout_main:
 freertos_checkout_v10_3_1:
     ./scripts/freertos_checkout_v10_3_1.bash
 
+# Put project FreeRTOS checkout at v10.4.0.
+freertos_checkout_v10_4_0:
+    ./scripts/freertos_checkout_v10_4_0.bash
+
 # Put project FreeRTOS checkout at v11.1.0.
 freertos_checkout_v11_1_0:
     ./scripts/freertos_checkout_v11_1_0.bash

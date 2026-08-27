@@ -206,3 +206,35 @@ int rtos_init(void) {
 
   return 0;
 }
+
+// ==== Static Allocation for Idle/Timer Tasks =================================
+
+// Kernels before ~V11.0.0 do not support configKERNEL_PROVIDED_STATIC_MEMORY and
+// require the application to provide the idle/timer task memory itself.
+#if tskKERNEL_VERSION_MAJOR < 11
+
+// Kernels before V11.0.0 declare the stack-size out-parameter as uint32_t
+// rather than configSTACK_DEPTH_TYPE (introduced in the same release).
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+                                   StackType_t **ppxIdleTaskStackBuffer,
+                                   uint32_t *puxIdleTaskStackSize) {
+  static StaticTask_t xIdleTaskTCB;
+  static StackType_t uxIdleTaskStack[configMINIMAL_STACK_SIZE];
+
+  *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+  *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+  *puxIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
+void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
+                                    StackType_t **ppxTimerTaskStackBuffer,
+                                    uint32_t *puxTimerTaskStackSize) {
+  static StaticTask_t xTimerTaskTCB;
+  static StackType_t uxTimerTaskStack[configTIMER_TASK_STACK_DEPTH];
+
+  *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+  *ppxTimerTaskStackBuffer = uxTimerTaskStack;
+  *puxTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+}
+
+#endif /* tskKERNEL_VERSION_MAJOR < 11 */
