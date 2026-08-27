@@ -27,12 +27,12 @@ cd "$script_dir"
 # Decode trace to ensure it is valid:
 echo "Decoding trace.."
 cd "$script_dir"/../../tools/tband-cli
-cargo run -- conv --format bin --mode bare-metal "${script_dir}"/trace.bin
+cargo run -- --Werror conv --format bin --mode bare-metal "${script_dir}"/trace.bin
 
 # Dump trace for check script:
 echo "Dumping trace.."
 cd "$script_dir"/../../tools/tband-cli
-cargo run -- dump --format bin --mode bare-metal "${script_dir}"/trace.bin > "${script_dir}/dump"
+cargo run -- --Werror dump --format bin --mode bare-metal "${script_dir}"/trace.bin > "${script_dir}/dump"
 
 # Run check script:
 cd "$script_dir"

@@ -1,4 +1,5 @@
 mod cli;
+mod log_cnt;
 mod open;
 
 use std::io::Write;
@@ -10,6 +11,8 @@ use std::process::ExitCode;
 
 use clap::Parser;
 use cli::{Cli, CliCmd};
+
+use crate::log_cnt::CountingLogger;
 
 fn level_str(l: Level) -> String {
     match l {
@@ -24,16 +27,18 @@ fn level_str(l: Level) -> String {
 fn main() -> ExitCode {
     let cli = Cli::parse();
 
-    let mut log_setup = env_logger::builder();
-    log_setup.format(|f, record| {
+    let mut env_log_setup = env_logger::builder();
+    env_log_setup.format(|f, record| {
         writeln!(f, "{}{}{} {}", "[".bright_black(), level_str(record.level()), "]".bright_black(), record.args())
     });
     match cli.verbose {
-        0 => log_setup.filter_level(log::LevelFilter::Info),
-        1 => log_setup.filter_level(log::LevelFilter::Debug),
-        _ => log_setup.filter_level(log::LevelFilter::Trace),
+        0 => env_log_setup.filter_level(log::LevelFilter::Info),
+        1 => env_log_setup.filter_level(log::LevelFilter::Debug),
+        _ => env_log_setup.filter_level(log::LevelFilter::Trace),
     };
-    log_setup.init();
+    let inner_logger = env_log_setup.build();
+    log::set_max_level(inner_logger.filter());
+    log::set_boxed_logger(Box::new(CountingLogger { inner: inner_logger })).expect("logger already set");
 
     let rst = match cli.cmd {
         CliCmd::Conv(cmd) => cmd.run(),
@@ -42,11 +47,18 @@ fn main() -> ExitCode {
         CliCmd::Completion(cmd) => cmd.run(),
     };
 
-    match rst {
+    let exit_code = match rst {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             error!("{}", e);
             ExitCode::FAILURE
         }
+    };
+
+    if cli.fail_on_warning && log_cnt::get_warn_count() > 0 {
+        error!("Error: {} warning(s) issued and `--Werror` set.", log_cnt::get_warn_count());
+        return ExitCode::FAILURE;
     }
+
+    exit_code
 }

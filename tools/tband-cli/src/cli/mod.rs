@@ -12,6 +12,13 @@ pub struct Cli {
     #[arg(long, short, action = clap::ArgAction::Count)]
     pub verbose: u8,
 
+    /// Exit with a non-zero status if any warning is logged
+    ///
+    /// Causes the tool to fail even if the command otherwise completes successfully.
+    /// Mostly intended for development/testing.
+    #[arg(long = "Werror")]
+    pub fail_on_warning: bool,
+
     #[command(subcommand)]
     pub cmd: CliCmd,
 }
