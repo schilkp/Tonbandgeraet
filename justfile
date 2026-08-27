@@ -29,11 +29,11 @@ test_build_examples:
     ./tests/build_examples.bash
 
 # Run FreeRTOS integration tests (Requires a FreeRTOS checkout v11 or newer)
-test_freertos_integration:
-    ./tests/freertos_integration/run.bash
+test_freertos_integration_posix:
+    ./tests/freertos_integration_posix/run.bash
 
 # Run all tests:
-test: test_unit test_baremetal_integration test_freertos_integration test_build_examples
+test: test_unit test_baremetal_integration test_freertos_integration_posix test_build_examples
     @echo "✅ all tests ok ✅"
 
 # === FreeRTOS checkout ===

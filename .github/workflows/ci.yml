@@ -53,9 +53,9 @@ jobs:
         run: ./tests/baremetal_integration/run.bash
 
   # ===--------------------------------------------------------------------=== #
-  # Run Tonbandgeraet FreeRTOS integration tests.
+  # Run Tonbandgeraet FreeRTOS integration tests against the POSIX simulator.
   # ===--------------------------------------------------------------------=== #
-  tband-freertos-integration:
+  tband-freertos-integration-posix:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -85,7 +85,7 @@ jobs:
 
       - name: Run
         working-directory: ${{github.workspace}}
-        run: ./tests/freertos_integration/run.bash
+        run: ./tests/freertos_integration_posix/run.bash
 
 
   # ===--------------------------------------------------------------------=== #
