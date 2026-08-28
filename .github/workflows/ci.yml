@@ -61,8 +61,8 @@ jobs:
       fail-fast: false
       matrix:
         freertos_version:
-          - "v10_4_0"
-          - "v11_1_0"
+          - "V10.4.0-kernel-only"
+          - "V11.1.0"
           - "main"
 
     steps:
@@ -80,8 +80,7 @@ jobs:
 
       - name: Fetch FreeRTOS
         run: |
-          ./scripts/freertos_clone.bash
-          ./scripts/freertos_checkout_${{ matrix.freertos_version }}.bash
+          ./scripts/freertos_clone.bash ${{ matrix.freertos_version }}
 
       - name: Run
         working-directory: ${{github.workspace}}
@@ -98,9 +97,10 @@ jobs:
       fail-fast: false
       matrix:
         freertos_version:
-          - "v10_3_1"
-          - "v10_4_0"
-          - "v11_1_0"
+          - "V10.3.1-kernel-only"
+          - "V10.4.0-kernel-only"
+          - "V11.1.0"
+          - "V11.2.0"
           - "main"
 
     steps:
@@ -124,8 +124,7 @@ jobs:
 
       - name: Fetch FreeRTOS
         run: |
-          ./scripts/freertos_clone.bash
-          ./scripts/freertos_checkout_${{ matrix.freertos_version }}.bash
+          ./scripts/freertos_clone.bash ${{ matrix.freertos_version }}
 
       - name: Run
         working-directory: ${{github.workspace}}
@@ -141,9 +140,9 @@ jobs:
       fail-fast: false
       matrix:
         freertos_version:
-          - "v10_3_1"
-          - "v10_4_0"
-          - "v11_1_0"
+          - "V10.3.1-kernel-only"
+          - "V10.4.0-kernel-only"
+          - "V11.1.0"
           - "main"
 
     steps:
@@ -157,12 +156,11 @@ jobs:
 
       - name: Fetch FreeRTOS
         run: |
-          ./scripts/freertos_clone.bash
-          ./scripts/freertos_checkout_${{ matrix.freertos_version }}.bash
+          ./scripts/freertos_clone.bash ${{ matrix.freertos_version }}
 
       - name: Run
         run: |
-          if [[ "${{ matrix.freertos_version }}" == "v10_3_1" ]]; then
+          if [[ "${{ matrix.freertos_version }}" == "V10.3.1-kernel-only" ]]; then
             echo "FreeRTOS version ${{ matrix.freertos_version }} does not support POSIX simulator. Skipping example"
             export SKIP_POSIX_FreeRTOS=1
           fi
