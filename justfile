@@ -58,6 +58,14 @@ freertos_checkout_v10_4_0:
 freertos_checkout_v11_1_0:
     ./scripts/freertos_checkout.bash "V11.1.0"
 
+# Put project FreeRTOS checkout at v11.2.0.
+freertos_checkout_v11_2_0:
+    ./scripts/freertos_checkout.bash "V11.2.0"
+
+# Put project FreeRTOS checkout at v11.3.0.
+freertos_checkout_v11_3_0:
+    ./scripts/freertos_checkout.bash "V11.3.0"
+
 # === Website ===
 
 # Serve documentation from dev server.

@@ -46,7 +46,11 @@ static uint8_t q1_storage[Q1_QUEUE_LENGTH * Q1_ITEM_SIZE]; // Storage
 void task1_entry(void *args) {
   UNUSED(args);
 
-  tband_freertos_scheduler_started();
+  if (!tband_freertos_have_version(11, 2, 0)) {
+    // FreeRTOS version 11.2.0 and later include a `traceSTARTING_SCHEDULER` hook
+    // that lets tband automatically hook into the freertos startup sequence.
+    tband_freertos_scheduler_started();
+  }
 
   tband_freertos_task_valmarker_name(0, "T1Val");
   tband_freertos_task_evtmarker_name(0, "T1Evts");
