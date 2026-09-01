@@ -54,9 +54,10 @@ extern "C" {
 #if (tband_configENABLE == 1)
 
   // Scheduler started:
-  void impl_tband_freertos_scheduler_started_manual(void *xIdleTaskHandles);
-  #define tband_freertos_scheduler_started() impl_tband_freertos_scheduler_started_manual(NULL)
-  #define traceSTARTING_SCHEDULER(xIdleTaskHandles) impl_tband_freertos_scheduler_started_manual(xIdleTaskHandles)
+  void impl_tband_freertos_scheduler_started_manual(void);
+  void impl_tband_freertos_starting_scheduler(void *xIdleTaskHandles);
+  #define tband_freertos_scheduler_started() impl_tband_freertos_scheduler_started_manual()
+  #define traceSTARTING_SCHEDULER(xIdleTaskHandles) impl_tband_freertos_starting_scheduler(xIdleTaskHandles)
 
   // Task switched in:
   #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)
