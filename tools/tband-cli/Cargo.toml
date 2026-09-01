@@ -3,9 +3,17 @@ name = "tband-cli"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["open-in-webbrowser"]
+# Serve/open converted traces via a local HTTP server / browser launch.
+open-in-webbrowser = ["dep:axum", "dep:tokio", "dep:webbrowser"]
+
 [dependencies]
 anyhow = "1.0.86"
-axum = { version = "0.7.5", default-features = false, features = ["http1", "tokio"] }
+axum = { version = "0.7.5", default-features = false, features = [
+    "http1",
+    "tokio",
+], optional = true }
 clap = { version = "4.5.7", features = ["derive"] }
 clap_complete = "4.5.6"
 colored = "2.1.0"
@@ -14,6 +22,6 @@ tband_conv = { path = "../tband-conv" }
 lazy_static = "1.4.0"
 log = "0.4.21"
 regex = "1.10.5"
-tokio = "1.38.0"
-webbrowser = "1.0.1"
+tokio = { version = "1.38.0", optional = true }
+webbrowser = { version = "1.0.1", optional = true }
 serde_json = "1.0.118"

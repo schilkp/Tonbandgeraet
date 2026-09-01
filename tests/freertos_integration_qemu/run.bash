@@ -9,7 +9,7 @@ project_root="$script_dir"/../../
 # Build cli:
 echo "Build CLI..."
 cd "$project_root"/tools/tband-cli
-cargo build
+cargo build --no-default-features
 
 # Configure & build simulated target:
 echo "Configuring QEMU_MPS2_AN385_FREERTOS example..."
@@ -37,12 +37,12 @@ timeout 60 qemu-system-arm \
 
 echo "Decoding trace..."
 cd "$project_root"/tools/tband-cli
-cargo run -- --Werror conv --format bin --mode free-rtos "${script_dir}"/trace.bin
+cargo run --no-default-features -- --Werror conv --format bin --mode free-rtos "${script_dir}"/trace.bin
 
 # Dump trace for check script:
 echo "Dumping trace.."
 cd "$project_root"/tools/tband-cli
-cargo run -- --Werror dump --format bin --mode free-rtos "${script_dir}"/trace.bin > "${script_dir}/dump"
+cargo run --no-default-features -- --Werror dump --format bin --mode free-rtos "${script_dir}"/trace.bin > "${script_dir}/dump"
 
 # Run check script:
 cd "$script_dir"

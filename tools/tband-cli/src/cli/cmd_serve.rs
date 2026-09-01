@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
+#[cfg(feature = "open-in-webbrowser")]
 use crate::open::{open_trace, serve_trace};
 
 #[derive(Parser, Debug)]
@@ -17,6 +18,7 @@ pub struct Cmd {
 }
 
 impl Cmd {
+    #[cfg(feature = "open-in-webbrowser")]
     pub fn run(&self) -> anyhow::Result<()> {
         let file = std::fs::read(&self.input)?;
 
@@ -27,5 +29,10 @@ impl Cmd {
         }
 
         Ok(())
+    }
+
+    #[cfg(not(feature = "open-in-webbrowser"))]
+    pub fn run(&self) -> anyhow::Result<()> {
+        anyhow::bail!("tband-cli was built without the `open-in-webbrowser` feature; trace serving is unavailable.")
     }
 }

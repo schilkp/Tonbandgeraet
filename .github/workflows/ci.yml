@@ -250,6 +250,27 @@ jobs:
           name: code
           path: ~/codegen_changes.patch
           retention-days: 2
+  
+  # ===--------------------------------------------------------------------=== #
+  # Cargo build
+  # ===--------------------------------------------------------------------=== #
+  tools-cargo-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install protoc
+        run: |
+          echo "set man-db/auto-update false" | sudo debconf-communicate
+          sudo dpkg-reconfigure man-db
+          sudo apt-get install protobuf-compiler
+
+      - name: Cargo build
+        working-directory: ${{github.workspace}}/tools/
+        run: cargo build --all --all-features
 
   # ===--------------------------------------------------------------------=== #
   # Cargo test
@@ -270,7 +291,7 @@ jobs:
 
       - name: Cargo Test
         working-directory: ${{github.workspace}}/tools/
-        run: cargo test --all
+        run: cargo test --all --all-features
 
   # ===--------------------------------------------------------------------=== #
   # Cargo format check
@@ -307,7 +328,7 @@ jobs:
 
       - name: Lint
         working-directory: ${{github.workspace}}/tools/
-        run: cargo clippy --all-features -- -D warnings
+        run: cargo clippy --no-default-features -- -D warnings
 
   # ===--------------------------------------------------------------------=== #
   # Build & check website

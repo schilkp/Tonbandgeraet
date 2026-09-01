@@ -1,5 +1,6 @@
 mod cli;
 mod log_cnt;
+#[cfg(feature = "open-in-webbrowser")]
 mod open;
 
 use std::io::Write;
