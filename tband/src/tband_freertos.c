@@ -68,14 +68,12 @@ static volatile uint32_t core_last_task[tband_portNUMBER_OF_CORES] = {0};
 void impl_tband_freertos_starting_scheduler(void *xIdleTaskHandles) {
   // Called inside vTaskStartScheduler so interrupts are disabled
   uint64_t ts = tband_portTIMESTAMP();
-  if (xIdleTaskHandles != NULL) {
-    for (size_t core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
-      TaskHandle_t idle_task = ((TaskHandle_t *)xIdleTaskHandles)[core_id];
-      uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(idle_task);
-      uint8_t buf[EVT_FREERTOS_TASK_IS_IDLE_TASK_MAXLEN];
-      size_t len = encode_freertos_task_is_idle_task(buf, task_id, core_id);
-      handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_IDLE_TASK_IS_METADATA, ts);
-    }
+  for (size_t core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
+    TaskHandle_t idle_task = ((TaskHandle_t *)xIdleTaskHandles)[core_id];
+    uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(idle_task);
+    uint8_t buf[EVT_FREERTOS_TASK_IS_IDLE_TASK_MAXLEN];
+    size_t len = encode_freertos_task_is_idle_task(buf, task_id, core_id);
+    handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_IDLE_TASK_IS_METADATA, ts);
   }
 #if (configUSE_TIMERS == 1)
   TaskHandle_t timer_svc = xTimerGetTimerDaemonTaskHandle();
