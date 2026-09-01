@@ -42,25 +42,21 @@ test: test_unit test_baremetal_integration test_freertos_integration_posix test_
 
 # === FreeRTOS checkout ===
 
-# Setup project FreeRTOS checkout.
-freertos_clone:
-    ./scripts/freertos_clone.bash
-
 # Put project FreeRTOS checkout at latest commit.
 freertos_checkout_main:
-    ./scripts/freertos_checkout_main.bash
+    ./scripts/freertos_checkout.bash "main"
 
 # Put project FreeRTOS checkout at v10.3.1.
 freertos_checkout_v10_3_1:
-    ./scripts/freertos_checkout_v10_3_1.bash
+    ./scripts/freertos_checkout.bash "V10.3.1-kernel-only"
 
 # Put project FreeRTOS checkout at v10.4.0.
 freertos_checkout_v10_4_0:
-    ./scripts/freertos_checkout_v10_4_0.bash
+    ./scripts/freertos_checkout.bash "V10.4.0-kernel-only"
 
 # Put project FreeRTOS checkout at v11.1.0.
 freertos_checkout_v11_1_0:
-    ./scripts/freertos_checkout_v11_1_0.bash
+    ./scripts/freertos_checkout.bash "V11.1.0"
 
 # === Website ===
 
