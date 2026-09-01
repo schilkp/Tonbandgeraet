@@ -17,7 +17,7 @@ use crate::decode::{bytes_left, decode_s64, decode_string, decode_u32, decode_u6
 
 // ==== Event Groups ===============================================================================
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub enum TraceMode {
     Base,
     FreeRTOS,

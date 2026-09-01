@@ -100,7 +100,7 @@ def gen_evt_types(groups: List[EvtGroup]) -> str:
     result = ""
     result += f"{pad_to_length('// ==== Event Groups ', 100, '=')}\n"
     result += "\n"
-    result += "#[derive(Debug, Clone, Copy, Serialize)]\n"
+    result += "#[derive(Debug, Clone, Copy, Serialize, PartialEq)]\n"
     result += "pub enum TraceMode {\n"
     for group in groups:
         result += f"    {group.code_name()},\n"
