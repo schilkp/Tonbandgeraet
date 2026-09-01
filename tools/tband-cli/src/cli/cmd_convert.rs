@@ -1,3 +1,4 @@
+#[cfg(feature = "open-in-webbrowser")]
 use crate::open::{open_trace, serve_trace};
 use anyhow::anyhow;
 use lazy_static::lazy_static;
@@ -156,12 +157,22 @@ impl Cmd {
             std::fs::write(output.clone(), &trace)?;
         }
 
-        if self.open {
-            open_trace(&trace)?;
+        #[cfg(feature = "open-in-webbrowser")]
+        {
+            if self.open {
+                open_trace(&trace)?;
+            }
+
+            if self.serve {
+                serve_trace(&trace)?;
+            }
         }
 
-        if self.serve {
-            serve_trace(&trace)?;
+        #[cfg(not(feature = "open-in-webbrowser"))]
+        if self.open || self.serve {
+            return Err(anyhow!(
+                "tband-cli was built without the `open-in-webbrowser` feature; opening/serving traces is unavailable."
+            ));
         }
 
         Ok(())
