@@ -310,10 +310,9 @@ extern "C" {
 
 // Provide shims for tracing hooks that are called manually if they are disabled:
 
-// FIXME: Add version toggle!
-#ifndef tband_scheduler_started
-  #define tband_scheduler_started
-#endif /* tband_scheduler_started */
+#ifndef tband_freertos_scheduler_started
+  #define tband_freertos_scheduler_started()
+#endif /* tband_freertos_scheduler_started */
 
 #ifndef tband_freertos_queue_name
   #define tband_freertos_queue_name(handle, name)
