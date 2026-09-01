@@ -32,6 +32,10 @@
 #error "configUSE_TRACE_FACILITY is not enabled!"
 #endif /* configUSE_TRACE_FACILITY == 0 */
 
+#if (INCLUDE_xTaskGetIdleTaskHandle != 1)
+#error "INCLUDE_xTaskGetIdleTaskHandle is not enabled!"
+#endif /* INCLUDE_xTaskGetIdleTaskHandle */
+
 #ifndef tband_configFREERTOS_VERSION_MAJOR
 #define tband_configFREERTOS_VERSION_MAJOR tskKERNEL_VERSION_MAJOR
 #endif
@@ -81,10 +85,6 @@ void impl_tband_freertos_starting_scheduler(void *xIdleTaskHandles) {
   handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_TIMER_TASK_IS_METADATA, ts);
 #endif /* (configUSE_TIMERS == 1) */
 }
-
-#if (INCLUDE_xTaskGetIdleTaskHandle != 1)
-#error "INCLUDE_xTaskGetIdleTaskHandle is not enabled!"
-#endif /* INCLUDE_xTaskGetIdleTaskHandle */
 
 void impl_tband_freertos_scheduler_started_manual(void) {
   tband_portENTER_CRITICAL_FROM_ANY();
