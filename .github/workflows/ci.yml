@@ -61,6 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         freertos_version:
+          # - "V10.3.1-kernel-only" does not support posix sim.
           - "V10.4.0-kernel-only"
           - "V11.1.0"
           - "main"
@@ -80,7 +81,7 @@ jobs:
 
       - name: Fetch FreeRTOS
         run: |
-          ./scripts/freertos_clone.bash ${{ matrix.freertos_version }}
+          ./scripts/freertos_checkout.bash ${{ matrix.freertos_version }}
 
       - name: Run
         working-directory: ${{github.workspace}}
@@ -124,7 +125,7 @@ jobs:
 
       - name: Fetch FreeRTOS
         run: |
-          ./scripts/freertos_clone.bash ${{ matrix.freertos_version }}
+          ./scripts/freertos_checkout.bash ${{ matrix.freertos_version }}
 
       - name: Run
         working-directory: ${{github.workspace}}
@@ -156,7 +157,7 @@ jobs:
 
       - name: Fetch FreeRTOS
         run: |
-          ./scripts/freertos_clone.bash ${{ matrix.freertos_version }}
+          ./scripts/freertos_checkout.bash ${{ matrix.freertos_version }}
 
       - name: Run
         run: |
@@ -361,8 +362,7 @@ jobs:
       - name: Fetch FreeRTOS
         # Note: Required for generation of demo traces.
         run: |
-          ./scripts/freertos_clone.bash
-          ./scripts/freertos_checkout_v11_1_0.bash
+          ./scripts/freertos_checkout.bash V11.1.0
 
       - name: Generate demo traces
         working-directory: ${{github.workspace}}/
