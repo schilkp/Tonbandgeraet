@@ -42,6 +42,10 @@ extern "C" {
   #define tband_configFREERTOS_STREAM_BUFFER_TRACE_ENABLE 1
 #endif /* tband_configFREERTOS_STREAM_BUFFER_TRACE_ENABLE */
 
+#define TBAND_FREERTOS_HAVE_VERSION(major, minor, build) \
+  ((tband_configFREERTOS_VERSION_MAJOR > major) || \
+  (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR > minor) || \
+  (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR == minor && tband_configFREERTOS_VERSION_BUILD == build))
 
 //===----------------------------------------------------------------------===//
 // TRACING
@@ -50,13 +54,10 @@ extern "C" {
 #if (tband_configENABLE == 1)
 
   // Scheduler started:
-
-  // Manual implementation if traceSCHEDULER_STARTED does not exist:
-  // FIXME: Add version toggle!
-  // FIXME: Documentation (Called after Scheduler started if any freertos tracing,
-  //        automatically called in later versions).
   void impl_tband_freertos_scheduler_started_manual(void);
+  void impl_tband_freertos_starting_scheduler(void *xIdleTaskHandles);
   #define tband_freertos_scheduler_started() impl_tband_freertos_scheduler_started_manual()
+  #define traceSTARTING_SCHEDULER(xIdleTaskHandles) impl_tband_freertos_starting_scheduler(xIdleTaskHandles)
 
   // Task switched in:
   #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)

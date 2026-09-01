@@ -32,6 +32,19 @@
 #error "configUSE_TRACE_FACILITY is not enabled!"
 #endif /* configUSE_TRACE_FACILITY == 0 */
 
+#ifndef tband_configFREERTOS_VERSION_MAJOR
+#define tband_configFREERTOS_VERSION_MAJOR tskKERNEL_VERSION_MAJOR
+#endif
+#ifndef tband_configFREERTOS_VERSION_MINOR
+#define tband_configFREERTOS_VERSION_MINOR tskKERNEL_VERSION_MINOR
+#endif
+#ifndef tband_configFREERTOS_VERSION_BUILD
+#define tband_configFREERTOS_VERSION_BUILD tskKERNEL_VERSION_BUILD
+#endif
+#if !TBAND_FREERTOS_HAVE_VERSION(10, 3, 1)
+#error "Minimum supported FreeRTOS version is 10.3.1"
+#endif
+
 // ===== STATE =================================================================
 
 // Unique ID counters (shared between all cores)
@@ -48,7 +61,27 @@ static volatile uint32_t core_last_task[tband_portNUMBER_OF_CORES] = {0};
 
 // ===== TRACE HOOKS ===========================================================
 
-// FIXME add version toggle
+void impl_tband_freertos_starting_scheduler(void *xIdleTaskHandles) {
+  // Called inside vTaskStartScheduler so interrupts are disabled
+  uint64_t ts = tband_portTIMESTAMP();
+  if (xIdleTaskHandles != NULL) {
+    for (size_t core_id = 0; core_id < tband_portNUMBER_OF_CORES; core_id++) {
+      TaskHandle_t idle_task = ((TaskHandle_t *)xIdleTaskHandles)[core_id];
+      uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(idle_task);
+      uint8_t buf[EVT_FREERTOS_TASK_IS_IDLE_TASK_MAXLEN];
+      size_t len = encode_freertos_task_is_idle_task(buf, task_id, core_id);
+      handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_IDLE_TASK_IS_METADATA, ts);
+    }
+  }
+#if (configUSE_TIMERS == 1)
+  TaskHandle_t timer_svc = xTimerGetTimerDaemonTaskHandle();
+  uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(timer_svc);
+  uint8_t buf[EVT_FREERTOS_TASK_IS_TIMER_TASK_MAXLEN];
+  size_t len = encode_freertos_task_is_timer_task(buf, task_id);
+  handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_TIMER_TASK_IS_METADATA, ts);
+#endif /* (configUSE_TIMERS == 1) */
+}
+
 #if (INCLUDE_xTaskGetIdleTaskHandle != 1)
 #error "INCLUDE_xTaskGetIdleTaskHandle is not enabled!"
 #endif /* INCLUDE_xTaskGetIdleTaskHandle */
@@ -76,13 +109,11 @@ void impl_tband_freertos_scheduler_started_manual(void) {
   }
 #endif /* tband_portNUMBER_OF_CORES */
 #if (configUSE_TIMERS == 1)
-  {
-    TaskHandle_t timer_svc = xTimerGetTimerDaemonTaskHandle();
-    uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(timer_svc);
-    uint8_t buf[EVT_FREERTOS_TASK_IS_TIMER_TASK_MAXLEN];
-    size_t len = encode_freertos_task_is_timer_task(buf, task_id);
-    handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_TIMER_TASK_IS_METADATA, ts);
-  }
+  TaskHandle_t timer_svc = xTimerGetTimerDaemonTaskHandle();
+  uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(timer_svc);
+  uint8_t buf[EVT_FREERTOS_TASK_IS_TIMER_TASK_MAXLEN];
+  size_t len = encode_freertos_task_is_timer_task(buf, task_id);
+  handle_trace_evt(buf, len, EVT_FREERTOS_TASK_IS_TIMER_TASK_IS_METADATA, ts);
 #endif /* (configUSE_TIMERS == 1) */
   tband_portEXIT_CRITICAL_FROM_ANY();
 }

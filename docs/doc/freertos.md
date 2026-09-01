@@ -82,10 +82,13 @@ This installs all FreeRTOS trace hooks automatically.
 
 ### `tband_freertos_scheduler_started()`
 
-Call this once, immediately after `vTaskStartScheduler()`:
+Call this once, from your highest priority task or tick hook after
+`vTaskStartScheduler()`. For FreeRTOS V11.2.0 and after, this is no longer
+required by using the `traceSTARTING_SCHEDULER` hook:
 
 ```c
 vTaskStartScheduler();
+// in your first task or in a tick hook
 tband_freertos_scheduler_started();
 ```
 
@@ -94,11 +97,6 @@ This records which tasks are the idle task(s) and, if
 call, those tasks will appear as unnamed and unlabelled in the viewer. This
 information is emitted as [metadata](./metadata_buf.md) and stored in the
 metadata buffer even before tracing is started.
-
-> [!NOTE]
-> Future versions of FreeRTOS include a `traceSCHEDULER_STARTED` hook that
-> will allow this to happen automatically. Until then, the manual call is
-> required.
 
 ### Resource Naming
 
