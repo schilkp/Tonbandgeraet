@@ -553,4 +553,8 @@ void impl_tband_freertos_task_valmarker(uint32_t id, int64_t val) {
 }
 #endif /* tband_configMARKER_TRACE_ENABLE == 1 && tband_configFREERTOS_TRACE_ENABLE == 1 */
 
+bool tband_freertos_have_version(unsigned major, unsigned minor, unsigned build) {
+  return TBAND_FREERTOS_HAVE_VERSION(major, minor, build);
+}
+
 #endif /* ((tband_configENABLE == 1) && (tband_configFREERTOS_TRACE_ENABLE == 1)) */

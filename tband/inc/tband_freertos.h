@@ -353,6 +353,12 @@ extern "C" {
   #define tband_freertos_task_valmarker(id, val)
 #endif /* tband_freertos_task_valmarker */
 
+#if ((tband_configENABLE == 1) && (tband_configFREERTOS_TRACE_ENABLE == 1))
+// For use in testing.
+// Not a public API.
+bool tband_freertos_have_version(unsigned major, unsigned  minor, unsigned build);
+#endif /* ((tband_configENABLE == 1) && (tband_configFREERTOS_TRACE_ENABLE == 1)) */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
