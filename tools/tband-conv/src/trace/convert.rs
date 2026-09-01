@@ -8,6 +8,8 @@ use crate::{
 use anyhow::anyhow;
 use log::{debug, info, trace, warn};
 
+use super::freertos::TaskKind;
+
 #[derive(Debug, Clone)]
 struct TraceEvt {
     core_id: usize,
@@ -105,7 +107,24 @@ impl TraceConverter {
             warn!("Trace did not include timestamp timer resolution - assuming 1ns.");
         }
 
+        if self.mode == TraceMode::FreeRTOS {
+            self.check_idle_tasks(&trace);
+        }
+
         Ok(trace)
+    }
+
+    fn check_idle_tasks(&self, trace: &Trace) {
+        for core_id in 0..self.core_count {
+            let has_idle_task =
+                trace.freertos.tasks.0.values().any(
+                    |task| matches!(task.kind, TaskKind::Idle { core_id: idle_core_id } if idle_core_id == core_id),
+                );
+
+            if !has_idle_task {
+                warn!("No task was marked as the idle task for core {core_id}!");
+            }
+        }
     }
 
     fn generate_trace_event_marker(&self, t: &mut Trace, e: &TraceEvt) {
