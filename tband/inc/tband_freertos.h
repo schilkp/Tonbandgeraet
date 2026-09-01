@@ -42,11 +42,6 @@ extern "C" {
   #define tband_configFREERTOS_STREAM_BUFFER_TRACE_ENABLE 1
 #endif /* tband_configFREERTOS_STREAM_BUFFER_TRACE_ENABLE */
 
-#define TBAND_FREERTOS_HAVE_VERSION(major, minor, build) \
-  ((tband_configFREERTOS_VERSION_MAJOR > major) || \
-  (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR > minor) || \
-  (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR == minor && tband_configFREERTOS_VERSION_BUILD == build))
-
 //===----------------------------------------------------------------------===//
 // TRACING
 //===----------------------------------------------------------------------===//

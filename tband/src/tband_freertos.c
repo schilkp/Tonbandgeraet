@@ -38,16 +38,25 @@
 
 #ifndef tband_configFREERTOS_VERSION_MAJOR
 #define tband_configFREERTOS_VERSION_MAJOR tskKERNEL_VERSION_MAJOR
-#endif
+#endif /* tband_configFREERTOS_VERSION_MAJOR */
+
 #ifndef tband_configFREERTOS_VERSION_MINOR
 #define tband_configFREERTOS_VERSION_MINOR tskKERNEL_VERSION_MINOR
-#endif
+#endif /* tband_configFREERTOS_VERSION_MINOR */
+
 #ifndef tband_configFREERTOS_VERSION_BUILD
 #define tband_configFREERTOS_VERSION_BUILD tskKERNEL_VERSION_BUILD
-#endif
+#endif /* tband_configFREERTOS_VERSION_MINOR */
+
+#define TBAND_FREERTOS_HAVE_VERSION(major, minor, build)                                           \
+  ((tband_configFREERTOS_VERSION_MAJOR > major) ||                                                 \
+   (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR > minor) ||  \
+   (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR == minor &&  \
+    tband_configFREERTOS_VERSION_BUILD == build))
+
 #if !TBAND_FREERTOS_HAVE_VERSION(10, 3, 1)
 #error "Minimum supported FreeRTOS version is 10.3.1"
-#endif
+#endif /* !TBAND_FREERTOS_HAVE_VERSION(10, 3, 1) */
 
 // ===== STATE =================================================================
 
