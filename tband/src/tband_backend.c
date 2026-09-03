@@ -50,7 +50,10 @@ typedef atomic_flag tband_spinlock;
 // Must be called from a (per-core) critical section!
 static inline bool tband_spinlock_try_acquire(volatile tband_spinlock *lock) {
 #if (tband_portNUMBER_OF_CORES > 1)
-  return atomic_flag_test_and_set_explicit(lock, memory_order_acquire);
+  // We acquired the spinlock iff the previous spinlock value (return value
+  // of test_and_set_explicit) was false meaning we were the one to set it to
+  // true.
+  return !atomic_flag_test_and_set_explicit(lock, memory_order_acquire);
 #else  /* tband_portNUMBER_OF_CORES > 1 */
   (void)lock;
   return true;
@@ -60,7 +63,9 @@ static inline bool tband_spinlock_try_acquire(volatile tband_spinlock *lock) {
 // Must be called from a (per-core) critical section!
 static inline void tband_spinlock_acquire(volatile tband_spinlock *lock) {
 #if (tband_portNUMBER_OF_CORES > 1)
-  while (!atomic_flag_test_and_set_explicit(lock, memory_order_acquire)) {
+  // Spin until we were the ones to set the lock to true. (Previously lock
+  // value/return value of `test_and_set_explicit` is false).
+  while (atomic_flag_test_and_set_explicit(lock, memory_order_acquire)) {
   }
 #else  /* tband_portNUMBER_OF_CORES > 1 */
   (void)lock;
