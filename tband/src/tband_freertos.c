@@ -36,6 +36,10 @@
 #error "INCLUDE_xTaskGetIdleTaskHandle is not enabled!"
 #endif /* INCLUDE_xTaskGetIdleTaskHandle */
 
+#if ((tband_configMARKER_TRACE_ENABLE == 1) && (INCLUDE_xTaskGetCurrentTaskHandle != 1))
+#error "INCLUDE_xTaskGetCurrentTaskHandle is not enabled, and is required for task-local markers!"
+#endif /* ((tband_configMARKER_TRACE_ENABLE == 1) && (INCLUDE_xTaskGetCurrentTaskHandle != 1)) */
+
 #ifndef tband_configFREERTOS_VERSION_MAJOR
 #define tband_configFREERTOS_VERSION_MAJOR tskKERNEL_VERSION_MAJOR
 #endif /* tband_configFREERTOS_VERSION_MAJOR */
@@ -489,7 +493,7 @@ void impl_tband_freertos_blocking_on_queue_peek(uint32_t queue_id, uint32_t tick
 void impl_tband_freertos_task_evtmarker_name(uint32_t id, const char *name) {
   tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
-  uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(0);
+  uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(xTaskGetCurrentTaskHandle());
   uint8_t buf[EVT_FREERTOS_TASK_EVTMARKER_NAME_MAXLEN];
   size_t len = encode_freertos_task_evtmarker_name(buf, id, task_id, name);
   handle_trace_evt(buf, len, EVT_FREERTOS_TASK_EVTMARKER_NAME_IS_METADATA, ts);
@@ -534,7 +538,7 @@ void impl_tband_freertos_task_evtmarker_end(uint32_t id) {
 void impl_tband_freertos_task_valmarker_name(uint32_t id, const char *name) {
   tband_portENTER_CRITICAL_FROM_ANY();
   uint64_t ts = tband_portTIMESTAMP();
-  uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(0);
+  uint32_t task_id = (uint32_t)uxTaskGetTaskNumber(xTaskGetCurrentTaskHandle());
   uint8_t buf[EVT_FREERTOS_TASK_VALMARKER_NAME_MAXLEN];
   size_t len = encode_freertos_task_valmarker_name(buf, id, task_id, name);
   handle_trace_evt(buf, len, EVT_FREERTOS_TASK_VALMARKER_NAME_IS_METADATA, ts);
