@@ -199,6 +199,9 @@ pub fn read_file(f: &PathBuf, format: InputFormat) -> anyhow::Result<Vec<u8>> {
                     string.clear();
                 }
             }
+            if !string.is_empty() {
+                return Err(anyhow!("Invalid hex input file: odd number of hex digits."));
+            }
             Ok(bytes)
         }
         InputFormat::Bin => Ok(std::fs::read(f)?),
