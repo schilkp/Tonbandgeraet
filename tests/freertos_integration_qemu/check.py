@@ -80,8 +80,8 @@ assert queue_names[3] == "my_q1"
 assert evtmarker_names[1] == "MyEvts"
 assert valmarker_names[1] == "MyVals"
 
-assert task_evtmarker_names[(0, 0)] == "T1Evts"
-assert task_valmarker_names[(0, 0)] == "T1Val"
+assert task_evtmarker_names[(1, 0)] == "T1Evts"
+assert task_valmarker_names[(1, 0)] == "T1Val"
 
 # All tasks/queues created at runtime were seen (idle + timer service task
 # are created lazily by the kernel once the scheduler starts) and actually run
