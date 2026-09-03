@@ -52,7 +52,7 @@
   ((tband_configFREERTOS_VERSION_MAJOR > major) ||                                                 \
    (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR > minor) ||  \
    (tband_configFREERTOS_VERSION_MAJOR == major && tband_configFREERTOS_VERSION_MINOR == minor &&  \
-    tband_configFREERTOS_VERSION_BUILD == build))
+    tband_configFREERTOS_VERSION_BUILD >= build))
 
 #if !TBAND_FREERTOS_HAVE_VERSION(10, 3, 1)
 #error "Minimum supported FreeRTOS version is 10.3.1"
