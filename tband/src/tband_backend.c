@@ -1,6 +1,6 @@
 /**
  * @file tband_backend.c
- * @brief FreeRTOS Tracer Backends
+ * @brief Tonbandgerät Tracer Backends
  * @author Philipp Schilk, 2024-2026
  * @note Copyright (c) 2024-2026 Philipp Schilk. Released under the MIT license.
  *
@@ -38,7 +38,7 @@
 #elif (tband_portNUMBER_OF_CORES == 4)
   #define CORE_ARRAY_INIT(...) { __VA_ARGS__ , __VA_ARGS__ , __VA_ARGS__ , __VA_ARGS__  }
 #else
-  #error Are you seriously using FreeRTOS SMP with more than 4 cores?! Wow..
+  #error Please add macro for required core count.
 #endif
 // clang-format on
 
