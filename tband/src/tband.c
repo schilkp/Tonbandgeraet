@@ -165,12 +165,15 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
       (void)atomic_fetch_add(&dropped_evt_cnt, 1);
       return;
     } else {
+      // Successfully submitted dropped event count.
+
+      // Remember the value we just traced so we don't re-submit until it changes
+      // (or periodically resubmit).
+      last_traced_dropped_evt_cnts[tband_portGET_CORE_ID()] = current_dropped_evt_cnt;
 #if tband_configTRACE_DROP_CNT_EVERY > 0
-      // Successfully submitted dropped event count. Submit next one in
-      // tband_configTRACE_DROP_CNT_EVERY events.
+      // Submit next one in tband_configTRACE_DROP_CNT_EVERY events.
       dropped_evt_trace_periodic_cnts[tband_portGET_CORE_ID()] = tband_configTRACE_DROP_CNT_EVERY;
 #endif
-      (void)0; // don't warn on empty else.
     }
   } else {
     // No dropped event count has to be traced on this call. If periodic dropped
