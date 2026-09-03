@@ -11,7 +11,6 @@
 #if (tband_configENABLE == 1)
 
 // std:
-#include <stdatomic.h>
 #include <stdbool.h>
 
 #define tbandPROPER_INTERNAL_INCLUDE
@@ -131,14 +130,14 @@ void impl_tband_valmarker(uint32_t id, int64_t val) {
 // ===== Trace Handling ========================================================
 
 // Number of dropped events (shared between all cores)
-static volatile atomic_ulong dropped_evt_cnt = 0;
+static tband_smp_volatile tband_smp_atomic_u32 dropped_evt_cnt = 0;
 
 // Last submitted dropped event count (local to core)
-static volatile unsigned long last_traced_dropped_evt_cnts[tband_portNUMBER_OF_CORES] = {0};
+static tband_smp_volatile uint32_t last_traced_dropped_evt_cnts[tband_portNUMBER_OF_CORES] = {0};
 
 #if tband_configTRACE_DROP_CNT_EVERY > 0
 // Dropped event tracing event inclusion state counter (local to core)
-static volatile uint32_t dropped_evt_trace_periodic_cnts[tband_portNUMBER_OF_CORES] = {0};
+static tband_smp_volatile uint32_t dropped_evt_trace_periodic_cnts[tband_portNUMBER_OF_CORES] = {0};
 #endif
 
 void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
@@ -147,8 +146,8 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
 #else
   uint32_t dropped_evt_trace_period_cnt = 0;
 #endif
-  unsigned long last_traced_dropped_evt_cnt = last_traced_dropped_evt_cnts[tband_portGET_CORE_ID()];
-  uint32_t current_dropped_evt_cnt = atomic_load(&dropped_evt_cnt);
+  uint32_t last_traced_dropped_evt_cnt = last_traced_dropped_evt_cnts[tband_portGET_CORE_ID()];
+  uint32_t current_dropped_evt_cnt = tband_smp_atomic_u32_load(&dropped_evt_cnt);
 
   // Submit 'dropped evt count' marker if the value of dropped event count has changed
   // since we last traced it, or tband_configTRACE_DROP_CNT_EVERY events have passed.
@@ -162,7 +161,7 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
     if (did_drop_evt) {
       // Increase dropped event count and try again to submit a dropped event count evt
       // next time. Abort.
-      (void)atomic_fetch_add(&dropped_evt_cnt, 1);
+      (void)tband_smp_atomic_u32_fetch_add(&dropped_evt_cnt, 1);
       return;
     } else {
       // Successfully submitted dropped event count.
@@ -188,7 +187,7 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts) {
   bool did_drop_evt = tband_submit_to_backend(buf, len, is_metadata);
 
   if (did_drop_evt) {
-    (void)atomic_fetch_add(&dropped_evt_cnt, 1);
+    (void)tband_smp_atomic_u32_fetch_add(&dropped_evt_cnt, 1);
   }
 }
 

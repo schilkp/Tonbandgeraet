@@ -11,7 +11,6 @@
 #if ((tband_configENABLE == 1) && (tband_configFREERTOS_TRACE_ENABLE == 1))
 
 // std:
-#include <stdatomic.h>
 #include <stdbool.h>
 
 // FreeRTOS:
@@ -66,14 +65,14 @@
 
 // Unique ID counters (shared between all cores)
 // Note: ID 0 is reserved.
-static volatile atomic_ulong next_task_id = 1;
-static volatile atomic_ulong next_queue_id = 1;
+static tband_smp_volatile tband_smp_atomic_u32 next_task_id = 1;
+static tband_smp_volatile tband_smp_atomic_u32 next_queue_id = 1;
 
 #if (configUSE_PREEMPTION == 0)
 // Track last running task_id per-core
 // This is required when preemption is disabled to detect and prevent continuous
 // generation of task-switched-in events by the IDLE task.
-static volatile uint32_t core_last_task[tband_portNUMBER_OF_CORES] = {0};
+static tband_smp_volatile uint32_t core_last_task[tband_portNUMBER_OF_CORES] = {0};
 #endif /* configUSE_PREEMPTION */
 
 // ===== TRACE HOOKS ===========================================================
@@ -262,7 +261,7 @@ void impl_tband_freertos_task_create(void *task_handle, uint32_t priority, char 
   uint64_t ts = tband_portTIMESTAMP();
 
   TaskHandle_t task = (TaskHandle_t)task_handle;
-  uint32_t task_id = (uint32_t)atomic_fetch_add(&next_task_id, 1);
+  uint32_t task_id = tband_smp_atomic_u32_fetch_add(&next_task_id, 1);
   vTaskSetTaskNumber(task, (UBaseType_t)task_id);
 
 #if (tband_configFREERTOS_TASK_TRACE_ENABLE == 1)
@@ -307,7 +306,7 @@ void impl_tband_freertos_queue_created(void *handle, uint8_t type_val) {
   uint64_t ts = tband_portTIMESTAMP();
 
   QueueHandle_t queue = (QueueHandle_t)handle;
-  uint32_t id = (uint32_t)atomic_fetch_add(&next_queue_id, 1);
+  uint32_t id = tband_smp_atomic_u32_fetch_add(&next_queue_id, 1);
   vQueueSetQueueNumber(queue, (UBaseType_t)id);
 
   {
