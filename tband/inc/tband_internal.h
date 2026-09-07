@@ -52,6 +52,12 @@ void handle_trace_evt(uint8_t *buf, size_t len, bool is_metadata, uint64_t ts);
   #endif /* (tband_portNUMBER_OF_CORES == 1) */
 #endif /* tband_portGET_CORE_ID */
 
+// ===== Atomics ================================================================
+
+#define tbandPROPER_INTERNAL_INCLUDE
+#include "tband_atomics.h"
+#undef tbandPROPER_INTERNAL_INCLUDE
+
 // ===== Encode ================================================================
 
 #define tbandPROPER_INTERNAL_INCLUDE

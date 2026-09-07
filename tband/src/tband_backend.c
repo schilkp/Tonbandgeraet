@@ -11,7 +11,6 @@
 
 #if (tband_configENABLE == 1)
 
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -22,11 +21,10 @@
 // ===== MACRO MAGIC ===========================================================
 
 // The tracer stores all per-core information in static arrays of structs of length
-// tband_portGET_CORE_ID. These often contain spinlocks, which are just a wrapper around
-// atomic_flag, which needs to be initialised using ATOMIC_FLAG_INIT (tband_spinlock_INIT). Since C
-// has no mechanism for initialising an array of some length N to a non-zero value with a static
-// initialiser, this macro hack repeats the desired initialiser once for every core. Not pretty, but
-// it works.
+// tband_portGET_CORE_ID. These often contain spinlocks which need to be initialised using
+// tband_spinlock_INIT. Since C has no mechanism for initialising an array of
+// some length N to a non-zero value with a static initialiser, this macro hack repeats the desired
+// initialiser once for every core. Not pretty, but it works.
 
 // clang-format off
 #if (tband_portNUMBER_OF_CORES == 1)
@@ -42,45 +40,6 @@
 #endif
 // clang-format on
 
-// ==== SPINLOCKS ==============================================================
-
-#define tband_spinlock_INIT ATOMIC_FLAG_INIT
-typedef atomic_flag tband_spinlock;
-
-// Must be called from a (per-core) critical section!
-static inline bool tband_spinlock_try_acquire(volatile tband_spinlock *lock) {
-#if (tband_portNUMBER_OF_CORES > 1)
-  // We acquired the spinlock iff the previous spinlock value (return value
-  // of test_and_set_explicit) was false meaning we were the one to set it to
-  // true.
-  return !atomic_flag_test_and_set_explicit(lock, memory_order_acquire);
-#else  /* tband_portNUMBER_OF_CORES > 1 */
-  (void)lock;
-  return true;
-#endif /* tband_portNUMBER_OF_CORES > 1 */
-}
-
-// Must be called from a (per-core) critical section!
-static inline void tband_spinlock_acquire(volatile tband_spinlock *lock) {
-#if (tband_portNUMBER_OF_CORES > 1)
-  // Spin until we were the ones to set the lock to true. (Previously lock
-  // value/return value of `test_and_set_explicit` is false).
-  while (atomic_flag_test_and_set_explicit(lock, memory_order_acquire)) {
-  }
-#else  /* tband_portNUMBER_OF_CORES > 1 */
-  (void)lock;
-#endif /* tband_portNUMBER_OF_CORES > 1 */
-}
-
-// Must be called from a (per-core) critical section!
-static inline void tband_spinlock_release(volatile tband_spinlock *lock) {
-#if (tband_portNUMBER_OF_CORES > 1)
-  atomic_flag_clear_explicit(lock, memory_order_release);
-#else  /* tband_portNUMBER_OF_CORES > 1 */
-  (void)lock;
-#endif /* tband_portNUMBER_OF_CORES > 1 */
-}
-
 //===----------------------------------------------------------------------===//
 // COMMON
 //===----------------------------------------------------------------------===//
@@ -89,8 +48,8 @@ static inline void tband_spinlock_release(volatile tband_spinlock *lock) {
 
 // Global tracing enabled flag.
 // Spinlock must be held when enabling/disabling tracing, but not to check if tracing is enabled.
-static volatile atomic_bool tracing_enabled = false;
-static volatile tband_spinlock tracing_enabled_spinlock = tband_spinlock_INIT;
+static volatile tband_smp_atomic_bool tracing_enabled = false;
+static tband_smp_volatile tband_spinlock tracing_enabled_spinlock = tband_spinlock_INIT;
 
 // Per-core backend spinlocks. Must be held by each core backend while actively handling a trace
 // event/ modifying its state. In particular, each backend must do the following for each event:
@@ -99,7 +58,7 @@ static volatile tband_spinlock tracing_enabled_spinlock = tband_spinlock_INIT;
 //   - Check that tracing_enabled is set again, and only handle the evnt if so.
 //   - Release its backend spinlock.
 // clang-format off
-static volatile tband_spinlock backend_spinlocks[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT(
+static tband_smp_volatile tband_spinlock backend_spinlocks[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT(
   tband_spinlock_INIT
 );
 // clang-format on
@@ -128,7 +87,7 @@ static bool impl_tracing_finished(void) {
   // conclude that all backends have finished. By additionally requring all backends to check the
   // global flag also before acquiring their spinlock, they will not continue to lock and unlock
   // their spinlocks after acquisition has been disabled and all work has completed.
-  if (atomic_load(&tracing_enabled)) {
+  if (tband_smp_atomic_bool_load(&tracing_enabled)) {
     return false;
   }
 
@@ -151,7 +110,7 @@ static bool impl_tracing_finished(void) {
 static bool impl_backend_finished(unsigned int core_id) {
   // See impl_tracing_finished for implementation explaination.
 
-  if (atomic_load(&tracing_enabled)) {
+  if (tband_smp_atomic_bool_load(&tracing_enabled)) {
     return false;
   }
 
@@ -165,7 +124,7 @@ static bool impl_backend_finished(unsigned int core_id) {
   }
 }
 
-bool tband_tracing_enabled(void) { return atomic_load(&tracing_enabled); }
+bool tband_tracing_enabled(void) { return tband_smp_atomic_bool_load(&tracing_enabled); }
 
 bool tband_tracing_finished(void) {
   tband_portENTER_CRITICAL_FROM_ANY();
@@ -203,7 +162,7 @@ struct metadata_buf {
 };
 
 // clang-format off
-static volatile struct metadata_buf metadata_bufs[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
+static tband_smp_volatile struct metadata_buf metadata_bufs[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
   .spinlock = tband_spinlock_INIT,
   .buf = {0},
   .idx = 0,
@@ -283,9 +242,9 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
 
   // Global flag is checked before and after backend spinlock is acquired.
   // This is required for impl_tracing_finished to work correctly! See function for more details.
-  if (atomic_load(&tracing_enabled)) {
+  if (tband_smp_atomic_bool_load(&tracing_enabled)) {
     tband_spinlock_acquire(&backend_spinlocks[core_id]);
-    if (atomic_load(&tracing_enabled)) {
+    if (tband_smp_atomic_bool_load(&tracing_enabled)) {
       did_drop = tband_portBACKEND_STREAM_DATA(((const uint8_t *)buf), ((size_t)len));
     }
     tband_spinlock_release(&backend_spinlocks[core_id]);
@@ -344,7 +303,7 @@ static int impl_start_streaming(bool send_metadata_buf) {
   (void)send_metadata_buf;
 #endif /* tband_configUSE_METADATA_BUF == 1 */
 
-  atomic_store(&tracing_enabled, true);
+  tband_smp_atomic_bool_store(&tracing_enabled, true);
 
 end:
   return err;
@@ -381,7 +340,7 @@ int tband_stop_streaming(void) {
   tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
-  bool was_enabled = atomic_exchange(&tracing_enabled, false);
+  bool was_enabled = tband_smp_atomic_bool_exchange(&tracing_enabled, false);
   if (!was_enabled) {
     err = -1;
   }
@@ -411,7 +370,7 @@ struct tband_snapshot_backend {
 };
 
 // clang-format off
-static volatile struct tband_snapshot_backend snapshot_backends[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
+static tband_smp_volatile struct tband_snapshot_backend snapshot_backends[tband_portNUMBER_OF_CORES] = CORE_ARRAY_INIT({
   .buf = {0},
   .idx = 0,
 });
@@ -436,10 +395,10 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
 
   // Global flag is checked before and after backend spinlock is acquired.
   // This is required for impl_tracing_finished to work correctly! See function for more details.
-  if (atomic_load(&tracing_enabled)) {
+  if (tband_smp_atomic_bool_load(&tracing_enabled)) {
     tband_spinlock_acquire(&backend_spinlocks[core_id]);
 
-    if (atomic_load(&tracing_enabled)) {
+    if (tband_smp_atomic_bool_load(&tracing_enabled)) {
       size_t idx = snapshot_backends[core_id].idx;
       size_t buf_size = tband_configBACKEND_SNAPSHOT_BUF_SIZE;
       if (idx < buf_size && (buf_size - idx) >= len) {
@@ -462,7 +421,7 @@ bool tband_submit_to_backend(uint8_t *buf, size_t len, bool is_metadata) {
     // First, acquire tracing_enabled_spinlock to be allowed to modify tracing_enabled:
     tband_spinlock_acquire(&tracing_enabled_spinlock);
 
-    bool was_enabled = atomic_exchange(&tracing_enabled, false);
+    bool was_enabled = tband_smp_atomic_bool_exchange(&tracing_enabled, false);
 
     // Only call callback if we were the ones to actually disable snapshot acquisition,
     // preventing the callback being called multiple times:
@@ -492,7 +451,7 @@ int tband_trigger_snapshot(void) {
   }
 
   // Enable tracing:
-  atomic_store(&tracing_enabled, true);
+  tband_smp_atomic_bool_store(&tracing_enabled, true);
 
 end:
   tband_spinlock_release(&tracing_enabled_spinlock);
@@ -506,7 +465,7 @@ int tband_stop_snapshot(void) {
   tband_portENTER_CRITICAL_FROM_ANY();
   tband_spinlock_acquire(&tracing_enabled_spinlock);
 
-  bool was_enabled = atomic_exchange(&tracing_enabled, false);
+  bool was_enabled = tband_smp_atomic_bool_exchange(&tracing_enabled, false);
   if (!was_enabled) {
     err = -1;
   }
